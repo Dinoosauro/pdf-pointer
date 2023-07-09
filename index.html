@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="./assets/icon.png" />
+    <meta name="apple-mobile-web-app-status-bar" content="#282a36" />
+    <meta name="theme-color" content="#c0c2d9" />
+</head>
+
+<body>
+    <div class="vertcenter" style="z-index: 99999; margin-left: 5vw; margin-right: 5vw; top: 15vh; position: absolute; top: 50%; bottom: 50%; max-height: 60vh; display: none; top: 15vh" id="introContainer">
+        <div class="intro" style="background-color: rgb(80,79,99);" id="intro1">
+            <div id="innerContents1" class="opacityRemove">
+                <h2 data-translate="welcomeTour">Welcome tour</h2>
+                <video class="vertcenter" autoplay muted>
+                <source src="./assets/SecondClip.mp4" type="video/mp4">
+            </video>
+            <h3 data-translate="welcome">Welcome on PDFPointer!</h3>
+            <l data-translate="welcomeDescription">View your PDFs with a pointer, directly form your browser and with zoom and multi page support</l><br><br>
+            <div class="vertcenter">
+                <div class="optionId button" style="background-color: rgb(134,134,155);" data-progress="0" data-customAnimate="1">
+                    <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div class="intro" style="background-color: rgb(42,25,9); display: none;" id="intro2">
+            <div id="innerContents2">
+                <h2 data-translate="welcomeTour">Welcome tour</h2>
+                <video class="vertcenter" autoplay muted>
+                    <source src="./assets/FirstClip.mp4" type="video/mp4">
+            </video>
+            <h3 data-translate="firstWelcome">PDF Annotations</h3>
+            <l data-translate="firstWelcomeDescription">Write or draw on PDF, with annotations that automatically disappear after a specific (and customizable) amount of time.</l>
+            <div class="vertcenter">
+                <div class="optionId button" style="background-color: rgb(123,94,72);" data-progress="1" data-customAnimate="1">
+                    <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                </div>
+            </div>
+        </div>
+            </div>
+            <div class="intro" style="background-color: rgb(28,27,31); display: none;" id="intro3">
+                <div id="innerContents3">
+                    <h2 data-translate="welcomeTour">Welcome tour</h2>
+                    <video class="vertcenter" autoplay muted>
+                        <source src="./assets/ThirdClip.mp4" type="video/mp4">
+                </video>    
+                <h3 data-translate="secondWelcome">Settings</h3>
+                <l data-translate="secondWelcomeDescription">Edit the application's theme, save custom colors and more from the settings.</l><br><br>
+                <div class="vertcenter">
+                    <div class="optionId button" style="background-color: rgb(99,99,99);" data-customAnimate="1">
+                        <div class="vertcenter" data-translate="endTour">End 🎉</div>
+                    </div>
+            </div>    
+                </div>
+            </div>
+    </div>
+    <div class="vertcenter opacityRemove" style="display: none; z-index: 9999999; position: absolute;" id="settings">
+        <div class="settingsMax dialog">
+            <l style="position: absolute; right: 15px; top: 5px; text-decoration: none;" id="closeSettings"
+                class="link">X</l>
+            <h2 style="margin: 0px; padding: 0px;">Settings</h2><br><br>
+            <div style="overflow-x: auto; width: 70vw;">
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="colorTitle">Custom colors list:</h3>
+                    <i data-translate="colorSubtitle">You can find here a list of colors. You can delete them by putting
+                        your cursor on their circle.</i>
+                    <div id="optionContainer" class="vertcenter containerSettings">
+                    </div><br><br>
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="customColor">Add a custom color</h3>
+                    <i data-translate="customColorDescription">Choose the color from the picker below. Then, you'll be
+                        asked to give it a name.</i>
+                    <div class="vertcenter">
+                        <div class="optionId button" data-customAnimate="1">
+                            <div class="vertcenter"><input type="color" class="vertcenter" id="colorNew"></div>
+                        </div>
+                    </div><br><br>
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="alert">Alerts</h3>
+                    <input type="checkbox" checked id="alertCheck">
+                    <l data-translate="checkTips">Show tips when selecting some tools</l><br><br>
+                    <l data-translate="timeAlert">Alert duration (in milliseconds): </l><input type="number"
+                        id="alertNumberDuration"><br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button" data-customAnimate="1">
+                            <div class="vertcenter" data-translate="resetTip">Reset hidden tips</div>
+                        </div>
+                    </div><br><br>
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="appTheme">Application theme:</h3>
+                    <i data-translate="themeDescription">Choose a theme from the list below</i>
+                    <div id="themeOptionShow" class="vertcenter containerSettings">
+                    </div>
+                    <br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button" data-customAnimate="1">
+                            <div class="vertcenter" data-translate="customThemeBtn">Create custom theme</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card optioncolor">
+                    <h3 data-translate="about">About this app</h3>
+                    <i class="vertcenter">PDFPointer <span id="appversion" style="margin-left: 5px;"></span></i><br><br>
+                    <a id="githubLink" href="https://github.com/dinoosauro/pdf-pointer" data-translate="github">View on
+                        GitHub</a><br>
+                    <l data-translate="mitPublish">This application is published under the MIT license, and uses some
+                        open source libraries. Here are their licenses, with also a small privacy information. You might
+                        need to scroll the list to see all of them.</l>
+                    <div class="vertcenter" style="overflow-y: scroll">
+                        <h4 class="link marginRight" data-license="mit" data-author="2023 Dinoosauro">PDFPointer</h4>
+                        <h4 class="link marginRight" data-license="hippocratic" data-author="2021 Daniel Eden">
+                            animate.css</h4>
+                        <h4 class="link marginRight" data-license="apache" data-author="">PDF.js</h4>
+                        <h4 class="link marginRight" data-license="mit" data-author="2017 Elliot">observable-slim</h4>
+                        <h4 class="link marginRight" data-license="icons">Icons</h4>
+                        <h4 class="link marginRight" data-license="privacyNotice" data-author="">Privacy</h4>
+                    </div><br><br>
+                    <div class="licenseDiv">
+                        <l id="licenseText" data-translate="mitPlaceholder">You'll see the license here.</l>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="display: flex; height: 48px; justify-content: center">
+        <img fetchlink="logo" width="48px" height="48px">
+        <div style="display: flex; align-items: center; margin-left: 15px;">
+            <h1 style="margin-bottom: 0px; padding-bottom: 0px; padding-top: 0px; margin-top: 4px;">PdfPointer</h1>
+        </div>
+    </div>
+    <div id="intro"><br><i data-translate="pointIntro">Point things on a PDF, directly from a website</i><br><br></div>
+    <div class="vertcenter" id="openDiv">
+        <div data-card="opencard" style="display: flex; float: left; width: 40vw; height: 65vh;">
+            <div class="card" data-card="opencard" style="display: float; margin: left; width: 40vw;">
+                <h3 data-translate="fileOpen">Let's open a new file!</h3><br><br>
+                <div class="vertcenter column">
+                    <img fetchlink="upload" width="150px" height="150px"><br><br>
+                    <div style="display: table;">
+                        <l data-translate="dropfile">Drop a file or </l><span class="link" id="openPicker"
+                            data-translate="openPicker">open the file picker</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; float: left; width: 40vw; height: 65vh;" id="pwaPromote">
+            <div class="card" style="margin-left: 30px; width: 40vw;">
+                <h3 data-translate="appinstall" style="margin-bottom: 0px; padding-bottom: 0px;">Install PDFPointer as
+                    an app</h3><br><br>
+                <div class="vertcenter column">
+                    <img fetchlink="laptop" width="200px" height="200px"><br><br>
+                    <l data-translate="installDescription">Use the app offline by installing PDFPointer, directly from
+                        your browser.</l><br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button">
+                            <div class="vertcenter" data-translate="installBtn">Install app</div>
+                        </div>
+                    </div><br><br>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="vertcenter column" id="toolMain" style="visibility: hidden;">
+            <div class="optionContainer vertcenter" id="containerOfOptions" style="margin-top: 10px;">
+                <div class="optionId" data-action="prev">
+                    <img fetchlink="prev" class="imgTool">
+                </div>
+                <div class="optionId" data-action="zoomout" data-moveleft="30px" style="margin-right: 30px;">
+                    <img fetchlink="zoomout" class="imgTool">
+                </div>
+                <div class="optionId" data-action="pen" customimg disableAction="erase">
+                    <img fetchlink="pen" class="imgTool">
+                </div>
+                <div class="optionId" data-action="timer">
+                    <img fetchlink="timer" class="imgTool">
+                </div>
+                <div class="optionId" data-action="erase" customimg disableAction="pen">
+                    <img fetchlink="erase" class="imgTool">
+                </div>
+                <div class="optionId" data-action="color">
+                    <img fetchlink="color" class="imgTool">
+                </div>
+                <div class="optionId" data-action="fullscreen">
+                    <img fetchlink="fullscreenon" class="imgTool">
+                </div>
+                <div class="optionId" data-action="normalscreen" style="display: none;">
+                    <img fetchlink="fullscreenoff" class="imgTool">
+                </div>
+                <div class="optionId" data-action="settings">
+                    <img fetchlink="settings" class="imgTool">
+                </div>
+                <div class="optionId" data-action="zoomin" data-moveright="30px" style="margin-left: 30px;">
+                    <img fetchlink="zoomin" class="imgTool">
+                </div>
+                <div class="optionId" data-action="next">
+                    <img fetchlink="next" class="imgTool">
+                </div>
+            </div>
+        </div>
+        <div class="vertcenter" id="pdfcontainer">
+            <div class="vertcenter column" id="pageContainer" style="visibility: hidden;">
+                <div class="pageBackground columnflex" id="canvasContainer">
+                    <canvas class="displayCanvas pointer" id="displayCanvas" height="600px" width="500px"
+                        pdf="yes"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    </div>
+    </div>
+    <input type="file" style="display: none;" accept="application/pdf" id="fileOpen">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
+        integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
+    <script src="./script.js"></script>
+</body>
