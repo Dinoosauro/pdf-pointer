@@ -25,7 +25,7 @@
             <h3 data-translate="welcome">Welcome on PDFPointer!</h3>
             <l data-translate="welcomeDescription">View your PDFs with a pointer, directly form your browser and with zoom and multi page support</l><br><br>
             <div class="vertcenter">
-                <div class="optionId button" style="background-color: rgb(134,134,155);" data-progress="0" data-customAnimate="1">
+                <div class="optionId button" style="background-color: rgb(134,134,155);" data-progress="0" data-customanimate="1">
                     <div class="vertcenter" data-translate="continueBtn">Continue</div>
                 </div>
             </div>
@@ -40,7 +40,7 @@
             <h3 data-translate="firstWelcome">PDF Annotations</h3>
             <l data-translate="firstWelcomeDescription">Write or draw on PDF, with annotations that automatically disappear after a specific (and customizable) amount of time.</l>
             <div class="vertcenter">
-                <div class="optionId button" style="background-color: rgb(123,94,72);" data-progress="1" data-customAnimate="1">
+                <div class="optionId button" style="background-color: rgb(123,94,72);" data-progress="1" data-customanimate="1">
                     <div class="vertcenter" data-translate="continueBtn">Continue</div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                 <h3 data-translate="secondWelcome">Settings</h3>
                 <l data-translate="secondWelcomeDescription">Edit the application's theme, save custom colors and more from the settings.</l><br><br>
                 <div class="vertcenter">
-                    <div class="optionId button" style="background-color: rgb(99,99,99);" data-customAnimate="1">
+                    <div class="optionId button" style="background-color: rgb(99,99,99);" data-customanimate="1">
                         <div class="vertcenter" data-translate="endTour">End 🎉</div>
                     </div>
             </div>    
@@ -66,45 +66,97 @@
         <div class="settingsMax dialog">
             <l style="position: absolute; right: 15px; top: 5px; text-decoration: none;" id="closeSettings"
                 class="link">X</l>
-            <h2 style="margin: 0px; padding: 0px;">Settings</h2><br><br>
+            <h2 style="margin: 0px; padding: 0px;" data-translate="settings">Settings</h2><br><br>
             <div style="overflow-x: auto; width: 70vw;">
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="colorTitle">Custom colors list:</h3>
                     <i data-translate="colorSubtitle">You can find here a list of colors. You can delete them by putting
-                        your cursor on their circle.</i>
+                        your cursor on their circle.</i><br><br>
+                        <div style="display: block;">
                     <div id="optionContainer" class="vertcenter containerSettings">
+                        </div>
                     </div><br><br>
+                    <div class="vertcenter" style="overflow-y: scroll">
+                    <div class="vertcenter">
+                        <div class="optionId button" style="margin-right: 10px;">
+                            <div class="vertcenter" data-translate="exportColor">Export colors</div>
+                        </div>
+                    </div>
+                    <div class="vertcenter">
+                        <div class="optionId button" style="margin-right: 10px">
+                            <div class="vertcenter" data-translate="importColor">Import colors</div>
+                        </div>
+                    </div>
+                    <div class="vertcenter">
+                        <div class="optionId button" style="margin-right: 10px;">
+                            <div class="vertcenter" data-translate="resetColor">Reset colors</div>
+                        </div>
+                    </div>
+                </div>
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="customColor">Add a custom color</h3>
-                    <i data-translate="customColorDescription">Choose the color from the picker below. Then, you'll be
+                    <i data-translate="customColorDescription" class="textCenter">Choose the color from the picker below. Then, you'll be
                         asked to give it a name.</i>
                     <div class="vertcenter">
-                        <div class="optionId button" data-customAnimate="1">
+                        <div class="optionId button">
                             <div class="vertcenter"><input type="color" class="vertcenter" id="colorNew"></div>
                         </div>
                     </div><br><br>
                 </div>
-                <div class="card optioncolor">
+                <div class="card optioncolor onlyHeightTransition" id="pointerContainer">
+                    <h3 class="vertcenter" data-translate="pointerColor">Pointer color</h3>
+                    <div class="vertcenter" >
+                        <div style="display: flex; float: left;">
+                            <l data-translate="pointerColorDescription">Use a different color for the pointer.</l></div>
+                            <div style="display: flex; float: right;">
+                                <label class="switch" data-customanimate='1'>
+                                    <input type="checkbox" id="pointerCheck">
+                                    <span class="slider round"></span>
+                                  </label>
+                            </div>
+                    </div>
+                    <br><br>    
+                    <div id="pointerSelectionDiv" class="opacityRemove" style="display: none; opacity: 0;">
+                        <l data-translate="customPointerColor" class="textCenter">Choose the pointer color:</l>
+                        <div class="vertcenter">
+                            <div class="optionId button">
+                                <div class="vertcenter">    <input type="color" data-customanimate='1' class="vertcenter" id="pointerColorSelector">                                </div>
+                            </div>
+                    </div>
+                    </div>
+                    </div><br><br>
+                <div class="card optioncolor onlyHeightTransition" id="alertMain">
                     <h3 class="vertcenter" data-translate="alert">Alerts</h3>
-                    <input type="checkbox" checked id="alertCheck">
-                    <l data-translate="checkTips">Show tips when selecting some tools</l><br><br>
-                    <l data-translate="timeAlert">Alert duration (in milliseconds): </l><input type="number"
-                        id="alertNumberDuration"><br><br>
                     <div class="vertcenter">
-                        <div class="optionId button" data-customAnimate="1">
+                        <div style="display: flex; float: left;">
+                            <l data-translate="checkTips">Show tips when selecting some tools</l><br><br>
+                            <div style="display: flex; float: right;">
+                                <label class="switch" data-customanimate='1'>
+                                    <input type="checkbox" checked id="alertCheck">
+                                    <span class="slider round"></span>
+                                  </label>
+                            </div>
+                    </div>
+                    </div>
+                    <div class="vertcenter">
+                        <div class="optionId button">
                             <div class="vertcenter" data-translate="resetTip">Reset hidden tips</div>
                         </div>
                     </div><br><br>
+                    <div id="alertContainer" style="display: none; opacity: 0;" class="opacityRemove">
+                        <l data-translate="timeAlert">Alert duration (in milliseconds): </l><input type="number"
+                        id="alertNumberDuration" data-customanimate='1'><br><br>
+                    </div>
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="appTheme">Application theme:</h3>
-                    <i data-translate="themeDescription">Choose a theme from the list below</i>
+                    <i data-translate="themeDescription">Choose a theme from the list below</i><br><br>
                     <div id="themeOptionShow" class="vertcenter containerSettings">
                     </div>
                     <br><br>
                     <div class="vertcenter">
-                        <div class="optionId button" data-customAnimate="1">
+                        <div class="optionId button">
                             <div class="vertcenter" data-translate="customThemeBtn">Create custom theme</div>
                         </div>
                     </div>
@@ -127,8 +179,10 @@
                         <h4 class="link marginRight" data-license="privacyNotice" data-author="">Privacy</h4>
                     </div><br><br>
                     <div class="licenseDiv">
+                        <div id="licenseAnimatiom">
                         <l id="licenseText" data-translate="mitPlaceholder">You'll see the license here.</l>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

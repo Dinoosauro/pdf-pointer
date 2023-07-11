@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.1";
+let appVersion = "1.0.2";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -249,7 +249,9 @@ let localOptions = {
     changeItems: {
         timer: 15,
         showTips: true,
-        alertInt: 5000
+        alertInt: 5000,
+        pointerColorEnabled: false,
+        pointerColorColor: "#ffffff"
     },
     themes: [{
         name: "Umber Brown",
@@ -324,7 +326,7 @@ let localOptions = {
     }
     ]
 }
-if (localStorage.getItem("PDFPointer-customColors") !== null) localOptions.availableHighlightColors = JSON.parse(localStorage.getItem("PDFPointer-customColors"));
+if (localStorage.getItem("PDFPointer-customColors") !== null && localStorage.getItem("PDFPointer-customColors") !== "{}") localOptions.availableHighlightColors = JSON.parse(localStorage.getItem("PDFPointer-customColors"));
 let optionProxy = ObservableSlim.create(localOptions, true, function (change) {
     let changes = change[0];
     if (changes.type === "update") {
@@ -454,6 +456,7 @@ function topAlert(text, alertType, isChange) {
     }
     let doNotShow = document.createElement("l");
     doNotShow.classList.add("noshow", "link");
+    doNotShow.style.marginLeft = "10px";
     doNotShow.textContent = globalTranslations.noShowAgain;
     doNotShow.addEventListener("click", () => {
         if (localStorage.getItem("PDFPointer-notshow") === null) localStorage.setItem("PDFPointer-notshow", "");
@@ -489,28 +492,34 @@ function bounceTextEvents(item, animationItem) {
         setTimeout(() => { item.classList.remove("animate__animated", "animate__headShake") }, 800)
     });
 }
-function fetchColors() {
-    document.getElementById("optionContainer").innerHTML = "";
-    for (let i = 0; i < Object.keys(optionProxy.availableHighlightColors).length; i++) {
-        if (Object.keys(optionProxy.availableHighlightColors)[i] === "currentColor") continue;
+let colorHeight = 0;
+function fetchColors(jsonItem) {
+    for (let i = 0; i < Object.keys(jsonItem).length; i++) {
+        console.log(colorHeight);
+        if (Object.keys(jsonItem)[i] === "currentColor") continue;
+        colorHeight += 57; // Height + border
+        document.getElementById("optionContainer").style.maxHeight = `${colorHeight}px`;
         let show = document.createElement("div");
         show.classList.add("colorContainer");
         let innerText = document.createElement("l");
-        innerText.textContent = Object.keys(localOptions.availableHighlightColors)[i];
+        innerText.textContent = Object.keys(jsonItem)[i];
         innerText.style = "display: flex; float: left";
         bounceTextEvents(innerText, show);
-        let arrayOptions = optionProxy.availableHighlightColors[Object.keys(optionProxy.availableHighlightColors)[i]];
+        let arrayOptions = jsonItem[Object.keys(jsonItem)[i]];
         let deleteBtn = createContainerInfo("bin", `rgb(${arrayOptions[0]},${arrayOptions[1]},${arrayOptions[2]})`, undefined, show);
         deleteBtn.addEventListener("click", () => {
-            delete optionProxy.availableHighlightColors[Object.keys(optionProxy.availableHighlightColors)[i]];
+            delete jsonItem[Object.keys(jsonItem)[i]];
             document.documentElement.style.setProperty("--deleteitem", `rgb(${arrayOptions[0]},${arrayOptions[1]},${arrayOptions[2]})`);
-            storeCustomOptions([optionProxy.availableHighlightColors], ["PDFPointer-customColors"]);
+            storeCustomOptions([jsonItem], ["PDFPointer-customColors"]);
             show.classList.add("runAnimation")
             setTimeout(() => {
                 show.style.backgroundColor = `rgb(${arrayOptions[0]},${arrayOptions[1]},${arrayOptions[2]})`;
                 show.classList.add("animate__animated", "animate__backOutDown");
                 setTimeout(() => {
-                    show.remove();
+                    show.classList.add("deleteAnimation");
+                    colorHeight -= 57;
+                    document.getElementById("optionContainer").style.maxHeight = `${colorHeight}px`;
+                    setTimeout(() => {show.remove();}, 250);
                 }, 1000)
             }, 1000);
         });
@@ -518,7 +527,8 @@ function fetchColors() {
         document.getElementById("optionContainer").append(show);
     }
 }
-fetchColors();
+document.getElementById("optionContainer").innerHTML = "";
+fetchColors(optionProxy.availableHighlightColors);
 document.getElementById("colorNew").addEventListener("focusout", () => {
     let result = prompt(`${globalTranslations.nameColor} [${document.getElementById("colorNew").value}]`);
     if (result !== null) {
@@ -526,7 +536,10 @@ document.getElementById("colorNew").addEventListener("focusout", () => {
         getColorRGB.push(255)
         optionProxy.availableHighlightColors[result] = getColorRGB;
         storeCustomOptions([optionProxy.availableHighlightColors], ["PDFPointer-customColors"]);
-        fetchColors();
+        let singleColor = {};
+        singleColor[result] = getColorRGB;
+        console.log(singleColor);
+        fetchColors(singleColor);
     }
 })
 function getImg(loadImg, link, setCursor, customColor) {
@@ -543,6 +556,7 @@ function getImg(loadImg, link, setCursor, customColor) {
         let finalResult = URL.createObjectURL(new Blob([read.replaceAll("#c5603f", replaceItem[0]).replaceAll("#fcf7f2", replaceItem[1])], { type: "image/svg+xml" }));
         if (setCursor) {
             let rgbOption = hexToRgbNew(replaceItem[0].replace("#", "")).split(",");
+            if (optionProxy.changeItems.pointerColorEnabled) rgbOption = hexToRgbNew(optionProxy.changeItems.pointerColorColor.replace("#", "")).split(",");
             img.style.cursor = `url("data:image/svg+xml;utf8,${(`${read.replaceAll(`fill='#c5603f'`, `fill='rgb(${rgbOption[0]},${rgbOption[1]},${rgbOption[2]})'`)}`)}") 0 32, auto`;
         } else img.src = finalResult;
     }
@@ -615,6 +629,7 @@ function fetchThemes() {
                 for (let i = 0; i < Object.keys(customGet).length; i++) if (i !== theme.trackCustom) futureGet.push(customGet[i]);
                 localStorage.setItem("PDFPointer-customThemeJson", JSON.stringify({ items: futureGet }));
                 setTimeout(() => {
+                    document.getElementById("themeOptionShow").style.maxHeight = `${parseInt(document.getElementById("themeOptionShow").style.maxHeight.substring(0, document.getElementById("themeOptionShow").style.maxHeight.indexOf("px"))) - 57}px`;
                     themeContainerOption.style.backgroundColor = `${theme.accent}`;
                     themeContainerOption.classList.add("animate__animated", "animate__backOutDown");
                     setTimeout(() => {
@@ -629,9 +644,22 @@ function fetchThemes() {
 }
 getImg(document.querySelectorAll("[fetchlink]"));
 fetchThemes();
+let defaultCheck = false;
 document.querySelector("[data-action=settings]").addEventListener("click", () => {
     document.getElementById("settings").style.display = "inline";
     document.getElementById("settings").classList.add("animate__animated", "animate__backInDown");
+    if (!defaultCheck) {
+        for (let i = 0; i < switchIds.length; i++) {
+            switchIds[i][2].setAttribute("defaultHeight", `${switchIds[i][2].offsetHeight}px`);
+            console.log(switchIds[i][2].offsetHeight);
+            console.log(switchIds[i][3]);
+            if (switchIds[i][3]) {
+                switchIds[i][0].style.display = "inline";
+                switchIds[i][0].style.opacity = "1";
+            }
+        }
+        document.getElementById("themeOptionShow").style.maxHeight = `${document.getElementById("themeOptionShow").offsetHeight}px`;
+    }
     setTimeout(() => {
         document.getElementById("settings").classList.remove("animate__animated", "animate__backInDown");
     }, 1100);
@@ -654,15 +682,13 @@ document.getElementById("fileOpen").onchange = function () {
     }
 }
 document.getElementById("openPicker").addEventListener("click", () => { document.getElementById("fileOpen").click() })
-document.getElementById("alertCheck").addEventListener("input", () => {
-    optionProxy.changeItems.showTips = document.getElementById("alertCheck").checked;
-})
-let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt"], ["array", "int", "int", "int", "bool", "int"]];
+let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn", "PDFPointer-customPointerEnable", "PDFPointer-customPointerColor"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt", "changeItems.pointerColorEnabled", "changeItems.pointerColorColor"], ["array", "int", "int", "int", "bool", "int", "bool", "string"]];
 for (let i = 0; i < settingsToSave[0].length; i++) {
     if (localStorage.getItem(settingsToSave[0][i]) !== null) {
         let item = localOptions;
         let itemPart = settingsToSave[1][i].split(".");
         for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
+        console.log(itemPart);
         switch (settingsToSave[2][i]) {
             case "array":
                 item[itemPart[itemPart.length - 1]] = localStorage.getItem(settingsToSave[0][i]).split(",");
@@ -671,13 +697,22 @@ for (let i = 0; i < settingsToSave[0].length; i++) {
                 item[itemPart[itemPart.length - 1]] = parseInt(localStorage.getItem(settingsToSave[0][i]));
                 break;
             case "bool":
-                item[itemPart[itemPart.length - 1]] = localStorage.getItem(settingsToSave[0][i]) === true;
+                item[itemPart[itemPart.length - 1]] = localStorage.getItem(settingsToSave[0][i]) === "true";
                 break;
-            default:
+            case "string":
                 item[itemPart[itemPart.length - 1]] = localStorage.getItem(settingsToSave[0][i]);
                 break;
         }
     }
+}
+let checkBoxClick = [[document.getElementById("alertCheck"), document.getElementById("pointerCheck")], ["changeItems.showTips", "changeItems.pointerColorEnabled"]];
+for (let i = 0; i < checkBoxClick[0].length; i++) {
+    let item = localOptions;
+    let itemPart = checkBoxClick[1][i].split(".");
+    for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
+    console.log(item);
+    console.log(item[itemPart[itemPart.length - 1]]);
+    checkBoxClick[0][i].checked = item[itemPart[itemPart.length - 1]];
 }
 let isFullscreen = false;
 document.getElementById("pageContainer").style.margin = "0px auto";
@@ -788,7 +823,13 @@ let getLicense = {};
 fetch(`./translationItems/licenses.json`).then((res) => { res.json().then((json) => { getLicense = json }) });
 for (let item of document.querySelectorAll("[data-license]")) {
     item.addEventListener("click", () => {
+        document.getElementById("licenseAnimatiom").classList.add("animate__animated", "animate__shakeX");
+        item.classList.add("animate__animated", "animate__shakeX");
         document.getElementById("licenseText").innerHTML = getLicense[item.getAttribute("data-license")].replace("{DateAndAuthorReplace}", item.getAttribute("data-author")).replaceAll("\n", "<br>");
+        setTimeout(() => {
+            item.classList.remove("animate__animated", "animate__shakeX");
+            document.getElementById("licenseAnimatiom").classList.remove("animate__animated", "animate__shakeX");        
+        }, 1000);
     });
 }
 document.getElementById("appversion").textContent = appVersion;
@@ -892,3 +933,67 @@ for (let item of document.querySelectorAll("[data-customAnimate='1']")) {
     item.addEventListener("mouseenter", () => { item.classList.remove("closeAnimationTool"); item.classList.add("btnTourAnimate") });
     item.addEventListener("mouseleave", () => { item.classList.remove("btnTourAnimate"); item.classList.add("closeAnimationTool") });
 }
+let switchIds = [[document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), optionProxy.changeItems.pointerColorEnabled], [document.getElementById("alertContainer"), document.getElementById("alertCheck"), document.getElementById("alertMain"), optionProxy.changeItems.showTips]];
+for (let i = 0; i < switchIds.length; i++) switchSubsectionShow(switchIds[i][0], switchIds[i][1], switchIds[i][2], switchIds[i][3]);
+switchSubsectionShow(document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), optionProxy.changeItems.pointerColorEnabled);
+function switchSubsectionShow(containerDiv, switchVal, generalDiv, optionToChange) {
+    switchVal.addEventListener("input", () => {
+        optionToChange = switchVal.checked;
+        if (switchVal.checked) {
+            generalDiv.style.maxHeight = `${generalDiv.offsetHeight}px`;
+            containerDiv.style.display = "inline"; 
+            generalDiv.style.maxHeight = `${generalDiv.offsetHeight}px`;
+            setTimeout(() => {containerDiv.style.opacity = 1;}, 50);    
+            console.log(generalDiv.style.maxHeight);
+            console.log(generalDiv.offsetHeight + parseInt(containerDiv.offsetHeight));
+        } else {
+            containerDiv.style.opacity = 0;
+            console.log(generalDiv.style.maxHeight);
+            setTimeout(() => {
+                generalDiv.style.maxHeight = generalDiv.getAttribute("defaultHeight");
+                setTimeout(() => {containerDiv.style.display = "none";}, 150);
+                
+            }, 350);          
+        }
+    });
+}
+document.getElementById("pointerColorSelector").addEventListener("input", () => {optionProxy.changeItems.pointerColorColor = document.getElementById("pointerColorSelector").value});
+document.querySelector("[data-translate=exportColor]").addEventListener("click", () => {
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(optionProxy.availableHighlightColors)], { type: "text/plain" }));
+    a.download = `colors-export.json`;
+    a.click();
+})
+document.querySelector("[data-translate=importColor]").addEventListener("click", () => {
+    let file = document.createElement("input");
+    file.type = "file";
+    file.onchange = () => {
+        let read = new FileReader();
+        read.onload = () => {
+            let parse = JSON.parse(read.result);
+            optionProxy.availableHighlightColors = {"currentColor": [255, 0, 0, 255]};
+            for (let item in parse) {
+                let continueImport = true;
+                for (let part of parse[item]) try {if (parseInt(part) > 255 || parseInt(part) < 0) continueImport = false } catch(ex) {console.warn(ex); continueImport = false};
+                if (!continueImport) continue;
+                optionProxy.availableHighlightColors[item] = parse[item];
+            }
+            localStorage.setItem("PDFPointer-customColors", JSON.stringify(optionProxy.availableHighlightColors));
+            alert("Colors restored. The page will be refreshed.");
+            location.reload();
+        }
+        read.readAsText(file.files[0]);
+    }
+    file.click();
+})
+document.querySelector("[data-translate=resetColor]").addEventListener("click", () => {
+    optionProxy.availableHighlightColors = {
+        "Red": [255, 0, 0, 255],
+        "Blue": [0, 0, 255, 255],
+        "Green": [0, 255, 0, 255],
+        "currentColor": [255, 0, 0, 255],
+    };
+    localStorage.setItem("PDFPointer-customColors", JSON.stringify(optionProxy.availableHighlightColors));
+    alert("Colors restored. The page will be refreshed.");
+    location.reload();
+})

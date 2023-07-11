@@ -30,6 +30,13 @@
     "secondWelcomeDescription": "Modifica il tema dell'app, crea colori personalizzati ed altro dalle impostazioni.",
     "endTour": "Fine 🎉",
     "welcomeTour": "Tour di benvenuto",
+    "pointerColor": "Colore del puntatore",
+    "pointerColorDescription": "Utilizza un altro colore per il puntatore",
+    "customPointerColor": "Scegli il colore del puntatore:",
+    "exportColor": "Esporta colori",
+    "importColor": "Importa colori",
+    "resetColor": "Reimposta colori",
+    "settings": "Impostazioni",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",

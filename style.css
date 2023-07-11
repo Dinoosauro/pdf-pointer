@@ -48,6 +48,11 @@ h1, h2, h3, h4 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    transition: max-height 0.25s ease-in-out;
+    overflow: hidden;
+}
+.onlyHeightTransition {
+  transition: max-height 0.15s ease-in-out;
 }
 .optionContainer {
     display: flex;
@@ -204,10 +209,20 @@ video {
     from {background-color: var(--optionbackground);}
     to {background-color: var(--deleteitem);}
   }
+  @keyframes deleteDiv {
+    from {transform: scaleY(1); height: "45px";}
+    to {transform: scaleY(0); height: "0px";};
+  }
+
   .runAnimation {
     animation-name: deleteItems;
   animation-duration: 1s;
   }
+  .deleteAnimation {
+    animation-name: deleteDiv;
+  animation-duration: 0.25s;
+  }
+
   @keyframes changeColor1 {
     from {background-color: rgb(80,79,99);}
     to {background-color: rgb(42,25,9);}
@@ -360,3 +375,75 @@ li {
 .noshow {
     font-size: 0.85em
 }
+
+/* Borrowed from W3Schools /*
+/* The switch - the box around the slider */
+.switch {
+    margin-left: 15px;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 20px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background);
+    padding-bottom: 5px;
+    padding-top: 5px;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 6px;
+    bottom: 4px;
+    background-color: var(--safetext);
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: var(--accent);
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px var(--accent);
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(38px);
+    -ms-transform: translateX(38px);
+    transform: translateX(38px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  .textCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
