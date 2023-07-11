@@ -21,6 +21,7 @@ Click on the fullscreen icon (the one after the color one) and the document will
 In the settings, you can change lots of things:
 - Delete/Add custom colors
 - Choose if alerts should be shown (and their length)
+- Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
 - See the licenses of the open source libraries 
 ### Zoom in/out
