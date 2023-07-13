@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.2";
+let appVersion = "1.0.3";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -37,6 +37,8 @@ function unclickItems(action) {
     action.classList.remove("clickImg");
 }
 let loadPDF = [null, null, 1]; // [PDF element, single PDF, page]
+let eraseFromKey = false;
+let changeItemFromKey = [false, "cursorpointer"];
 function startPDFRead(link) {
     document.getElementById("openDiv").classList.add("animate__animated", "animate__backOutDown");
     document.getElementById("intro").classList.add("animate__animated", "animate__backOutDown");
@@ -48,13 +50,52 @@ function startPDFRead(link) {
         document.getElementById("toolMain").classList.add("animate__animated", "animate__backInUp");
         document.getElementById("pageContainer").classList.add("animate__animated", "animate__backInUp");
         function shiftShortcut(e) {
-            if (e.key === "Shift") {
-                document.querySelector("[data-action=pen]").click();
-                canvasPen();
+            function switchItem(typeSwitch) {
+                if (typeSwitch) {
+                    document.querySelector("[data-action=erase]").classList.remove("clickImg");
+                    document.querySelector("[data-action=pen]").classList.add("clickImg");
+                } else {
+                    document.querySelector("[data-action=erase]").classList.add("clickImg");
+                    document.querySelector("[data-action=pen]").classList.remove("clickImg");
+
+                }
+
             }
+            // A switch is used for the items that require more than a button click. Otherwise, the items on an array are read (since it's easier to add new ones in this way)
+            switch (e.key) {
+                case "Shift":
+                    if (isFromKey) {
+                        canvasIds[1][1] = false;
+                        canvasIds[0]++;
+                        document.querySelector("[data-action=pen]").classList.remove("clickImg");
+                    } else switchItem(true);;
+                    if (changeItemFromKey[1] === "cursorerase") changeItemFromKey = [false, "cursorpointer"];
+                    isFromKey = !isFromKey;
+                    eraseFromKey = false;
+                    canvasPen();
+                    break;
+                case "Alt":
+                    canvasIds[1][1] = false;
+                    canvasIds[0]++;
+                    isFromKey = false;
+                    eraseFromKey = false;
+                    break;
+                case "Backspace":
+                    eraseFromKey = !eraseFromKey;
+                    if (eraseFromKey) {
+                        changeItemFromKey = [true, "cursorerase"];
+                        switchItem(false);
+                    } else {
+                        changeItemFromKey = [true, "cursorpointer"];
+                        document.querySelector("[data-action=erase]").classList.remove("clickImg")
+                    }
+                    break;
+            }
+            let standardShortcut = [["+", "-", "ArrowLeft", "ArrowRight"], [document.querySelector("[data-action=zoomin]"), document.querySelector("[data-action=zoomout]"), document.querySelector("[data-action=prev]"), document.querySelector("[data-action=next]")]];
+            for (let i = 0; i < standardShortcut[0].length; i++) if (e.key === standardShortcut[0][i]) standardShortcut[1][i].click();
         }
         document.documentElement.addEventListener("keydown", (e) => { shiftShortcut(e) });
-        document.documentElement.addEventListener("keyup", (e) => { shiftShortcut(e) });
+        // document.documentElement.addEventListener("keyup", (e) => { shiftShortcut(e) });
         document.documentElement.addEventListener("mouseup", () => { zoomTrack[3] = false });
         document.documentElement.addEventListener("mouseleave", () => { zoomTrack[3] = false });
         document.documentElement.addEventListener("mousemove", (e) => dragZoom(e));
@@ -135,7 +176,8 @@ let globalTranslations = {
     nameColor: "How do you want to name this color?",
     maxZoom: "is the maxinum zoom level permitted",
     minZoom: "is the mininum zoom level permitted",
-    noShowAgain: "Don't show again"
+    noShowAgain: "Don't show again",
+    zoomCanvas: "Zooming in PDFs and keeping annotations is experimental, and it might (and most probalby will) cause glitches.",
 }
 function canvasPen() {
     if (!document.querySelector("[data-action=pen]").classList.contains("clickImg") && !isFromKey) return;
@@ -145,19 +187,21 @@ function canvasPen() {
         canvasIds[0]++;
         return;
     }
-    let newCanvas = document.createElement("canvas");
+    let newCanvas = document.createElement("div");
     newCanvas.width = document.getElementById("displayCanvas").offsetWidth;
     newCanvas.height = document.getElementById("displayCanvas").offsetHeight;
     newCanvas.style = `position: absolute; z-index: ${canvasIds[0]}; margin-top: 0px;`;
     newCanvas.classList.add("displayCanvas", "opacityRemove");
     newCanvas.setAttribute("topstatus", "0");
     newCanvas.setAttribute("leftstatus", "0");
+    newCanvas.setAttribute("data-zoom", zoomTrack[0]);
     newCanvas.setAttribute("data-page", `${loadPDF[2]}`);
-    let ctx = newCanvas.getContext("2d");
+    let ctx = new C2S(document.getElementById("displayCanvas").offsetWidth, document.getElementById("displayCanvas").offsetHeight)
     ctx.strokeStyle = `rgb(${optionProxy.availableHighlightColors.currentColor})`;
     ctx.lineWidth = 5;
     canvasIds[1][0] = ctx;
     canvasIds[1][1] = true;
+    canvasIds[1][3] = newCanvas;
     addEvents(newCanvas);
     setTimeout(() => {
         newCanvas.style.opacity = "0";
@@ -172,14 +216,20 @@ function canvasMove(event) {
     let rectangle = document.getElementById("displayCanvas").getBoundingClientRect();
     let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top];
     if (canvasIds[1][2][0] !== null) {
-        canvasIds[1][0].lineTo(xy[0], xy[1] + 16);
-        canvasIds[1][0].stroke();
+        try {
+            canvasIds[1][0].lineTo(xy[0], xy[1] + 16);
+            canvasIds[1][0].stroke();
+        } catch (ex) {
+            console.warn(ex);
+            canvasPen();
+            canvasPen();
+        }
     } else {
         canvasIds[1][0].beginPath();
         canvasIds[1][0].moveTo(xy[0], xy[1] + 16);
     }
     canvasIds[1][2] = xy;
-
+    canvasIds[1][3].innerHTML = canvasIds[1][0].getSerializedSvg();
 }
 let eraseTime = false;
 function addEvents(newCanvas) {
@@ -194,6 +244,11 @@ function addEvents(newCanvas) {
     newCanvas.addEventListener("mousemove", (event) => {
         canvasMove(event);
         canvasEraser(event);
+        if (changeItemFromKey[0]) {
+            changeItemFromKey[0] = false;
+            cursorChange(newCanvas, changeItemFromKey[1]);
+        }
+        if (changeItemFromKey[1] === "cursorerase") canvasEraser(event, true);
     });
     newCanvas.addEventListener("mouseleave", () => { canvasIds[1][2][0] = null; newCanvas.style.cursor = "pointer"; });
     newCanvas.addEventListener("hover", () => { intelligentCursor(newCanvas) })
@@ -201,24 +256,32 @@ function addEvents(newCanvas) {
         if (!document.querySelector("[data-action=erase]").classList.contains("clickImg")) zoomTrack[3] = true;
         precedentZoomPosition = [e.screenX, e.screenY];
     });
-    newCanvas.addEventListener("mouseenter", () => {
-        let actionToDo = "cursorpointer";
-        if (document.querySelector(`[data-action=pen]`).classList.contains("clickImg")) actionToDo = "cursorpen"; else if (document.querySelector(`[data-action=erase]`).classList.contains("clickImg")) actionToDo = "cursorerase";
-        getImg([newCanvas], actionToDo, true);
-    });
+    newCanvas.addEventListener("mouseenter", () => { cursorChange(newCanvas) });
 }
-function canvasEraser(event) {
-    if (!document.querySelector("[data-action=erase]").classList.contains("clickImg") || !eraseTime) return;
+function cursorChange(canvas, cursor) {
+    let actionToDo = cursor;
+    if (actionToDo === undefined) {
+        actionToDo = "cursorpointer";
+        if (document.querySelector(`[data-action=pen]`).classList.contains("clickImg")) actionToDo = "cursorpen"; else if (document.querySelector(`[data-action=erase]`).classList.contains("clickImg")) actionToDo = "cursorerase";
+    }
+    getImg([canvas], actionToDo, true);
+}
+function canvasEraser(event, skip) {
+    if (skip !== true) if (!document.querySelector("[data-action=erase]").classList.contains("clickImg") || !eraseTime) return; // skip !== true since it can also be undefined
     let rectangle = document.getElementById("displayCanvas").getBoundingClientRect();
     let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top + 16];
-    let getCanvases = document.querySelectorAll("canvas");
+    let getCanvases = document.querySelectorAll("g");
     for (let canvas of getCanvases) {
+        let canvasPosition = canvas.getBoundingClientRect();
         if (canvas.getAttribute("pdf") === "yes") continue;
-        let data = canvas.getContext("2d").getImageData(xy[0], xy[1], 1, 1).data;
-        if (Array.from(data)[3] !== 0) {
-            canvas.style.opacity = 0;
-            setTimeout(() => { canvas.remove(); }, 500);
+        function deleteCanvas() {
+            if (canvas.parentElement.parentElement.getAttribute("data-delete") === null) canvas.parentElement.parentElement.setAttribute("data-delete", "1"); else return;
+            canvas.parentElement.parentElement.style.opacity = 0;
+            setTimeout(() => { canvas.parentElement.parentElement.remove() }, 700);
         }
+        if ((canvasPosition.bottom - event.clientY) > -20 && (canvasPosition.bottom - event.clientY) < 20) deleteCanvas();
+        if ((canvasPosition.left - event.clientX) > -20 && (canvasPosition.left - event.clientX) < 20) deleteCanvas();
+
     }
 }
 function hexToRgbNew(hex) { // Borrowed from https://stackoverflow.com/a/11508164
@@ -251,7 +314,8 @@ let localOptions = {
         showTips: true,
         alertInt: 5000,
         pointerColorEnabled: false,
-        pointerColorColor: "#ffffff"
+        pointerColorColor: "#ffffff",
+        keepZoomSize: null,
     },
     themes: [{
         name: "Umber Brown",
@@ -334,7 +398,7 @@ let optionProxy = ObservableSlim.create(localOptions, true, function (change) {
         if (settingsToSave[1].indexOf(changes.currentPath) === -1) return;
         let item = localOptions;
         for (let i = 0; i < path.length - 1; i++) item = item[path[i]];
-        localStorage.setItem(settingsToSave[0][settingsToSave[1].indexOf(changes.currentPath)], changes.newValue)
+        localStorage.setItem(settingsToSave[0][settingsToSave[1].indexOf(changes.currentPath)], changes.newValue);
     }
 });
 addEvents(document.getElementById("displayCanvas"));
@@ -428,7 +492,7 @@ function topAlert(text, alertType, isChange) {
     if (!optionProxy.changeItems.showTips || localStorage.getItem("PDFPointer-notshow") !== null && localStorage.getItem("PDFPointer-notshow").split(",").indexOf(alertType) !== -1) return;
     let alertContainer = document.createElement("div");
     alertContainer.classList.add("vertcenter", "opacityRemove");
-    alertContainer.style = "width: 100vw";
+    alertContainer.style = "width: 100vw; z-index: 9999998";
     let alert = document.createElement("div");
     alert.classList.add("alert", "vertcenter");
     function deleteFunction() {
@@ -479,13 +543,26 @@ document.querySelector("[data-action=next]").addEventListener("click", () => {
     loadPDF[2]++;
     showRightCanvas();
     canvasPDF(loadPDF[2]);
+    fixZoom();
 });
 document.querySelector("[data-action=prev]").addEventListener("click", () => {
     if (loadPDF[2] === 1) return;
     loadPDF[2]--;
     showRightCanvas();
     canvasPDF(loadPDF[2]);
+    fixZoom();
 });
+function fixZoom() {
+    for (let itemOld of document.querySelectorAll("g")) {
+        item = itemOld.parentElement;
+        item.parentElement.style.transform = `scale(1)`;
+        item.parentElement.height = originalWidth[2];
+        item.parentElement.width = originalWidth[3];
+        item.parentElement.style.marginTop = `0px`;
+        item.parentElement.style.marginLeft = `0px`;
+    }
+    zoomTrack[0] = 1;
+}
 function bounceTextEvents(item, animationItem) {
     animationItem.addEventListener("mouseenter", () => {
         item.classList.add("animate__animated", "animate__headShake");
@@ -495,7 +572,6 @@ function bounceTextEvents(item, animationItem) {
 let colorHeight = 0;
 function fetchColors(jsonItem) {
     for (let i = 0; i < Object.keys(jsonItem).length; i++) {
-        console.log(colorHeight);
         if (Object.keys(jsonItem)[i] === "currentColor") continue;
         colorHeight += 57; // Height + border
         document.getElementById("optionContainer").style.maxHeight = `${colorHeight}px`;
@@ -519,7 +595,7 @@ function fetchColors(jsonItem) {
                     show.classList.add("deleteAnimation");
                     colorHeight -= 57;
                     document.getElementById("optionContainer").style.maxHeight = `${colorHeight}px`;
-                    setTimeout(() => {show.remove();}, 250);
+                    setTimeout(() => { show.remove(); }, 250);
                 }, 1000)
             }, 1000);
         });
@@ -538,7 +614,6 @@ document.getElementById("colorNew").addEventListener("focusout", () => {
         storeCustomOptions([optionProxy.availableHighlightColors], ["PDFPointer-customColors"]);
         let singleColor = {};
         singleColor[result] = getColorRGB;
-        console.log(singleColor);
         fetchColors(singleColor);
     }
 })
@@ -645,14 +720,26 @@ function fetchThemes() {
 getImg(document.querySelectorAll("[fetchlink]"));
 fetchThemes();
 let defaultCheck = false;
+function dialogGeneralAnimation(id, open) {
+    if (open) {
+    document.getElementById(id).style.display = "inline";
+    document.getElementById(id).classList.add("animate__animated", "animate__backInDown");
+    setTimeout(() => {
+        document.getElementById(id).classList.remove("animate__animated", "animate__backInDown");
+    }, 1100);
+} else {
+    document.getElementById(id).classList.add("animate__animated", "animate__backOutDown");
+    setTimeout(() => {
+        document.getElementById(id).style.display = "none";
+        document.getElementById(id).classList.remove("animate__animated", "animate__backOutDown");
+    }, 1100);
+}
+}
 document.querySelector("[data-action=settings]").addEventListener("click", () => {
-    document.getElementById("settings").style.display = "inline";
-    document.getElementById("settings").classList.add("animate__animated", "animate__backInDown");
+    dialogGeneralAnimation("settings", true);
     if (!defaultCheck) {
         for (let i = 0; i < switchIds.length; i++) {
             switchIds[i][2].setAttribute("defaultHeight", `${switchIds[i][2].offsetHeight}px`);
-            console.log(switchIds[i][2].offsetHeight);
-            console.log(switchIds[i][3]);
             if (switchIds[i][3]) {
                 switchIds[i][0].style.display = "inline";
                 switchIds[i][0].style.opacity = "1";
@@ -660,17 +747,10 @@ document.querySelector("[data-action=settings]").addEventListener("click", () =>
         }
         document.getElementById("themeOptionShow").style.maxHeight = `${document.getElementById("themeOptionShow").offsetHeight}px`;
     }
-    setTimeout(() => {
-        document.getElementById("settings").classList.remove("animate__animated", "animate__backInDown");
-    }, 1100);
 
 })
 document.getElementById("closeSettings").addEventListener("click", () => {
-    document.getElementById("settings").classList.add("animate__animated", "animate__backOutDown");
-    setTimeout(() => {
-        document.getElementById("settings").style.display = "none";
-        document.getElementById("settings").classList.remove("animate__animated", "animate__backOutDown");
-    }, 1100);
+    dialogGeneralAnimation("settings", false);
 })
 document.getElementById("fileOpen").onchange = function () {
     if (document.getElementById("fileOpen").files) {
@@ -682,13 +762,12 @@ document.getElementById("fileOpen").onchange = function () {
     }
 }
 document.getElementById("openPicker").addEventListener("click", () => { document.getElementById("fileOpen").click() })
-let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn", "PDFPointer-customPointerEnable", "PDFPointer-customPointerColor"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt", "changeItems.pointerColorEnabled", "changeItems.pointerColorColor"], ["array", "int", "int", "int", "bool", "int", "bool", "string"]];
+let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn", "PDFPointer-customPointerEnable", "PDFPointer-customPointerColor", "PDFPointer-zoomType"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt", "changeItems.pointerColorEnabled", "changeItems.pointerColorColor", "changeItems.keepZoomSize"], ["array", "int", "int", "int", "bool", "int", "bool", "string", "bool"]];
 for (let i = 0; i < settingsToSave[0].length; i++) {
     if (localStorage.getItem(settingsToSave[0][i]) !== null) {
         let item = localOptions;
         let itemPart = settingsToSave[1][i].split(".");
         for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
-        console.log(itemPart);
         switch (settingsToSave[2][i]) {
             case "array":
                 item[itemPart[itemPart.length - 1]] = localStorage.getItem(settingsToSave[0][i]).split(",");
@@ -710,9 +789,7 @@ for (let i = 0; i < checkBoxClick[0].length; i++) {
     let item = localOptions;
     let itemPart = checkBoxClick[1][i].split(".");
     for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
-    console.log(item);
-    console.log(item[itemPart[itemPart.length - 1]]);
-    checkBoxClick[0][i].checked = item[itemPart[itemPart.length - 1]];
+    checkBoxClick[0][i].checked = item[itemPart[itemPart.length - 1]];    
 }
 let isFullscreen = false;
 document.getElementById("pageContainer").style.margin = "0px auto";
@@ -766,54 +843,121 @@ document.addEventListener('fullscreenchange', (e) => {
 });
 let zoomTrack = [1, 0, 0, false]; // Zoom level, x position, y position.
 let precedentZoomPosition = [0, 0]; // x, y
+let originalWidth = 0;
 document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
+    if (localStorage.getItem("PDFPointer-zoomType") === null) {
+            dialogGeneralAnimation("zoomChooseContainer", true)
+        return;
+    }
     zoomTrack[0] += 0.5;
     if (zoomTrack[0] > 3) {
         topAlert(`300% ${globalTranslations.maxZoom}`, "maxZoom");
         zoomTrack[0] = 3;
         return;
     }
-    document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+    if (document.querySelectorAll("g").length > 0) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
+    if (optionProxy.changeItems.keepZoomSize) {
+        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+    } else {
+        canvasGeneralResize();
+    }
 });
+function canvasGeneralResize() {
+    if (originalWidth === 0) originalWidth = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").height, document.getElementById("displayCanvas").width]
+    let oldHeight = document.getElementById("displayCanvas").height;
+    let oldWidth = document.getElementById("displayCanvas").width;
+    document.getElementById("displayCanvas").style.width = `${originalWidth[0].replace("px", "") * zoomTrack[0]}px`;
+    document.getElementById("displayCanvas").style.height = `${parseInt(originalWidth[1].replace("px", "")) * zoomTrack[0]}px`;
+    document.getElementById("displayCanvas").height = originalWidth[2] * zoomTrack[0];
+    document.getElementById("displayCanvas").width = originalWidth[3] * zoomTrack[0];
+    document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
+    if (document.body.offsetWidth < parseInt(document.getElementById("displayCanvas").style.width.replace("px", ""))) document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) - document.body.offsetWidth)}px`;
+    for (let itemOld of document.querySelectorAll("g")) {
+        item = itemOld.parentElement;
+        if (item.parentElement.style.display === "none") continue;
+        let generalScale = parseInt(item.parentElement.getAttribute("data-zoom"));
+        item.parentElement.height = originalWidth[2] * zoomTrack[0];
+        item.parentElement.width = originalWidth[3] * zoomTrack[0];
+    }
+}
+document.getElementById("chooseFirst").addEventListener("click", () => {
+    optionProxy.changeItems.keepZoomSize = true;
+    closeCanvasDialog();
+});
+document.getElementById("chooseSecond").addEventListener("click", () => {
+    optionProxy.changeItems.keepZoomSize = false;
+    closeCanvasDialog();
+});
+function closeCanvasDialog() {
+    dialogGeneralAnimation("zoomChooseContainer", false);
+}
 document.querySelector("[data-action=zoomout]").addEventListener("click", () => {
+    if (localStorage.getItem("PDFPointer-zoomType") === null) {
+            dialogGeneralAnimation("zoomChooseContainer", true)
+
+        return;
+    }
     zoomTrack[0] -= 0.5;
     if (zoomTrack[0] < 0.5) {
         topAlert(`50% ${globalTranslations.minZoom}`, "minZoom");
         zoomTrack[0] = 0.5;
         return;
     }
+    if (document.querySelectorAll("g").length > 0) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
     zoomTrack[1] = 0;
     zoomTrack[2] = 0;
     document.getElementById("displayCanvas").getContext("2d").clearRect(0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
-    document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+    if (optionProxy.changeItems.keepZoomSize) {
+        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+    } else {
+        canvasGeneralResize();
+    }
 
 })
 function dragZoom(e) {
     if (canvasIds[1][1] || zoomTrack[0] === 1 || !zoomTrack[3]) return;
-    let rect = document.getElementById("displayCanvas").getBoundingClientRect();
-    if (event.y < rect.top || event.y > rect.bottom) return;
-    if (event.x < rect.left || event.x > rect.right) return;
-    let xy = [e.screenX, e.screenY];
-    if (precedentZoomPosition == xy) {
-        precedentZoomPosition = xy;
-    } else {
-        zoomTrack[1] -= (precedentZoomPosition[0] - xy[0]) * 1.5 * zoomTrack[0];
-        if (zoomTrack[1] > 0) zoomTrack[1] = 0;
-        if (((parseInt(proxyCanvas.style.width.replace("px", "")) < (zoomTrack[1] * -1 * (4 - zoomTrack[0]))))) zoomTrack[1] += (precedentZoomPosition[0] - xy[0]) * 1.5 * zoomTrack[0];
-        zoomTrack[2] -= (precedentZoomPosition[1] - xy[1]) * 1.5 * zoomTrack[0];
-        if (zoomTrack[2] > 0) zoomTrack[2] = 0;
-        if (((parseInt(proxyCanvas.style.height.replace("px", "")) < (zoomTrack[2] * -1 * (4 - zoomTrack[0]))))) zoomTrack[2] += (precedentZoomPosition[1] - xy[1]) * 1.5 * zoomTrack[0];
-        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
-        for (let item of document.querySelectorAll("canvas")) {
-            if (item.id === "displayCanvas" || item.style.display === "none") continue;
-            let rect = document.getElementById("displayCanvas").getBoundingClientRect();
-            if (item.getAttribute("topstatus") == "0") item.setAttribute("topstatus", zoomTrack[2]);
-            if (item.getAttribute("leftstatus") == "0") item.setAttribute("leftstatus", zoomTrack[1]);
-            item.style.marginTop = `${parseInt(item.getAttribute("topstatus")) - zoomTrack[2]}px`;
-            item.style.marginLeft = `${parseInt(item.getAttribute("leftstatus")) - zoomTrack[1]}px`;
-            if (Math.abs(parseInt(item.style.marginTop.replace("px", ""))) >= rect.top || Math.abs(parseInt(item.style.marginLeft.replace("px", ""))) >= rect.left) item.style.visibility = "hidden"; else item.style.visibility = "visible";
+    if (optionProxy.changeItems.keepZoomSize) {
+        document.getElementById("displayCanvas").style.width = parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) * zoomTrack[0];
+        document.getElementById("displayCanvas").width = parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) * zoomTrack[0];
+        let rect = document.getElementById("displayCanvas").getBoundingClientRect();
+        let xy = [e.screenX, e.screenY];
+        if (precedentZoomPosition == xy) {
+            precedentZoomPosition = xy; // I highly doubt that this is necessary but this was a mess to make, and I want to avoid other hours of debug :D
+        } else {
+            zoomTrack[1] -= (precedentZoomPosition[0] - xy[0]) * zoomTrack[0];
+            zoomTrack[2] -= (precedentZoomPosition[1] - xy[1]) * zoomTrack[0];
+            document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+            checkIfOutside(9, 1, true) // Width, height
+            checkIfOutside(9, parseInt(document.getElementById("displayCanvas").style.height.replace("px", "")) - 2, false) // Width, height
+            function checkIfOutside(width, height, keepWidth) {
+                let data = document.getElementById("displayCanvas").getContext("2d").getImageData(width, height, 1, 1).data;
+                if (Array.from(data)[3] === 0) {
+                    if (keepWidth) {
+                        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], 0, document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+                        precedentZoomPosition[1] = 1;
+                        zoomTrack[2] = 1;
+                    } else {
+                        precedentZoomPosition[1] *= -1;
+                        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, precedentZoomPosition[1], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+                        precedentZoomPosition[0] = 1;
+                        zoomTrack[1] = 1;
+                        zoomTrack[2] = precedentZoomPosition[1];
+                    }
+                }
+                precedentZoomPosition = xy;
+            }
+
+            for (let itemOld of document.querySelectorAll("g")) {
+                let item = itemOld.parentElement.parentElement
+                if (item.id === "displayCanvas" || item.style.display === "none") continue;
+                let rect = document.getElementById("displayCanvas").getBoundingClientRect();
+                if (item.getAttribute("topstatus") == "0") item.setAttribute("topstatus", zoomTrack[2]);
+                if (item.getAttribute("leftstatus") == "0") item.setAttribute("leftstatus", zoomTrack[1]);
+                item.style.marginTop = `${parseInt(item.getAttribute("topstatus")) - zoomTrack[2]}px`;
+                item.style.marginLeft = `${parseInt(item.getAttribute("leftstatus")) - zoomTrack[1]}px`;
+                if (Math.abs(parseInt(item.style.marginTop.replace("px", ""))) >= rect.top || Math.abs(parseInt(item.style.marginLeft.replace("px", ""))) >= rect.left) item.style.visibility = "hidden"; else item.style.visibility = "visible";
+            }
         }
-        precedentZoomPosition = xy;
     }
 }
 function storeCustomOptions(option, key) {
@@ -828,7 +972,7 @@ for (let item of document.querySelectorAll("[data-license]")) {
         document.getElementById("licenseText").innerHTML = getLicense[item.getAttribute("data-license")].replace("{DateAndAuthorReplace}", item.getAttribute("data-author")).replaceAll("\n", "<br>");
         setTimeout(() => {
             item.classList.remove("animate__animated", "animate__shakeX");
-            document.getElementById("licenseAnimatiom").classList.remove("animate__animated", "animate__shakeX");        
+            document.getElementById("licenseAnimatiom").classList.remove("animate__animated", "animate__shakeX");
         }, 1000);
     });
 }
@@ -922,10 +1066,10 @@ function continueShow(progress) {
 for (let item of document.querySelectorAll("[data-progress]")) item.addEventListener("click", () => { continueShow(parseInt(item.getAttribute("data-progress"))) });
 document.querySelector("[data-translate=endTour]").addEventListener("click", () => {
     document.getElementById("introContainer").style.opacity = 0;
-    localStorage.setItem("endtour", "true");
+    localStorage.setItem("PDFPointer-endtour", "true");
     setTimeout(() => { document.getElementById("introContainer").style.display = "none" }, 500)
 })
-if (localStorage.getItem("endtour") === null) {
+if (localStorage.getItem("PDFPointer-endtour") === null) {
     document.getElementById("introContainer").style.display = "inline";
     document.getElementById("introContainer").style.opacity = 1;
 }
@@ -933,31 +1077,30 @@ for (let item of document.querySelectorAll("[data-customAnimate='1']")) {
     item.addEventListener("mouseenter", () => { item.classList.remove("closeAnimationTool"); item.classList.add("btnTourAnimate") });
     item.addEventListener("mouseleave", () => { item.classList.remove("btnTourAnimate"); item.classList.add("closeAnimationTool") });
 }
-let switchIds = [[document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), optionProxy.changeItems.pointerColorEnabled], [document.getElementById("alertContainer"), document.getElementById("alertCheck"), document.getElementById("alertMain"), optionProxy.changeItems.showTips]];
+let switchIds = [[document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), "changeItems.pointerColorEnabled"], [document.getElementById("alertContainer"), document.getElementById("alertCheck"), document.getElementById("alertMain"), "changeItems.showTips"]];
 for (let i = 0; i < switchIds.length; i++) switchSubsectionShow(switchIds[i][0], switchIds[i][1], switchIds[i][2], switchIds[i][3]);
-switchSubsectionShow(document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), optionProxy.changeItems.pointerColorEnabled);
 function switchSubsectionShow(containerDiv, switchVal, generalDiv, optionToChange) {
+    let item = optionProxy;
+    let itemPart = optionToChange.split(".");
+    for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
     switchVal.addEventListener("input", () => {
-        optionToChange = switchVal.checked;
+        item[itemPart[itemPart.length - 1]] = switchVal.checked;
         if (switchVal.checked) {
             generalDiv.style.maxHeight = `${generalDiv.offsetHeight}px`;
-            containerDiv.style.display = "inline"; 
+            containerDiv.style.display = "inline";
             generalDiv.style.maxHeight = `${generalDiv.offsetHeight}px`;
-            setTimeout(() => {containerDiv.style.opacity = 1;}, 50);    
-            console.log(generalDiv.style.maxHeight);
-            console.log(generalDiv.offsetHeight + parseInt(containerDiv.offsetHeight));
+            setTimeout(() => { containerDiv.style.opacity = 1; }, 50);
         } else {
             containerDiv.style.opacity = 0;
-            console.log(generalDiv.style.maxHeight);
             setTimeout(() => {
                 generalDiv.style.maxHeight = generalDiv.getAttribute("defaultHeight");
-                setTimeout(() => {containerDiv.style.display = "none";}, 150);
-                
-            }, 350);          
+                setTimeout(() => { containerDiv.style.display = "none"; }, 150);
+
+            }, 350);
         }
     });
 }
-document.getElementById("pointerColorSelector").addEventListener("input", () => {optionProxy.changeItems.pointerColorColor = document.getElementById("pointerColorSelector").value});
+document.getElementById("pointerColorSelector").addEventListener("input", () => { optionProxy.changeItems.pointerColorColor = document.getElementById("pointerColorSelector").value });
 document.querySelector("[data-translate=exportColor]").addEventListener("click", () => {
     let a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(optionProxy.availableHighlightColors)], { type: "text/plain" }));
@@ -971,10 +1114,10 @@ document.querySelector("[data-translate=importColor]").addEventListener("click",
         let read = new FileReader();
         read.onload = () => {
             let parse = JSON.parse(read.result);
-            optionProxy.availableHighlightColors = {"currentColor": [255, 0, 0, 255]};
+            optionProxy.availableHighlightColors = { "currentColor": [255, 0, 0, 255] };
             for (let item in parse) {
                 let continueImport = true;
-                for (let part of parse[item]) try {if (parseInt(part) > 255 || parseInt(part) < 0) continueImport = false } catch(ex) {console.warn(ex); continueImport = false};
+                for (let part of parse[item]) try { if (parseInt(part) > 255 || parseInt(part) < 0) continueImport = false } catch (ex) { console.warn(ex); continueImport = false };
                 if (!continueImport) continue;
                 optionProxy.availableHighlightColors[item] = parse[item];
             }
@@ -996,4 +1139,9 @@ document.querySelector("[data-translate=resetColor]").addEventListener("click", 
     localStorage.setItem("PDFPointer-customColors", JSON.stringify(optionProxy.availableHighlightColors));
     alert("Colors restored. The page will be refreshed.");
     location.reload();
+});
+document.querySelector("[data-translate=changeZoom]").addEventListener("click", () => {
+    dialogGeneralAnimation("settings", false);
+    setTimeout(() => {dialogGeneralAnimation("zoomChooseContainer", true)}, 1150);
 })
+window.scrollTo({ top: 0, behavior: 'smooth' });

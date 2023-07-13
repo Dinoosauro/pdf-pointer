@@ -34,6 +34,12 @@ h1, h2, h3, h4 {
 .link {
     text-decoration: underline;
 }
+.linkWithoutBrightness {
+  text-decoration: underline;
+}
+.linkWithoutBrightness:hover {
+  cursor: pointer;
+}
 .link:hover {
     -webkit-filter: brightness(80%);
     filter: brightness(80%);
@@ -163,7 +169,7 @@ input::placeholder {
     position: absolute;
     top: 30px;
     text-align: center;
-    z-index: 999999;
+    z-index: 9999998;
     background-color: var(--card);
     padding: 15px;
     width: 65vw;

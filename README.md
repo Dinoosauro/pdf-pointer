@@ -23,6 +23,7 @@ In the settings, you can change lots of things:
 - Choose if alerts should be shown (and their length)
 - Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
+- Change the zoom option between zooming the PDF canvas or scrolling it
 - See the licenses of the open source libraries 
 ### Zoom in/out
 You can zoom the PDF by clicking the magnifying glass icon. 

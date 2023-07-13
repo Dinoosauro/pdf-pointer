@@ -9,6 +9,7 @@ const filestoCache = [
     './translationItems/licenses.json',
     './themeCreator/colorScript.js',
     './themeCreator/create.html',
+    './canvas2svg.js',
     './manifest.json',
     'https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css',

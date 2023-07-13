@@ -15,88 +15,134 @@
 </head>
 
 <body>
-    <div class="vertcenter" style="z-index: 99999; margin-left: 5vw; margin-right: 5vw; top: 15vh; position: absolute; top: 50%; bottom: 50%; max-height: 60vh; display: none; top: 15vh" id="introContainer">
+    <div class="vertcenter" style="z-index: 999999; display: none; position: absolute; width: 100vw;"
+        id="zoomChooseContainer">
+        <div
+            style="background-color: var(--optionbackground); position: absolute; top: 15vh; margin: 15px; padding: 15px; border-radius: 8px; margin-left: 13vw; margin-right: 13vw;">
+            <h2 class="vertcenter" data-translate="zoomOption">Zoom Options</h2>
+            <div style="display: flex;">
+                <div
+                    style="float: left; width: 45%; left: 0; border-radius: 8px; background-color: rgb(133,134,153); padding: 25px; margin-right: 15px;">
+                    <h3 class="vertcenter" data-translate="canvasSize">Zoom keeping PDF size</h3>
+                    <video class="vertcenter" autoplay muted style="width: 100%; max-width: 100%;">
+                        <source src="/assets/FirstZoomOption.mp4" type="video/mp4">
+                    </video> <br>
+                    <i style="font-size: 0.90rem;" data-translate="canvasSizeDescription">The position of the PDF will
+                        remain the same, and you'll be able to move with it by dragging it.</i><br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button" style="background-color: #44475A;" data-customanimate="1">
+                            <div class="vertcenter" data-translate="zoomCanvasChoose" id="chooseFirst">Continue</div>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    style="float: right; width: 45%; right: 0; border-radius: 8px; background-color: rgb(75,55,39); padding: 25px">
+                    <h3 class="vertcenter" data-translate="zoomPdf">Zoom PDF size</h3>
+                    <video class="vertcenter" autoplay muted style="width: 100%; max-width: 100%;">
+                        <source src="/assets/SecondZoomOption.mp4" type="video/mp4">
+                    </video> <br>
+                    <i style="font-size: 0.90rem;" data-translate="pdfZoomDescription">The PDF will be zoomed on the
+                        page. You might need to scroll the page to see the full PDF.</i><br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button" style="background-color: rgb(123,94,72);" data-customanimate="1">
+                            <div class="vertcenter" data-translate="zoomCanvasChoose" id="chooseSecond">Choose this
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="vertcenter"
+        style="z-index: 99999; margin-left: 5vw; margin-right: 5vw; top: 15vh; position: absolute; top: 50%; bottom: 50%; max-height: 60vh; display: none; top: 15vh"
+        id="introContainer">
         <div class="intro" style="background-color: rgb(80,79,99);" id="intro1">
             <div id="innerContents1" class="opacityRemove">
                 <h2 data-translate="welcomeTour">Welcome tour</h2>
                 <video class="vertcenter" autoplay muted>
-                <source src="./assets/SecondClip.mp4" type="video/mp4">
-            </video>
-            <h3 data-translate="welcome">Welcome on PDFPointer!</h3>
-            <l data-translate="welcomeDescription">View your PDFs with a pointer, directly form your browser and with zoom and multi page support</l><br><br>
-            <div class="vertcenter">
-                <div class="optionId button" style="background-color: rgb(134,134,155);" data-progress="0" data-customanimate="1">
-                    <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                    <source src="./assets/SecondClip.mp4" type="video/mp4">
+                </video>
+                <h3 data-translate="welcome">Welcome on PDFPointer!</h3>
+                <l data-translate="welcomeDescription">View your PDFs with a pointer, directly form your browser and
+                    with zoom and multi page support</l><br><br>
+                <div class="vertcenter">
+                    <div class="optionId button" style="background-color: rgb(134,134,155);" data-progress="0"
+                        data-customanimate="1">
+                        <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                    </div>
                 </div>
             </div>
-        </div>
         </div>
         <div class="intro" style="background-color: rgb(42,25,9); display: none;" id="intro2">
             <div id="innerContents2">
                 <h2 data-translate="welcomeTour">Welcome tour</h2>
                 <video class="vertcenter" autoplay muted>
                     <source src="./assets/FirstClip.mp4" type="video/mp4">
-            </video>
-            <h3 data-translate="firstWelcome">PDF Annotations</h3>
-            <l data-translate="firstWelcomeDescription">Write or draw on PDF, with annotations that automatically disappear after a specific (and customizable) amount of time.</l>
-            <div class="vertcenter">
-                <div class="optionId button" style="background-color: rgb(123,94,72);" data-progress="1" data-customanimate="1">
-                    <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                </video>
+                <h3 data-translate="firstWelcome">PDF Annotations</h3>
+                <l data-translate="firstWelcomeDescription">Write or draw on PDF, with annotations that automatically
+                    disappear after a specific (and customizable) amount of time.</l>
+                <div class="vertcenter">
+                    <div class="optionId button" style="background-color: rgb(123,94,72);" data-progress="1"
+                        data-customanimate="1">
+                        <div class="vertcenter" data-translate="continueBtn">Continue</div>
+                    </div>
                 </div>
             </div>
         </div>
-            </div>
-            <div class="intro" style="background-color: rgb(28,27,31); display: none;" id="intro3">
-                <div id="innerContents3">
-                    <h2 data-translate="welcomeTour">Welcome tour</h2>
-                    <video class="vertcenter" autoplay muted>
-                        <source src="./assets/ThirdClip.mp4" type="video/mp4">
-                </video>    
+        <div class="intro" style="background-color: rgb(28,27,31); display: none;" id="intro3">
+            <div id="innerContents3">
+                <h2 data-translate="welcomeTour">Welcome tour</h2>
+                <video class="vertcenter" autoplay muted>
+                    <source src="./assets/ThirdClip.mp4" type="video/mp4">
+                </video>
                 <h3 data-translate="secondWelcome">Settings</h3>
-                <l data-translate="secondWelcomeDescription">Edit the application's theme, save custom colors and more from the settings.</l><br><br>
+                <l data-translate="secondWelcomeDescription">Edit the application's theme, save custom colors and more
+                    from the settings.</l><br><br>
                 <div class="vertcenter">
                     <div class="optionId button" style="background-color: rgb(99,99,99);" data-customanimate="1">
                         <div class="vertcenter" data-translate="endTour">End 🎉</div>
                     </div>
-            </div>    
                 </div>
             </div>
+        </div>
     </div>
     <div class="vertcenter opacityRemove" style="display: none; z-index: 9999999; position: absolute;" id="settings">
         <div class="settingsMax dialog">
-            <l style="position: absolute; right: 15px; top: 5px; text-decoration: none;" id="closeSettings"
-                class="link">X</l>
+            <img style="position: absolute; right: 15px; top: 15px;" width="30" height="30" id="closeSettings"
+                class="linkWithoutBrightness" fetchLink="save" data-customanimate='1'>
             <h2 style="margin: 0px; padding: 0px;" data-translate="settings">Settings</h2><br><br>
             <div style="overflow-x: auto; width: 70vw;">
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="colorTitle">Custom colors list:</h3>
                     <i data-translate="colorSubtitle">You can find here a list of colors. You can delete them by putting
                         your cursor on their circle.</i><br><br>
-                        <div style="display: block;">
-                    <div id="optionContainer" class="vertcenter containerSettings">
+                    <div style="display: block;">
+                        <div id="optionContainer" class="vertcenter containerSettings">
                         </div>
                     </div><br><br>
                     <div class="vertcenter" style="overflow-y: scroll">
-                    <div class="vertcenter">
-                        <div class="optionId button" style="margin-right: 10px;">
-                            <div class="vertcenter" data-translate="exportColor">Export colors</div>
+                        <div class="vertcenter">
+                            <div class="optionId button" style="margin-right: 10px;">
+                                <div class="vertcenter" data-translate="exportColor">Export colors</div>
+                            </div>
+                        </div>
+                        <div class="vertcenter">
+                            <div class="optionId button" style="margin-right: 10px">
+                                <div class="vertcenter" data-translate="importColor">Import colors</div>
+                            </div>
+                        </div>
+                        <div class="vertcenter">
+                            <div class="optionId button" style="margin-right: 10px;">
+                                <div class="vertcenter" data-translate="resetColor">Reset colors</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="vertcenter">
-                        <div class="optionId button" style="margin-right: 10px">
-                            <div class="vertcenter" data-translate="importColor">Import colors</div>
-                        </div>
-                    </div>
-                    <div class="vertcenter">
-                        <div class="optionId button" style="margin-right: 10px;">
-                            <div class="vertcenter" data-translate="resetColor">Reset colors</div>
-                        </div>
-                    </div>
-                </div>
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="customColor">Add a custom color</h3>
-                    <i data-translate="customColorDescription" class="textCenter">Choose the color from the picker below. Then, you'll be
+                    <i data-translate="customColorDescription" class="textCenter">Choose the color from the picker
+                        below. Then, you'll be
                         asked to give it a name.</i>
                     <div class="vertcenter">
                         <div class="optionId button">
@@ -106,26 +152,28 @@
                 </div>
                 <div class="card optioncolor onlyHeightTransition" id="pointerContainer">
                     <h3 class="vertcenter" data-translate="pointerColor">Pointer color</h3>
-                    <div class="vertcenter" >
+                    <div class="vertcenter">
                         <div style="display: flex; float: left;">
-                            <l data-translate="pointerColorDescription">Use a different color for the pointer.</l></div>
-                            <div style="display: flex; float: right;">
-                                <label class="switch" data-customanimate='1'>
-                                    <input type="checkbox" id="pointerCheck">
-                                    <span class="slider round"></span>
-                                  </label>
-                            </div>
+                            <l data-translate="pointerColorDescription">Use a different color for the pointer.</l>
+                        </div>
+                        <div style="display: flex; float: right;">
+                            <label class="switch" data-customanimate='1'>
+                                <input type="checkbox" id="pointerCheck">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
-                    <br><br>    
+                    <br><br>
                     <div id="pointerSelectionDiv" class="opacityRemove" style="display: none; opacity: 0;">
                         <l data-translate="customPointerColor" class="textCenter">Choose the pointer color:</l>
                         <div class="vertcenter">
                             <div class="optionId button">
-                                <div class="vertcenter">    <input type="color" data-customanimate='1' class="vertcenter" id="pointerColorSelector">                                </div>
+                                <div class="vertcenter"> <input type="color" data-customanimate='1' class="vertcenter"
+                                        id="pointerColorSelector"> </div>
                             </div>
+                        </div>
                     </div>
-                    </div>
-                    </div>
+                </div>
                 <div class="card optioncolor onlyHeightTransition" id="alertMain">
                     <h3 class="vertcenter" data-translate="alert">Alerts</h3>
                     <div class="vertcenter">
@@ -135,9 +183,9 @@
                                 <label class="switch" data-customanimate='1'>
                                     <input type="checkbox" checked id="alertCheck">
                                     <span class="slider round"></span>
-                                  </label>
+                                </label>
                             </div>
-                    </div>
+                        </div>
                     </div>
                     <div class="vertcenter">
                         <div class="optionId button">
@@ -146,7 +194,7 @@
                     </div><br><br>
                     <div id="alertContainer" style="display: none; opacity: 0;" class="opacityRemove">
                         <l data-translate="timeAlert">Alert duration (in milliseconds): </l><input type="number"
-                        id="alertNumberDuration" data-customanimate='1'><br><br>
+                            id="alertNumberDuration" data-customanimate='1'><br><br>
                     </div>
                 </div>
                 <div class="card optioncolor">
@@ -162,6 +210,15 @@
                     </div>
                 </div>
                 <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="optionZoom">Zoom Options:</h3>
+                    <i data-translate="optionZoomDescription">You can choose between two zoom styles</i><br><br>
+                    <div class="vertcenter">
+                        <div class="optionId button">
+                            <div class="vertcenter" data-translate="changeZoom">Open zoom change dialog</div>
+                        </div>
+                    </div>
+                    </div>
+                <div class="card optioncolor">
                     <h3 data-translate="about">About this app</h3>
                     <i class="vertcenter">PDFPointer <span id="appversion" style="margin-left: 5px;"></span></i><br><br>
                     <a id="githubLink" href="https://github.com/dinoosauro/pdf-pointer" data-translate="github">View on
@@ -175,14 +232,15 @@
                             animate.css</h4>
                         <h4 class="link marginRight" data-license="apache" data-author="">PDF.js</h4>
                         <h4 class="link marginRight" data-license="mit" data-author="2017 Elliot">observable-slim</h4>
+                        <h4 class="link marginRight" data-license="mit" data-author="2014 Gliffy Inc">canvas2svg</h4>
                         <h4 class="link marginRight" data-license="icons">Icons</h4>
                         <h4 class="link marginRight" data-license="privacyNotice" data-author="">Privacy</h4>
                     </div><br><br>
                     <div class="licenseDiv">
                         <div id="licenseAnimatiom">
-                        <l id="licenseText" data-translate="mitPlaceholder">You'll see the license here.</l>
+                            <l id="licenseText" data-translate="mitPlaceholder">You'll see the license here.</l>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -225,51 +283,57 @@
         </div>
     </div>
     <div>
-        <div class="vertcenter column" id="toolMain" style="visibility: hidden;">
-            <div class="optionContainer vertcenter" id="containerOfOptions" style="margin-top: 10px;">
-                <div class="optionId" data-action="prev">
-                    <img fetchlink="prev" class="imgTool">
-                </div>
-                <div class="optionId" data-action="zoomout" data-moveleft="30px" style="margin-right: 30px;">
-                    <img fetchlink="zoomout" class="imgTool">
-                </div>
-                <div class="optionId" data-action="pen" customimg disableAction="erase">
-                    <img fetchlink="pen" class="imgTool">
-                </div>
-                <div class="optionId" data-action="timer">
-                    <img fetchlink="timer" class="imgTool">
-                </div>
-                <div class="optionId" data-action="erase" customimg disableAction="pen">
-                    <img fetchlink="erase" class="imgTool">
-                </div>
-                <div class="optionId" data-action="color">
-                    <img fetchlink="color" class="imgTool">
-                </div>
-                <div class="optionId" data-action="fullscreen">
-                    <img fetchlink="fullscreenon" class="imgTool">
-                </div>
-                <div class="optionId" data-action="normalscreen" style="display: none;">
-                    <img fetchlink="fullscreenoff" class="imgTool">
-                </div>
-                <div class="optionId" data-action="settings">
-                    <img fetchlink="settings" class="imgTool">
-                </div>
-                <div class="optionId" data-action="zoomin" data-moveright="30px" style="margin-left: 30px;">
-                    <img fetchlink="zoomin" class="imgTool">
-                </div>
-                <div class="optionId" data-action="next">
-                    <img fetchlink="next" class="imgTool">
+        <div style="position: absolute; z-index: 9999997;">
+            <div class="vertcenter column" id="toolMain" style="visibility: hidden;">
+                <div class="optionContainer vertcenter" id="containerOfOptions" style="margin-top: 10px;">
+                    <div class="optionId" data-action="prev">
+                        <img fetchlink="prev" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="zoomout" data-moveleft="30px" style="margin-right: 30px;">
+                        <img fetchlink="zoomout" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="pen" customimg disableAction="erase">
+                        <img fetchlink="pen" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="timer">
+                        <img fetchlink="timer" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="erase" customimg disableAction="pen">
+                        <img fetchlink="erase" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="color">
+                        <img fetchlink="color" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="fullscreen">
+                        <img fetchlink="fullscreenon" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="normalscreen" style="display: none;">
+                        <img fetchlink="fullscreenoff" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="settings">
+                        <img fetchlink="settings" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="zoomin" data-moveright="30px" style="margin-left: 30px;">
+                        <img fetchlink="zoomin" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="next">
+                        <img fetchlink="next" class="imgTool">
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="vertcenter" id="pdfcontainer">
-            <div class="vertcenter column" id="pageContainer" style="visibility: hidden;">
+    </div>
+    <div style="height: 80px;"></div>
+    <div class="vertcenter" id="pdfcontainer">
+        <div class="vertcenter column" id="pageContainer" style="visibility: hidden;">
+            <div id="canvasMargin">
                 <div class="pageBackground columnflex" id="canvasContainer">
                     <canvas class="displayCanvas pointer" id="displayCanvas" height="600px" width="500px"
                         pdf="yes"></canvas>
                 </div>
             </div>
         </div>
+    </div>
     </div>
     </div>
 
@@ -280,4 +344,5 @@
     <script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
         integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
     <script src="./script.js"></script>
+    <script src="./canvas2svg.js"></script>
 </body>
