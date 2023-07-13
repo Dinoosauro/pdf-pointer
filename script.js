@@ -1,8 +1,9 @@
-
+let positionLink = "https://dinoosauro.github.io/pdf-pointer/"
+if (document.location.href.indexOf("netlify") !== -1) positionLink = "dinoosauro-pdf-pointer.netlify.app/";
 if ('serviceWorker' in navigator) {
     let registration;
     const registerServiceWorker = async () => {
-        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: 'https://dinoosauro.github.io/pdf-pointer/' });
+        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: positionLink});
     };
     registerServiceWorker();
 }

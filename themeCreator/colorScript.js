@@ -1,7 +1,13 @@
 let jsonImg = {
     toload: true
 };
-fetch(`https://dinoosauro.github.io/pdf-pointer/assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
+let positionLink = "https://dinoosauro.github.io/pdf-pointer/"
+if (document.location.href.indexOf("netlify") !== -1) positionLink = "dinoosauro-pdf-pointer.netlify.app/";
+let style = document.createElement("link"); 
+style.rel = "stylesheet"; 
+style.href = `${positionLink}style.css`; 
+document.querySelector("head").appendChild(style);
+fetch(`${positionLink}assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 for (let item of document.querySelectorAll("[data-action]")) {
     item.addEventListener("input", () => {
         document.documentElement.style.setProperty(`--${item.getAttribute("data-action")}`, `${item.value}`);
@@ -118,11 +124,13 @@ document.getElementById("fileClick").addEventListener("change", () => {
 document.getElementById("backPage").addEventListener("click", () => { history.back() });
 let language = navigator.language || navigator.userLanguage;
 if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1) {
-    fetch(`https://dinoosauro.github.io/pdf-pointer/translationItems/it.json`).then((res) => {
+    fetch(`${positionLink}translationItems/it.json`).then((res) => {
+        setTimeout(() => {
         res.json().then((json) => {
             if (confirm("È disponibile una traduzione in italiano. Continuare in italiano? [A translation in Italian is available. Do you want to apply it?]")) {
                 for (let item of document.querySelectorAll("[data-translation]")) item.textContent = json.themeCreation[item.getAttribute("data-translation")];
             }
         })
+    }, 500);
     })
 }
