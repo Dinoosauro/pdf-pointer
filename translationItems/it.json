@@ -37,6 +37,15 @@
     "importColor": "Importa colori",
     "resetColor": "Reimposta colori",
     "settings": "Impostazioni",
+    "zoomCanvasChoose": "Scegli questo",
+    "zoomOption": "Opzioni di zoom",
+    "canvasSize": "Mantieni la stessa dimensione del PDF",
+    "canvasSizeDescription": "La posizione del PDF rimarrà sempre la stessa, e potrai spostarti trascinandolo.",
+    "zoomPdf": "Aumenta lo spazio del PDF",
+    "pdfZoomDescription": "Il PDF verrà ingrandito su tutta la pagina. Potresti dover far scorrere la pagina per vederlo interamente",
+    "optionZoom": "Opzioni di zoom",
+    "optionZoomDescription": "Puoi scegliere tra due modalità di zoom",
+    "changeZoom": "Modifica le impostazioni di zoom",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",
@@ -45,7 +54,8 @@
         "maxZoom": "è il livello massimo di zoom permesso.",
         "minZoom": "è il livello minimo di zoom permesso.",
         "changeLang": "La tua lingua è stata impostata automaticamente su: Italiano.",
-        "noShowAgain": "Non mostrare più"
+        "noShowAgain": "Non mostrare più",
+        "zoomCanvas": "Il mantenimento delle annotazioni con lo zoom è sperimentale, e pertanto ci potrebbero essere (e molto probabilmente ci saranno) dei glitch."
     },
     "themeCreation": {
         "title": "Creatore dei temi",
