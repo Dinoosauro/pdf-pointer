@@ -2,7 +2,7 @@ let jsonImg = {
     toload: true
 };
 let positionLink = "https://dinoosauro.github.io/pdf-pointer/"
-if (document.location.href.indexOf("netlify") !== -1) positionLink = "dinoosauro-pdf-pointer.netlify.app/";
+if (document.location.href.indexOf("netlify") !== -1) positionLink = "https://dinoosauro-pdf-pointer.netlify.app/";
 let style = document.createElement("link"); 
 style.rel = "stylesheet"; 
 style.href = `${positionLink}style.css`; 

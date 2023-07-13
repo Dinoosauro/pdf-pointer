@@ -1,5 +1,5 @@
 let positionLink = "https://dinoosauro.github.io/pdf-pointer/"
-if (document.location.href.indexOf("netlify") !== -1) positionLink = "dinoosauro-pdf-pointer.netlify.app/";
+if (document.location.href.indexOf("netlify") !== -1) positionLink = "https://dinoosauro-pdf-pointer.netlify.app/";
 if ('serviceWorker' in navigator) {
     let registration;
     const registerServiceWorker = async () => {
