@@ -3,7 +3,7 @@ if (document.location.href.indexOf("netlify") !== -1) positionLink = "https://di
 if ('serviceWorker' in navigator) {
     let registration;
     const registerServiceWorker = async () => {
-        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: positionLink});
+        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: positionLink });
     };
     registerServiceWorker();
 }
@@ -723,18 +723,18 @@ fetchThemes();
 let defaultCheck = false;
 function dialogGeneralAnimation(id, open) {
     if (open) {
-    document.getElementById(id).style.display = "inline";
-    document.getElementById(id).classList.add("animate__animated", "animate__backInDown");
-    setTimeout(() => {
-        document.getElementById(id).classList.remove("animate__animated", "animate__backInDown");
-    }, 1100);
-} else {
-    document.getElementById(id).classList.add("animate__animated", "animate__backOutDown");
-    setTimeout(() => {
-        document.getElementById(id).style.display = "none";
-        document.getElementById(id).classList.remove("animate__animated", "animate__backOutDown");
-    }, 1100);
-}
+        document.getElementById(id).style.display = "inline";
+        document.getElementById(id).classList.add("animate__animated", "animate__backInDown");
+        setTimeout(() => {
+            document.getElementById(id).classList.remove("animate__animated", "animate__backInDown");
+        }, 1100);
+    } else {
+        document.getElementById(id).classList.add("animate__animated", "animate__backOutDown");
+        setTimeout(() => {
+            document.getElementById(id).style.display = "none";
+            document.getElementById(id).classList.remove("animate__animated", "animate__backOutDown");
+        }, 1100);
+    }
 }
 document.querySelector("[data-action=settings]").addEventListener("click", () => {
     dialogGeneralAnimation("settings", true);
@@ -790,7 +790,7 @@ for (let i = 0; i < checkBoxClick[0].length; i++) {
     let item = localOptions;
     let itemPart = checkBoxClick[1][i].split(".");
     for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
-    checkBoxClick[0][i].checked = item[itemPart[itemPart.length - 1]];    
+    checkBoxClick[0][i].checked = item[itemPart[itemPart.length - 1]];
 }
 let isFullscreen = false;
 document.getElementById("pageContainer").style.margin = "0px auto";
@@ -822,8 +822,9 @@ document.addEventListener('fullscreenchange', (e) => {
         startWidth[1] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
         startWidth[2] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
         canvasPDF(loadPDF[2]);
+        document.getElementById("containerOfOptions").style.marginTop = "30px";
+        document.getElementById("containerOfOptions").style.marginBottom = "30px";
         document.querySelector("[data-action=normalscreen]").style.display = "inline";
-        document.querySelector("[data-action=fullscreen]").style.display = "none";
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-bottom: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-top: ${item.getAttribute("data-moveright")}`;
     } else {
@@ -835,6 +836,8 @@ document.addEventListener('fullscreenchange', (e) => {
         document.getElementById("pdfcontainer").classList.add("vertcenter");
         document.querySelector("[data-action=normalscreen]").style.display = "none";
         document.querySelector("[data-action=fullscreen]").style.display = "inline";
+        document.getElementById("containerOfOptions").style.marginTop = "0px";
+        document.getElementById("containerOfOptions").style.marginBottom = "0px";
         startWidth[2] = startWidth[0];
         canvasPDF(loadPDF[2]);
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-right: ${item.getAttribute("data-moveleft")}`;
@@ -847,7 +850,7 @@ let precedentZoomPosition = [0, 0]; // x, y
 let originalWidth = 0;
 document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
     if (localStorage.getItem("PDFPointer-zoomType") === null) {
-            dialogGeneralAnimation("zoomChooseContainer", true)
+        dialogGeneralAnimation("zoomChooseContainer", true)
         return;
     }
     zoomTrack[0] += 0.5;
@@ -873,6 +876,11 @@ function canvasGeneralResize() {
     document.getElementById("displayCanvas").width = originalWidth[3] * zoomTrack[0];
     document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
     if (document.body.offsetWidth < parseInt(document.getElementById("displayCanvas").style.width.replace("px", ""))) document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) - document.body.offsetWidth)}px`;
+    if (isFullscreen) {
+        document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("canvasMargin").style.marginLeft.replace("px", "")) + document.getElementById("toolMain").getBoundingClientRect().left + 200)}px`;
+        document.getElementById("canvasMargin").style.marginRight = `50px`;
+    }
+    if (zoomTrack[0] === 1) document.getElementById("canvasMargin").style.marginLeft = `0px`;
     for (let itemOld of document.querySelectorAll("g")) {
         item = itemOld.parentElement;
         if (item.parentElement.style.display === "none") continue;
@@ -894,7 +902,7 @@ function closeCanvasDialog() {
 }
 document.querySelector("[data-action=zoomout]").addEventListener("click", () => {
     if (localStorage.getItem("PDFPointer-zoomType") === null) {
-            dialogGeneralAnimation("zoomChooseContainer", true)
+        dialogGeneralAnimation("zoomChooseContainer", true)
 
         return;
     }
@@ -1143,6 +1151,31 @@ document.querySelector("[data-translate=resetColor]").addEventListener("click", 
 });
 document.querySelector("[data-translate=changeZoom]").addEventListener("click", () => {
     dialogGeneralAnimation("settings", false);
-    setTimeout(() => {dialogGeneralAnimation("zoomChooseContainer", true)}, 1150);
+    setTimeout(() => { dialogGeneralAnimation("zoomChooseContainer", true) }, 1150);
 })
 window.scrollTo({ top: 0, behavior: 'smooth' });
+for (let item of document.querySelectorAll("video")) item.addEventListener("error", () => {
+    let parent = item.parentElement;
+    item.remove();
+    parent.textContent = "An error occourred while streaming the video :(";
+});
+let currentScroll = false;
+document.body.addEventListener("wheel", () => {
+    if (document.getElementById("toolMain").style.visibility === "hidden") return;
+    if (window.scrollY > (document.getElementById("generalToolContainer").getBoundingClientRect().bottom + document.getElementById("generalToolContainer").getBoundingClientRect().top)) {
+        if (currentScroll) return;
+        currentScroll = true;
+        document.getElementById("generalToolContainer").style = "position: fixed; z-index: 9999997; top: 15px;";
+    } else {
+        if (!currentScroll) return;
+        document.getElementById("generalToolContainer").style = "";
+        currentScroll = false;
+    }
+})
+for (let item of document.querySelectorAll("[data-videofetch]")) {
+    fetch(`${positionLink}assets/${item.getAttribute("data-videofetch")}`).then((res) => {
+        res.blob().then((blob) => {
+            item.src = URL.createObjectURL(blob);
+        }).catch((ex) => { console.warn(ex) })
+    }).catch((ex) => { console.warn(ex) });
+}

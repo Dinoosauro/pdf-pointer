@@ -3,8 +3,8 @@ Display PDFs with a pointer, make quick annotations (that automatically disappea
 
 Try it from: 
 
-- GitHub Pages: https://dinoosauro.github.io/pdf-pointer/
-- Netlify: https://dinoosauro-pdf-pointer.netlify.app/
+- GitHub Pages (HIGHLY RECOMMENDED): https://dinoosauro.github.io/pdf-pointer/
+- Netlify (only if GitHub Pages doesn't work): https://dinoosauro-pdf-pointer.netlify.app/
 ## Open a file
 ![Screenshot 2023-07-08 alle 12 38 01](https://i.imgur.com/R94fMa0.png)
 When you open the webpage, you'll be asked to open a file. Select a PDF and PDFPointer will automatically display it. You can also drag and drop the file.
