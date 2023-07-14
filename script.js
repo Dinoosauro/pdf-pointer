@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.4";
+let appVersion = "1.0.5";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -321,6 +321,8 @@ let localOptions = {
         pointerColorEnabled: false,
         pointerColorColor: "#ffffff",
         keepZoomSize: null,
+        moveZoom: false,
+        resizeCanvas: false,
     },
     themes: [{
         name: "Umber Brown",
@@ -464,7 +466,7 @@ function createDropdown(buttonReference) {
     div.append(close);
     var divPosition = buttonReference.getBoundingClientRect();
     div.classList.add("dropdown");
-    let styleThings = `top: ${parseInt(divPosition.top) + 75}px; `;
+    let styleThings = `top: ${parseInt(divPosition.top) + 75 + window.scrollY}px; `;
     if (divPosition.left + 25 + (25 * document.body.offsetWidth / 100) < document.body.offsetHeight) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (25 * document.body.offsetWidth / 100)}px; `;
     styleThings = styleThings.replace("right: -", "left: ").replace("left: -", "right: "); // Quick fix for dialog outside client view due to negative numbers
     div.style = styleThings;
@@ -563,13 +565,16 @@ document.querySelector("[data-action=prev]").addEventListener("click", () => {
 function fixZoom() {
     for (let itemOld of document.querySelectorAll("g")) {
         item = itemOld.parentElement;
-        item.parentElement.style.transform = `scale(1)`;
+        item.parentElement.style.transform = `scale(${1 / parseInt(item.parentElement.getAttribute("data-zoom"))})`;
         item.parentElement.height = originalWidth[2];
         item.parentElement.width = originalWidth[3];
         item.parentElement.style.marginTop = `0px`;
         item.parentElement.style.marginLeft = `0px`;
+        if (parseFloat(item.parentElement.getAttribute("data-zoom")) === 1 && parseInt(item.parentElement.getAttribute("data-page")) === loadPDF[2]) item.parentElement.style.display = "inline"; else item.parentElement.style.display = "none";
     }
     zoomTrack[0] = 1;
+    zoomTrack[1] = 0;
+    zoomTrack[2] = 0;
 }
 function bounceTextEvents(item, animationItem) {
     animationItem.addEventListener("mouseenter", () => {
@@ -777,7 +782,7 @@ document.getElementById("fileOpen").onchange = function () {
     }
 }
 document.getElementById("openPicker").addEventListener("click", () => { document.getElementById("fileOpen").click() })
-let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn", "PDFPointer-customPointerEnable", "PDFPointer-customPointerColor", "PDFPointer-zoomType"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt", "changeItems.pointerColorEnabled", "changeItems.pointerColorColor", "changeItems.keepZoomSize"], ["array", "int", "int", "int", "bool", "int", "bool", "string", "bool"]];
+let settingsToSave = [["PDFPointer-currentcolor", "PDFPointer-timerselected", "PDFPointer-colorselected", "PDFPointer-timerlength", "PDFPointer-showtips", "PDFPointer-alertdurationn", "PDFPointer-customPointerEnable", "PDFPointer-customPointerColor", "PDFPointer-zoomType", "PDFPointer-movezoom", "PDFPointer-resizecanvas"], ["availableHighlightColors.currentColor", "dropdownSelectedOptions.timer", "dropdownSelectedOptions.color", "changeItems.timer", "changeItems.showTips", "changeItems.alertInt", "changeItems.pointerColorEnabled", "changeItems.pointerColorColor", "changeItems.keepZoomSize", "changeItems.moveZoom", "changeItems.resizeCanvas"], ["array", "int", "int", "int", "bool", "int", "bool", "string", "bool", "bool", "bool"]];
 for (let i = 0; i < settingsToSave[0].length; i++) {
     if (localStorage.getItem(settingsToSave[0][i]) !== null) {
         let item = localOptions;
@@ -799,7 +804,7 @@ for (let i = 0; i < settingsToSave[0].length; i++) {
         }
     }
 }
-let checkBoxClick = [[document.getElementById("alertCheck"), document.getElementById("pointerCheck")], ["changeItems.showTips", "changeItems.pointerColorEnabled"]];
+let checkBoxClick = [[document.getElementById("alertCheck"), document.getElementById("pointerCheck"), document.getElementById("moveZoomCheck"), document.getElementById("resizeCanvasCheck")], ["changeItems.showTips", "changeItems.pointerColorEnabled", "changeItems.moveZoom", "changeItems.resizeCanvas"]];
 for (let i = 0; i < checkBoxClick[0].length; i++) {
     let item = localOptions;
     let itemPart = checkBoxClick[1][i].split(".");
@@ -873,9 +878,10 @@ document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
         zoomTrack[0] = 3;
         return;
     }
-    if (document.querySelectorAll("g").length > 0) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
+    if (document.querySelectorAll("g").length > 0 && optionProxy.changeItems.moveZoom) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
     if (optionProxy.changeItems.keepZoomSize) {
         document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+        resizeCanvasSameSize();
     } else {
         canvasGeneralResize();
     }
@@ -896,11 +902,29 @@ function canvasGeneralResize() {
     }
     if (zoomTrack[0] === 1) document.getElementById("canvasMargin").style.marginLeft = `0px`;
     for (let itemOld of document.querySelectorAll("g")) {
-        item = itemOld.parentElement;
-        if (item.parentElement.style.display === "none") continue;
-        let generalScale = parseInt(item.parentElement.getAttribute("data-zoom"));
-        item.parentElement.height = originalWidth[2] * zoomTrack[0];
-        item.parentElement.width = originalWidth[3] * zoomTrack[0];
+        if (optionProxy.changeItems.moveZoom) {
+            item = itemOld.parentElement;
+            if (item.parentElement.style.display === "none") continue;
+            let generalScale = parseFloat(item.parentElement.getAttribute("data-zoom"));
+            item.parentElement.style.transform = `scale(${zoomTrack[0] / generalScale})`;
+            item.parentElement.style.marginTop = `${(parseInt((document.getElementById("displayCanvas").style.height.replace("px", "")) - parseInt(originalWidth[1].replace("px", ""))) / (zoomTrack[0] / generalScale))}px`;
+            item.parentElement.style.marginLeft = `${parseInt(((document.getElementById("displayCanvas").style.width.replace("px", "")) - parseInt(originalWidth[0].replace("px", ""))) / (zoomTrack[0] / generalScale))}px`;
+            if (Math.round(generalScale) !== generalScale) {
+                item.parentElement.style.marginTop = `${parseInt(item.parentElement.style.marginTop.replace("px", "")) / 2}px`;
+                item.parentElement.style.marginLeft = `${parseInt(item.parentElement.style.marginLeft.replace("px", "")) / 2}px`;
+            }
+            if ((zoomTrack[0] / generalScale) < 1) {
+                let rect = item.parentElement.getBoundingClientRect();
+                let itemDivide = 1 - (zoomTrack[0] / generalScale);
+                item.parentElement.style.marginTop = `${rect.height / 2 * -1 * (zoomTrack[0] / generalScale) * itemDivide}px`;
+                item.parentElement.style.marginLeft = `${rect.width / 2 * -1 * (zoomTrack[0] / generalScale) * itemDivide}px`;
+            } else if ((zoomTrack[0] / generalScale) === 1) {
+                item.parentElement.style.marginTop = `15px`;
+                item.parentElement.style.marginLeft = ``;
+            }
+        } else {
+            if (parseFloat(itemOld.parentElement.parentElement.getAttribute("data-zoom")) === zoomTrack[0]) itemOld.parentElement.parentElement.style.display = "inline"; else itemOld.parentElement.parentElement.style.display = "none";
+        }
     }
 }
 document.getElementById("chooseFirst").addEventListener("click", () => {
@@ -917,7 +941,6 @@ function closeCanvasDialog() {
 document.querySelector("[data-action=zoomout]").addEventListener("click", () => {
     if (localStorage.getItem("PDFPointer-zoomType") === null) {
         dialogGeneralAnimation("zoomChooseContainer", true)
-
         return;
     }
     zoomTrack[0] -= 0.5;
@@ -926,17 +949,29 @@ document.querySelector("[data-action=zoomout]").addEventListener("click", () => 
         zoomTrack[0] = 0.5;
         return;
     }
-    if (document.querySelectorAll("g").length > 0) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
-    zoomTrack[1] = 0;
-    zoomTrack[2] = 0;
+    if (document.querySelectorAll("g").length > 0 && optionProxy.changeItems.moveZoom) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
     document.getElementById("displayCanvas").getContext("2d").clearRect(0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
     if (optionProxy.changeItems.keepZoomSize) {
-        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+        resizeCanvasSameSize();
     } else {
         canvasGeneralResize();
     }
+    zoomTrack[1] = 0;
+    zoomTrack[2] = 0;
 
 })
+function resizeCanvasSameSize() {
+    for (let item of document.querySelectorAll("g")) {
+        if (optionProxy.changeItems.moveZoom) {
+            item.parentElement.parentElement.style.transform = `scale(${zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom"))})`;
+            item.parentElement.parentElement.style.marginTop = `${zoomTrack[2] / (zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom")))}px`;
+            item.parentElement.parentElement.style.marginLeft = `${zoomTrack[1] / (zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom")))}px`;
+        } else {
+            if (parseFloat(item.parentElement.parentElement.getAttribute("data-zoom")) === zoomTrack[0]) item.parentElement.parentElement.style.display = "inline"; else item.parentElement.parentElement.style.display = "none";
+        }
+    }
+}
 function dragZoom(e) {
     if (canvasIds[1][1] || zoomTrack[0] === 1 || !zoomTrack[3]) return;
     if (optionProxy.changeItems.keepZoomSize) {
@@ -976,8 +1011,10 @@ function dragZoom(e) {
                 let rect = document.getElementById("displayCanvas").getBoundingClientRect();
                 if (item.getAttribute("topstatus") == "0") item.setAttribute("topstatus", zoomTrack[2]);
                 if (item.getAttribute("leftstatus") == "0") item.setAttribute("leftstatus", zoomTrack[1]);
-                item.style.marginTop = `${parseInt(item.getAttribute("topstatus")) - zoomTrack[2]}px`;
-                item.style.marginLeft = `${parseInt(item.getAttribute("leftstatus")) - zoomTrack[1]}px`;
+                let marginArchive = [`-${(parseInt(item.getAttribute("topstatus")) - zoomTrack[2]) / 2}px`, `-${(parseInt(item.getAttribute("leftstatus")) - zoomTrack[1]) / 2}px`]
+                for (let i = 0; i < marginArchive.length; i++) if (marginArchive[i].startsWith("--")) marginArchive[i] = marginArchive[i].substring(2);
+                item.style.marginTop = marginArchive[0];
+                item.style.marginLeft = marginArchive[1];
                 if (Math.abs(parseInt(item.style.marginTop.replace("px", ""))) >= rect.top || Math.abs(parseInt(item.style.marginLeft.replace("px", ""))) >= rect.left) item.style.visibility = "hidden"; else item.style.visibility = "visible";
             }
         }
@@ -1218,3 +1255,26 @@ document.getElementById("langOption").addEventListener("input", () => {
     window.location.href = window.location.href.substring(0, href.indexOf("?"));
 
 })
+let simpleSwitchAction = [["moveZoomCheck", "resizeCanvasCheck"], ["changeItems.moveZoom", "changeItems.resizeCanvas"]];
+for (let i = 0; i < simpleSwitchAction[0].length; i++) document.getElementById(simpleSwitchAction[0][i]).addEventListener("input", () => {
+    let item = optionProxy;
+    let itemPart = simpleSwitchAction[1][i].split(".");
+    for (let x = 0; x < itemPart.length - 1; x++) item = item[itemPart[x]];
+    item[itemPart[itemPart.length - 1]] = document.getElementById(simpleSwitchAction[0][i]).checked;
+})
+function showResizeCanvasBtn(show) {
+    document.querySelector("[data-action=expand]").style.display = show;
+    document.querySelector("[data-action=contract]").style.display = show;
+}
+document.getElementById("resizeCanvasCheck").addEventListener("input", () => {
+    if (document.getElementById("resizeCanvasCheck").checked) showResizeCanvasBtn("block"); else showResizeCanvasBtn("none");
+});
+if (!optionProxy.changeItems.resizeCanvas || !localStorage.getItem("PDFPointer-resizecanvas")) showResizeCanvasBtn("none");
+document.querySelector("[data-action=expand]").addEventListener("click", () => {
+    canvasGeneralScale += 5;
+    canvasPDF(loadPDF[2]);
+});
+document.querySelector("[data-action=contract]").addEventListener("click", () => {
+    canvasGeneralScale -= 5;
+    canvasPDF(loadPDF[2]);
+});

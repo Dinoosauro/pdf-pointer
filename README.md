@@ -9,7 +9,7 @@ When you open the webpage, you'll be asked to open a file. Select a PDF and PDFP
 At the right, you can see that it's possible to install the app for offline use. See the "Offline Use" section of this README for more information.
 ## Functions
 You can access to all of the functions from the toolbar.
-![Screenshot 2023-07-08 alle 12 26 23](https://i.imgur.com/9HIZZfz.png)
+![Screenshot 2023-07-08 alle 12 26 23](https://i.imgur.com/mAyIlnL.png)
 
 ### Draw into a PDF
 With PDFPointer, you can create quick annotations that disappear automatically. To do that, click the pen icon from the tools above. Start drawing, and, by default, the annotations will disappear after 15 seconds. If you want to change it, click on the Timer icon and then choosse another option. If you want to erase sooner the drawing, click on the eraser icon. You can also change the color of the drawing tool clicking the _color_ icon next to the erase one.
@@ -23,12 +23,14 @@ In the settings, you can change lots of things:
 - Choose if alerts should be shown (and their length)
 - Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
-- Change the zoom option between zooming the PDF canvas or scrolling it
+- Change the zoom option between zooming the PDF canvas or scrolling it; kepp annotations when zooming (even if it'll be a lot buggy) and enable a button to expand the PDF canvas size.
 - Change the language of the application
 - See keyboard shortcuts
 - See the licenses of the open source libraries 
 ### Zoom in/out
 You can zoom the PDF by clicking the magnifying glass icon. 
+### Expand and contract PDF
+Those two strange symbols before the "Next page" one and after the "Previous page" one arte he expand and contract button. These can optionally be enabled by the settings, and allow the user to control in a greater way than zooming the dimension of the canvas where the PDF is displayed. You can use them in both zoom modes.
 ### Next/Previous page
 Click the next/previous icon to go to the next/previous page.
 

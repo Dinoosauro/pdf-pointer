@@ -226,6 +226,28 @@
                         <div class="optionId button">
                             <div class="vertcenter" data-translate="changeZoom">Open zoom change dialog</div>
                         </div>
+                    </div><br>
+                    <div class="vertcenter">
+                        <div style="display: flex; float: left;">
+                            <l data-translate="moveZoom" title="Yeah, I'm not a good developer, not by a long shot. I still haven't figured how to make them stable.">Try moving the annotations when zooming (buggy!)</l>
+                        </div>
+                        <div style="display: flex; float: right;">
+                            <label class="switch" data-customanimate='1'>
+                                <input type="checkbox" id="moveZoomCheck">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div><br><br>
+                    <div class="vertcenter">
+                        <div style="display: flex; float: left;">
+                            <l data-translate="resizeCanvas">Permit to resize the PDF even in the "fixed PDF space" mode</l>
+                        </div>
+                        <div style="display: flex; float: right;">
+                            <label class="switch" data-customanimate='1'>
+                                <input type="checkbox" id="resizeCanvasCheck">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
                     </div>
                     <div class="card optioncolor">
@@ -379,6 +401,9 @@
                     <div class="optionId" data-action="prev">
                         <img fetchlink="prev" class="imgTool">
                     </div>
+                    <div class="optionId" data-action="contract">
+                        <img fetchlink="contract" class="imgTool">
+                    </div>
                     <div class="optionId" data-action="zoomout" data-moveleft="30px" style="margin-right: 30px;">
                         <img fetchlink="zoomout" class="imgTool">
                     </div>
@@ -405,6 +430,9 @@
                     </div>
                     <div class="optionId" data-action="zoomin" data-moveright="30px" style="margin-left: 30px;">
                         <img fetchlink="zoomin" class="imgTool">
+                    </div>
+                    <div class="optionId" data-action="expand">
+                        <img fetchlink="expand" class="imgTool">
                     </div>
                     <div class="optionId" data-action="next">
                         <img fetchlink="next" class="imgTool">

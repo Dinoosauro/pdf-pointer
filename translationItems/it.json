@@ -58,6 +58,8 @@
     "saveColor": "Salva colore personalizzato",
     "langSettings": "Lingua",
     "langSettingsDescription": "La pagina verrà aggiornata",
+    "moveZoom": "Prova a spostare le annotazioni con lo zoom (buggy!)",
+    "resizeCanvas": "Permetti di ridimensionare lo spazio dedicato al PDF anche nella modalità delle dimensioni fisse del PDF.",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",
