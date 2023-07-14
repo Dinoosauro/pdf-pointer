@@ -41,6 +41,15 @@ h1, h2, h3, h4 {
 .linkWithoutBrightness:hover {
   cursor: pointer;
 }
+select {
+  padding: 5px;
+  border: 3px solid var(--optionbackground);
+  background-color: var(--optionbackground);
+  color: var(--text);
+  border-radius: 8px;
+  border-right: 8px solid var(--optionbackground);
+  font-family: 'Work Sans', sans-serif;
+}
 .link:hover {
     -webkit-filter: brightness(80%);
     filter: brightness(80%);

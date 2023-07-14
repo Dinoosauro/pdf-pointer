@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.3";
+let appVersion = "1.0.4";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -1198,10 +1198,23 @@ try {
     document.getElementById("jsContinue").addEventListener("click", () => { document.getElementById("jsPromptAsk").remove(); })
     document.getElementById("jsPromptAsk").remove();
 } catch (ex) {
-    console.log(ex);
+    console.log("Hello World! :D");
 }
 if (window.location.href.indexOf("?nolang") !== -1) localStorage.setItem("nolang", "yes");
 if (window.location.href.indexOf("?itlang") !== -1) {
     localStorage.setItem("nolang", "no");
     window.location.href = window.location.href.substring(0, window.location.href.indexOf("?itlang"));
 }
+document.getElementById("langOption").addEventListener("input", () => {
+    switch (document.getElementById("langOption").value) {
+        case "en":
+            localStorage.setItem("nolang", "yes");
+            break;
+        case "it":
+            localStorage.setItem("nolang", "no");
+            break;
+    }
+    let href = `${window.location.href}?`;
+    window.location.href = window.location.href.substring(0, href.indexOf("?"));
+
+})

@@ -10,7 +10,7 @@
     "about": "Informazioni su quest'app",
     "github": "Vedi su GitHub",
     "mitPublish": "Quest'applicazione è pubblicata con la licenza MIT. Inoltre, quest'app utilizza delle librerie open-source, di cui la licenza è riportata di seguito, insieme ad una breve informazione sulla privacy. Selezionare un'opzione (potrebbe essere possibile eseguire uno scroll nell'elenco)",
-    "mitPlaceholder": "Vedrai la lienza qui.",
+    "mitPlaceholder": "Vedrai la licenza qui.",
     "pointIntro": "Segnala cose sul PDF con un puntatore e crea annotazioni effimere, direttamente dal tuo browser",
     "fileOpen": "Apriamo un nuovo file!",
     "dropfile": "Rilascia un file oppure ",
@@ -56,6 +56,8 @@
     "key2-2": "Pagina successiva",
     "key3-2": "Aumenta zoom",
     "saveColor": "Salva colore personalizzato",
+    "langSettings": "Lingua",
+    "langSettingsDescription": "La pagina verrà aggiornata",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",

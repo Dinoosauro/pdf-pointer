@@ -1,10 +1,7 @@
 # pdf-pointer
 Display PDFs with a pointer, make quick annotations (that automatically disappear), and zoom them
 
-Try it from: 
-
-- GitHub Pages (HIGHLY RECOMMENDED): https://dinoosauro.github.io/pdf-pointer/
-- Netlify (only if GitHub Pages doesn't work): https://dinoosauro-pdf-pointer.netlify.app/
+Try it: https://dinoosauro.github.io/pdf-pointer/
 ## Open a file
 ![Screenshot 2023-07-08 alle 12 38 01](https://i.imgur.com/R94fMa0.png)
 When you open the webpage, you'll be asked to open a file. Select a PDF and PDFPointer will automatically display it. You can also drag and drop the file.
@@ -27,6 +24,8 @@ In the settings, you can change lots of things:
 - Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
 - Change the zoom option between zooming the PDF canvas or scrolling it
+- Change the language of the application
+- See keyboard shortcuts
 - See the licenses of the open source libraries 
 ### Zoom in/out
 You can zoom the PDF by clicking the magnifying glass icon. 
@@ -35,6 +34,19 @@ Click the next/previous icon to go to the next/previous page.
 
 ## Offline use
 You can use PDFPointer offline by installing the website as a Progressive Web App (currently supported only on Chromium). Make sure to be online the first time and to open a PDF, then everything should work just fine.
+## Keyboard shortcuts
+The following keyboard shortcuts are supported:
+| Key | What it does | 
+| --- | ---- |
+| ⇧ (Shift) | Start (or finish) an annotation |
+| ⌥/Alt (Option) | Force stop an annotation |
+| ⌫ (Backspace) | Delete an annotation |
+| ▶ (Right arrow) | Next page |
+| ◀ (Left arrow) | Previous page |
+| + (Plus sign) | Increase zoom |
+| - (Minus sign) | Decrease zoom |
+
+You can see them also from the website's settings.
 ## Privacy
 Your PDF files are never uplaoded to the cloud. Everything is elaborated locally on your device.
 

@@ -209,7 +209,7 @@
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="appTheme">Application theme:</h3>
-                    <i data-translate="themeDescription">Choose a theme from the list below</i><br><br>
+                    <i data-translate="themeDescription" class="vertcenter">Choose a theme from the list below</i><br><br>
                     <div id="themeOptionShow" class="vertcenter containerSettings">
                     </div>
                     <br><br>
@@ -221,12 +221,23 @@
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="optionZoom">Zoom Options:</h3>
-                    <i data-translate="optionZoomDescription">You can choose between two zoom styles</i><br><br>
+                    <i data-translate="optionZoomDescription" class="vertcenter">You can choose between two zoom styles</i><br><br>
                     <div class="vertcenter">
                         <div class="optionId button">
                             <div class="vertcenter" data-translate="changeZoom">Open zoom change dialog</div>
                         </div>
                     </div>
+                    </div>
+                    <div class="card optioncolor">
+                        <h3 class="vertcenter" data-translate="langSettings">Language:</h3>
+                        <i data-translate="langSettingsDescription" class="vertcenter">The page will be refreshed</i><br>
+                        <div class="vertcenter">
+                        <select class="vertcenter" id="langOption">
+                            <option disabled selected>Select a language</option>
+                            <option value="en">English</option>
+                            <option value="it">Italiano</option>
+                        </select>
+                        </div>
                     </div>
                     <div class="card optioncolor">
                         <h3 class="vertcenter" data-translate="keyboardShortcut">Keyboard shortcuts</h3>
