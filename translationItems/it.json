@@ -55,6 +55,7 @@
     "key1-2": "Finisci l'annotazione",
     "key2-2": "Pagina successiva",
     "key3-2": "Aumenta zoom",
+    "saveColor": "Salva colore personalizzato",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",
@@ -64,7 +65,8 @@
         "minZoom": "è il livello minimo di zoom permesso.",
         "changeLang": "La tua lingua è stata impostata automaticamente su: Italiano.",
         "noShowAgain": "Non mostrare più",
-        "zoomCanvas": "Il mantenimento delle annotazioni con lo zoom è sperimentale, e pertanto ci potrebbero essere (e molto probabilmente ci saranno) dei glitch."
+        "zoomCanvas": "Il mantenimento delle annotazioni con lo zoom è sperimentale, e pertanto ci potrebbero essere (e molto probabilmente ci saranno) dei glitch.",
+        "webKitColor": "Seleziona il colore dal selettore qui sotto, e poi clicca sul pulsante \"Salva colore personalizzato\" per scegliere un nome."
     },
     "themeCreation": {
         "title": "Creatore dei temi",

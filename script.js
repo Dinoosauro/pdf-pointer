@@ -179,6 +179,7 @@ let globalTranslations = {
     minZoom: "is the mininum zoom level permitted",
     noShowAgain: "Don't show again",
     zoomCanvas: "Zooming in PDFs and keeping annotations is experimental, and it might (and most probalby will) cause glitches.",
+    webKitColor: "Select the color from the input below, and then click on the \"Save custom color\" button to choose a name for it.",
 }
 function canvasPen() {
     if (!document.querySelector("[data-action=pen]").classList.contains("clickImg") && !isFromKey) return;
@@ -191,7 +192,7 @@ function canvasPen() {
     let newCanvas = document.createElement("div");
     newCanvas.width = document.getElementById("displayCanvas").offsetWidth;
     newCanvas.height = document.getElementById("displayCanvas").offsetHeight;
-    newCanvas.style = `position: absolute; z-index: ${canvasIds[0]}; margin-top: 0px;`;
+    newCanvas.style = `position: absolute; z-index: ${canvasIds[0]}; margin-top: 15px; margin-bottom: 15px; border-radius: 8px`;
     newCanvas.classList.add("displayCanvas", "opacityRemove");
     newCanvas.setAttribute("topstatus", "0");
     newCanvas.setAttribute("leftstatus", "0");
@@ -216,18 +217,21 @@ function canvasMove(event) {
     if (!canvasIds[1][1]) return;
     let rectangle = document.getElementById("displayCanvas").getBoundingClientRect();
     let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top];
+    let AddToY = 0;
+    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) AddToY = 32; // It seems that WebKit manages pointers in a different way, so I need to add the height of the SVG
     if (canvasIds[1][2][0] !== null) {
         try {
-            canvasIds[1][0].lineTo(xy[0], xy[1] + 16);
+            canvasIds[1][0].lineTo(xy[0], xy[1] + AddToY);
             canvasIds[1][0].stroke();
         } catch (ex) {
             console.warn(ex);
             canvasPen();
             canvasPen();
         }
+        //  + 16
     } else {
         canvasIds[1][0].beginPath();
-        canvasIds[1][0].moveTo(xy[0], xy[1] + 16);
+        canvasIds[1][0].moveTo(xy[0], xy[1] + AddToY);
     }
     canvasIds[1][2] = xy;
     canvasIds[1][3].innerHTML = canvasIds[1][0].getSerializedSvg();
@@ -440,8 +444,11 @@ function createDropdown(buttonReference) {
     optionProxy.showAlert.timer = true;
     let div = document.createElement("div");
     div.classList.add("animate__animated", "animate__backInDown")
-    let close = document.createElement("div");
-    close.textContent = "X";
+    let close = document.createElement("img");
+    close.width = 25;
+    close.height = 25;
+    close.setAttribute("data-customanimate", "1");
+    getImg([close], "save");
     close.addEventListener("click", () => {
         div.classList.add("animate__backOutUp");
         setTimeout(() => {
@@ -453,7 +460,7 @@ function createDropdown(buttonReference) {
         }
         optionProxy.showAlert.timer = false;
     })
-    close.classList.add("closeBtn");
+    close.classList.add("closeBtn", "saveDropdown");
     div.append(close);
     var divPosition = buttonReference.getBoundingClientRect();
     div.classList.add("dropdown");
@@ -606,7 +613,7 @@ function fetchColors(jsonItem) {
 }
 document.getElementById("optionContainer").innerHTML = "";
 fetchColors(optionProxy.availableHighlightColors);
-document.getElementById("colorNew").addEventListener("focusout", () => {
+function updateColorNew() {
     let result = prompt(`${globalTranslations.nameColor} [${document.getElementById("colorNew").value}]`);
     if (result !== null) {
         let getColorRGB = hexToRgbNew(document.getElementById("colorNew").value.replace("#", "")).split(",");
@@ -617,7 +624,14 @@ document.getElementById("colorNew").addEventListener("focusout", () => {
         singleColor[result] = getColorRGB;
         fetchColors(singleColor);
     }
-})
+}
+if (navigator.userAgent.toLowerCase().indexOf("chrome") !== -1) {
+    document.getElementById("colorNew").addEventListener("focusout", () => { updateColorNew() });
+} else {
+    document.getElementById("colorSaveBtn").style.display = "flex";
+    document.querySelector("[data-translate=customColorDescription]").textContent = globalTranslations.webKitColor;
+    document.getElementById("colorSaveBtn").addEventListener("click", () => { updateColorNew() });
+}
 function getImg(loadImg, link, setCursor, customColor) {
     if (jsonImg.toload) {
         setTimeout(() => { getImg(loadImg, link, setCursor, customColor) }, 100);
@@ -1014,7 +1028,7 @@ for (let animateEnd of document.getElementsByClassName("optionId")) {
     }
 }
 let language = navigator.language || navigator.userLanguage;
-if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1) {
+if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1 && localStorage.getItem("nolang") !== "yes") {
     fetch(`./translationItems/it.json`).then((res) => {
         res.json().then((json) => {
             for (let item of document.querySelectorAll("[data-translate]")) item.textContent = json[item.getAttribute("data-translate")];
@@ -1178,4 +1192,16 @@ for (let item of document.querySelectorAll("[data-videofetch]")) {
             item.src = URL.createObjectURL(blob);
         }).catch((ex) => { console.warn(ex) })
     }).catch((ex) => { console.warn(ex) });
+}
+document.getElementById("welcomeClick").addEventListener("click", () => { window.location.reload() });
+try {
+    document.getElementById("jsContinue").addEventListener("click", () => { document.getElementById("jsPromptAsk").remove(); })
+    document.getElementById("jsPromptAsk").remove();
+} catch (ex) {
+    console.log(ex);
+}
+if (window.location.href.indexOf("?nolang") !== -1) localStorage.setItem("nolang", "yes");
+if (window.location.href.indexOf("?itlang") !== -1) {
+    localStorage.setItem("nolang", "no");
+    window.location.href = window.location.href.substring(0, window.location.href.indexOf("?itlang"));
 }

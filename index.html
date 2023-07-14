@@ -15,6 +15,16 @@
 </head>
 
 <body>
+    <noscript>
+    <div style="width: 100vw; height: 100vh; position: fixed; background-color: rgb(22,22,22); top: 0; left: 0; padding: 25px" id="jsPromptAsk">
+        <l>JavaScript must be enabled to make this website work.<br><br><br>Do you think this is an error?<br><br></l>
+        <div class="vertcenter">
+            <div class="optionId button" data-customanimate="1">
+                <div class="vertcenter" data-translate="continueBtn" id="jsContinue">Continue</div>
+            </div>
+        </div>
+    </div>
+</noscript>
     <div class="vertcenter" style="z-index: 9999999; display: none; position: absolute; width: 100vw;"
         id="zoomChooseContainer">
         <div
@@ -144,6 +154,11 @@
                             <div class="vertcenter"><input type="color" class="vertcenter" id="colorNew"></div>
                         </div>
                     </div><br><br>
+                    <div class="vertcenter" style="display: none;" id="colorSaveBtn">
+                        <div class="optionId button" style="margin-right: 10px;">
+                            <div class="vertcenter" data-translate="saveColor">Save custom color</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card optioncolor onlyHeightTransition" id="pointerContainer">
                     <h3 class="vertcenter" data-translate="pointerColor">Pointer color</h3>
@@ -309,7 +324,7 @@
             </div>
         </div>
     </div>
-    <div style="display: flex; height: 48px; justify-content: center">
+    <div id="welcomeClick" style="display: flex; height: 48px; justify-content: center; text-decoration: none;" data-customanimate="1" class="linkWithoutBrightness">
         <img fetchlink="logo" width="48px" height="48px">
         <div style="display: flex; align-items: center; margin-left: 15px;">
             <h1 style="margin-bottom: 0px; padding-bottom: 0px; padding-top: 0px; margin-top: 4px;">PdfPointer</h1>

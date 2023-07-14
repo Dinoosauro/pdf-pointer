@@ -14,6 +14,12 @@ const filestoCache = [
     'https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.worker.min.js',
+    './assets/FirstClip.mp4',
+    './assets/SecondClip.mp4',
+    './assets/ThirdClip.mp4',
+    './assets/FirstZoomOption.mp4',
+    './assets/SecondZoomOption.mp4',
 ];
 let language = navigator.language || navigator.userLanguage;
 if (language.indexOf("it") !== -1) filestoCache.push('./translationItems/it.json')

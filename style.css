@@ -145,6 +145,20 @@ h1, h2, h3, h4 {
     color: var(--accent);
     cursor: pointer
 }
+input[type=color] {
+  background-color: var(--accent);
+  border-radius: 8px;
+  height: 25px;
+  border: 0px;
+padding-left: 4px;
+padding-right: 4px;
+}
+.saveDropdown {
+  padding-left: 22px;
+position: absolute;
+right: 25px;
+top: 18px;
+}
 input[type=number], input[type=text] {
     border-radius: 8px;
     background-color: var(--optionbackground);
