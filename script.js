@@ -1028,7 +1028,7 @@ for (let animateEnd of document.getElementsByClassName("optionId")) {
     }
 }
 let language = navigator.language || navigator.userLanguage;
-if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1 && localStorage.getItem("nolang") !== "yes") {
+if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1 && localStorage.getItem("PDFPointer-nolang") !== "yes") {
     fetch(`./translationItems/it.json`).then((res) => {
         res.json().then((json) => {
             for (let item of document.querySelectorAll("[data-translate]")) item.textContent = json[item.getAttribute("data-translate")];
@@ -1200,18 +1200,18 @@ try {
 } catch (ex) {
     console.log("Hello World! :D");
 }
-if (window.location.href.indexOf("?nolang") !== -1) localStorage.setItem("nolang", "yes");
+if (window.location.href.indexOf("?nolang") !== -1) localStorage.setItem("PDFPointer-nolang", "yes");
 if (window.location.href.indexOf("?itlang") !== -1) {
-    localStorage.setItem("nolang", "no");
+    localStorage.setItem("PDFPointer-nolang", "no");
     window.location.href = window.location.href.substring(0, window.location.href.indexOf("?itlang"));
 }
 document.getElementById("langOption").addEventListener("input", () => {
     switch (document.getElementById("langOption").value) {
         case "en":
-            localStorage.setItem("nolang", "yes");
+            localStorage.setItem("PDFPointer-nolang", "yes");
             break;
         case "it":
-            localStorage.setItem("nolang", "no");
+            localStorage.setItem("PDFPointer-nolang", "no");
             break;
     }
     let href = `${window.location.href}?`;
