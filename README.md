@@ -24,6 +24,7 @@ In the settings, you can change lots of things:
 - Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
 - Change the zoom option between zooming the PDF canvas or scrolling it; kepp annotations when zooming (even if it'll be a lot buggy) and enable a button to expand the PDF canvas size.
+- Change the background color/image/video of the application.
 - Change the language of the application
 - See keyboard shortcuts
 - See the licenses of the open source libraries 
@@ -49,6 +50,16 @@ The following keyboard shortcuts are supported:
 | - (Minus sign) | Decrease zoom |
 
 You can see them also from the website's settings.
+
+## Change background image/video
+
+You can change the background with a local image, the default background color and YouTube videos. Yes, this means you can keep those Minecraft parkour backgrounds also when reading PDF. 
+
+![An image showing Minecraft parkour in the background while displaying a PDF.](https://i.imgur.com/rGt4eiX.png)
+
+*The industrial revolution and its consequences...*
+
+
 ## Privacy
 Your PDF files are never uplaoded to the cloud. Everything is elaborated locally on your device.
 
@@ -57,3 +68,4 @@ PDFPointer connects to the following domains:
 - Google Fonts: to download the fonts used for the text, no data is shared with Google
 - JSDelivr/GitHub/CloudFlare: download libraries that make the software work
 - GitHub Pages: hosting of pdf-pointer
+- YouTube: only if you enable YouTube videos as a background from Settings

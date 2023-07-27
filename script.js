@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.5";
+let appVersion = "1.0.6";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -1366,7 +1366,9 @@ function imgEmbed() {
 function generateFilters() {
     let applyFilter = `blur(${document.getElementById("blurRange").value}px) brightness(${document.getElementById("brightRange").value}%)`;
     if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").style.filter = applyFilter;
+    if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").style.webkitFilter = applyFilter;
     document.querySelector(".video-background").style.filter = applyFilter;
+    document.querySelector(".video-background").style.webkitFilter = applyFilter;
 }
 if (localStorage.getItem("PDFPointer-ytLink") === null) localStorage.setItem("PDFPointer-ytLink", "videoseries?list=PLuu93Gnhjs5BJ-kf5IxMwPGftIFqlMVZu");
 if (window.location.href.indexOf("ytconcentration") !== -1) localStorage.setItem("PDFPointer-backgroundId", "1");
