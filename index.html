@@ -14,17 +14,19 @@
     <meta name="theme-color" content="#c0c2d9" />
 </head>
 
-<body>
+<div class="bodyProxy">
     <noscript>
-    <div style="width: 100vw; height: 100vh; position: fixed; background-color: rgb(22,22,22); top: 0; left: 0; padding: 25px" id="jsPromptAsk">
-        <l>JavaScript must be enabled to make this website work.<br><br><br>Do you think this is an error?<br><br></l>
-        <div class="vertcenter">
-            <div class="optionId button" data-customanimate="1">
-                <div class="vertcenter" data-translate="continueBtn" id="jsContinue">Continue</div>
+        <div style="width: 100vw; height: 100vh; position: fixed; background-color: rgb(22,22,22); top: 0; left: 0; padding: 25px"
+            id="jsPromptAsk">
+            <l>JavaScript must be enabled to make this website work.<br><br><br>Do you think this is an error?<br><br>
+            </l>
+            <div class="vertcenter">
+                <div class="optionId button" data-customanimate="1">
+                    <div class="vertcenter" data-translate="continueBtn" id="jsContinue">Continue</div>
+                </div>
             </div>
         </div>
-    </div>
-</noscript>
+    </noscript>
     <div class="vertcenter" style="z-index: 9999999; display: none; position: absolute; width: 100vw;"
         id="zoomChooseContainer">
         <div
@@ -34,7 +36,8 @@
                 <div
                     style="float: left; width: 45%; left: 0; border-radius: 8px; background-color: rgb(133,134,153); padding: 25px; margin-right: 15px;">
                     <h3 class="vertcenter" data-translate="canvasSize">Zoom keeping PDF size</h3>
-                    <video class="vertcenter" data-videofetch="FirstZoomOption.mp4" autoplay muted style="width: 100%; max-width: 100%;">
+                    <video class="vertcenter" data-videofetch="FirstZoomOption.mp4" autoplay muted
+                        style="width: 100%; max-width: 100%;">
                     </video> <br>
                     <i style="font-size: 0.90rem;" data-translate="canvasSizeDescription">The position of the PDF will
                         remain the same, and you'll be able to move with it by dragging it.</i><br><br>
@@ -47,7 +50,8 @@
                 <div
                     style="float: right; width: 45%; right: 0; border-radius: 8px; background-color: rgb(75,55,39); padding: 25px">
                     <h3 class="vertcenter" data-translate="zoomPdf">Zoom PDF size</h3>
-                    <video class="vertcenter" data-videofetch="SecondZoomOption.mp4" autoplay muted style="width: 100%; max-width: 100%;">
+                    <video class="vertcenter" data-videofetch="SecondZoomOption.mp4" autoplay muted
+                        style="width: 100%; max-width: 100%;">
                     </video> <br>
                     <i style="font-size: 0.90rem;" data-translate="pdfZoomDescription">The PDF will be zoomed on the
                         page. You might need to scroll the page to see the full PDF.</i><br><br>
@@ -209,7 +213,8 @@
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="appTheme">Application theme:</h3>
-                    <i data-translate="themeDescription" class="vertcenter">Choose a theme from the list below</i><br><br>
+                    <i data-translate="themeDescription" class="vertcenter">Choose a theme from the list
+                        below</i><br><br>
                     <div id="themeOptionShow" class="vertcenter containerSettings">
                     </div>
                     <br><br>
@@ -221,7 +226,8 @@
                 </div>
                 <div class="card optioncolor">
                     <h3 class="vertcenter" data-translate="optionZoom">Zoom Options:</h3>
-                    <i data-translate="optionZoomDescription" class="vertcenter">You can choose between two zoom styles</i><br><br>
+                    <i data-translate="optionZoomDescription" class="vertcenter">You can choose between two zoom
+                        styles</i><br><br>
                     <div class="vertcenter">
                         <div class="optionId button">
                             <div class="vertcenter" data-translate="changeZoom">Open zoom change dialog</div>
@@ -229,7 +235,9 @@
                     </div><br>
                     <div class="vertcenter">
                         <div style="display: flex; float: left;">
-                            <l data-translate="moveZoom" title="Yeah, I'm not a good developer, not by a long shot. I still haven't figured how to make them stable.">Try moving the annotations when zooming (buggy!)</l>
+                            <l data-translate="moveZoom"
+                                title="Yeah, I'm not a good developer, not by a long shot. I still haven't figured how to make them stable.">
+                                Try moving the annotations when zooming (buggy!)</l>
                         </div>
                         <div style="display: flex; float: right;">
                             <label class="switch" data-customanimate='1'>
@@ -240,7 +248,8 @@
                     </div><br><br>
                     <div class="vertcenter">
                         <div style="display: flex; float: left;">
-                            <l data-translate="resizeCanvas">Permit to resize the PDF even in the "fixed PDF space" mode</l>
+                            <l data-translate="resizeCanvas">Permit to resize the PDF even in the "fixed PDF space" mode
+                            </l>
                         </div>
                         <div style="display: flex; float: right;">
                             <label class="switch" data-customanimate='1'>
@@ -249,23 +258,63 @@
                             </label>
                         </div>
                     </div>
-                    </div>
-                    <div class="card optioncolor">
-                        <h3 class="vertcenter" data-translate="langSettings">Language:</h3>
-                        <i data-translate="langSettingsDescription" class="vertcenter">The page will be refreshed</i><br>
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="background">Background</h3>
+                    <i data-translate="backgroundDescription" class="textCenter">Import a custom background</i>
+                    <div class="vertcenter">
+                        <select class="vertcenter" id="backgroundOptions">
+                            <option value="0" selected data-translate="defaultbackground">Use default color</option>
+                            <option value="1" data-translate="ytimport">Import YouTube video</option>
+                            <option value="2" data-translate="custompic">Import custom picture</option>
+                        </select>
+                    </div><br>
+                    <div id="ytlinkask" style="display: none; opacity: 0;" class="opacityRemove vertcenter">
                         <div class="vertcenter">
+                            <l data-translate="ytChoose">Write the link to the YouTube video/playlist</l><input
+                                type="text" id="ytLinkValue" data-customanimate='1' style="margin-left: 10px;"><br>
+                        </div>
+
+                        <div class="vertcenter">
+                            <div class="optionId button" data-customanimate="1">
+                                <div class="vertcenter" data-translate="applyyt">Apply</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="imgAsk" style="display: none; opacity: 0;" class="opacityRemove">
+                        <div class="vertcenter">
+                            <div class="optionId button" data-customanimate="1">
+                                <div class="vertcenter" data-translate="chooseimg">Choose image</div>
+                            </div>
+                        </div>
+                    </div><br>
+                    <div id="styleItem" style="display: none; opacity: 0;" class="opacityRemove">
+                        <div class="vertcenter">
+                            <l>Content blur:</l><input type="range" min="0" max="64" step="1" value="8" id="blurRange">
+                        </div><br>
+                        <div class="vertcenter">
+                            <l>Brightness blur:</l><input type="range" min="0" max="200" value="50" step="1"
+                                id="brightRange">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="langSettings">Language:</h3>
+                    <i data-translate="langSettingsDescription" class="vertcenter">The page will be refreshed</i><br>
+                    <div class="vertcenter">
                         <select class="vertcenter" id="langOption">
                             <option disabled selected>Select a language</option>
                             <option value="en">English</option>
                             <option value="it">Italiano</option>
                         </select>
-                        </div>
                     </div>
-                    <div class="card optioncolor">
-                        <h3 class="vertcenter" data-translate="keyboardShortcut">Keyboard shortcuts</h3>
-                        <i data-translate="keyboardShortcutDescription" class="textCenter">You can't edit these.</i><br><br>
-                        <div style="display: flex; float: left; width: 45%; flex-direction: column; margin-right: 5%;">
-                            <div style="display: flex;">
+                </div>
+                <div class="card optioncolor">
+                    <h3 class="vertcenter" data-translate="keyboardShortcut">Keyboard shortcuts</h3>
+                    <i data-translate="keyboardShortcutDescription" class="textCenter">You can't edit these.</i><br><br>
+                    <div style="display: flex; float: left; width: 45%; flex-direction: column; margin-right: 5%;">
+                        <div style="display: flex;">
                             <div class="vertcenter keyWidth">
                                 <div class="optionId button" data-customanimate="1">
                                     <div class="vertcenter">⇧ <br>(Shift)</div>
@@ -299,9 +348,9 @@
                             </div>
                             <l class="vertcenter marginLeft15" data-translate="key4">Decrease zoom</l><br>
                         </div><br>
-                        </div>
-                        <div style="display: flex; float: right; width: 45%; flex-direction: column; margin-left: 5%;">
-                            <div style="display: flex;">
+                    </div>
+                    <div style="display: flex; float: right; width: 45%; flex-direction: column; margin-left: 5%;">
+                        <div style="display: flex;">
                             <div class="vertcenter keyWidth">
                                 <div class="optionId button" data-customanimate="1">
                                     <div class="vertcenter">⌥/Alt<br> (Option)
@@ -328,8 +377,8 @@
                             </div>
                             <l class="vertcenter marginLeft15" data-translate="key3-2">Increase zoom</l><br>
                         </div>
-                        </div>                
                     </div>
+                </div>
                 <div class="card optioncolor">
                     <h3 data-translate="about">About this app</h3>
                     <i class="vertcenter">PDFPointer <span id="appversion" style="margin-left: 5px;"></span></i><br><br>
@@ -338,7 +387,7 @@
                     <l data-translate="mitPublish">This application is published under the MIT license, and uses some
                         open source libraries. Here are their licenses, with also a small privacy information. You might
                         need to scroll the list to see all of them.</l>
-                    <div class="vertcenter" style="overflow-y: scroll">
+                    <div style="overflow-y: scroll; display: flex;align-items: center;">
                         <h4 class="link marginRight" data-license="mit" data-author="2023 Dinoosauro">PDFPointer</h4>
                         <h4 class="link marginRight" data-license="hippocratic" data-author="2021 Daniel Eden">
                             animate.css</h4>
@@ -357,7 +406,8 @@
             </div>
         </div>
     </div>
-    <div id="welcomeClick" style="display: flex; height: 48px; justify-content: center; text-decoration: none;" data-customanimate="1" class="linkWithoutBrightness">
+    <div id="welcomeClick" style="display: flex; height: 48px; justify-content: center; text-decoration: none;"
+        data-customanimate="1" class="linkWithoutBrightness">
         <img fetchlink="logo" width="48px" height="48px">
         <div style="display: flex; align-items: center; margin-left: 15px;">
             <h1 style="margin-bottom: 0px; padding-bottom: 0px; padding-top: 0px; margin-top: 4px;">PdfPointer</h1>
@@ -397,7 +447,8 @@
     <div id="generalToolContainer">
         <div style="position: absolute; z-index: 9999997;">
             <div class="vertcenter column" id="toolMain" style="visibility: hidden;">
-                <div class="optionContainer vertcenter" id="containerOfOptions" style="margin-top: 10px; height: 100%; padding-top: 5px; padding-bottom: 5px;">
+                <div class="optionContainer vertcenter" id="containerOfOptions"
+                    style="margin-top: 10px; height: 100%; padding-top: 5px; padding-bottom: 5px;">
                     <div class="optionId" data-action="prev">
                         <img fetchlink="prev" class="imgTool">
                     </div>
@@ -452,15 +503,19 @@
             </div>
         </div>
     </div>
-    </div>
-    </div>
+</div>
+</div>
 
-    </div>
-    </div>
-    <input type="file" style="display: none;" accept="application/pdf" id="fileOpen">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
-        integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
-    <script src="./script.js"></script>
-    <script src="./canvas2svg.js"></script>
+</div>
+</div>
+</div>
+<div class="video-background" style="display: none; position: fixed; top: 0; z-index: -1;">
+    <iframe id="ytframe" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+<input type="file" style="display: none;" accept="application/pdf" id="fileOpen">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
+    integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
+<script src="./script.js"></script>
+<script src="./canvas2svg.js"></script>
 </body>

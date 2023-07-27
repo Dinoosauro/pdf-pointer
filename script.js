@@ -1237,8 +1237,8 @@ try {
 } catch (ex) {
     console.log("Hello World! :D");
 }
-if (window.location.href.indexOf("?nolang") !== -1) localStorage.setItem("PDFPointer-nolang", "yes");
-if (window.location.href.indexOf("?itlang") !== -1) {
+if (window.location.href.indexOf("nolang") !== -1) localStorage.setItem("PDFPointer-nolang", "yes");
+if (window.location.href.indexOf("itlang") !== -1) {
     localStorage.setItem("PDFPointer-nolang", "no");
     window.location.href = window.location.href.substring(0, window.location.href.indexOf("?itlang"));
 }
@@ -1278,3 +1278,105 @@ document.querySelector("[data-action=contract]").addEventListener("click", () =>
     canvasGeneralScale -= 5;
     canvasPDF(loadPDF[2]);
 });
+document.querySelector("[data-translate=applyyt]").addEventListener("click", () => {
+    let ytLink = document.getElementById("ytLinkValue").value;
+    if (ytLink.indexOf("&") !== -1) ytLink = ytLink.substring(0, ytLink.indexOf("&"));
+    if (ytLink.indexOf("watch?v=") !== -1) localStorage.setItem("PDFPointer-ytLink", ytLink.substring(ytLink.indexOf("watch?v=")).replace("watch?v=", "")); else if (ytLink.indexOf("playlist?list=") !== -1) localStorage.setItem("PDFPointer-ytLink", `videoseries?list=${ytLink.substring(ytLink.indexOf("playlist?list=")).replace("playlist?list=", "")}`); else if (ytLink.indexOf("youtu.be") !== -1) localStorage.setItem("PDFPointer-ytLink", ytLink.substring(ytLink.lastIndexOf("/") + 1));
+    ytEmbed();
+})
+document.getElementById("backgroundOptions").addEventListener("input", () => { manageBackground() });
+function manageBackground() {
+    function dontShow(reverse) {
+        let items = [document.getElementById("ytlinkask"), document.getElementById("imgAsk")];
+        if (reverse) items.reverse();
+        if (items[1].style.opacity !== 1) {
+            items[1].style.opacity = 0;
+            setTimeout(() => {
+                items[1].style.display = "none"; items[0].style.display = "inline";
+                setTimeout(() => { items[0].style.opacity = 1 }, 15);
+            }, 400);
+        } else {
+            items[0].style.display = "inline";
+            setTimeout(() => { items[0].style.opacity = 1 }, 15);
+        }
+        document.getElementById("styleItem").style.display = "inline";
+        setTimeout(() => { document.getElementById("styleItem").style.opacity = "1" }, 15);
+    }
+    localStorage.setItem("PDFPointer-backgroundId", document.getElementById("backgroundOptions").value);
+    switch (parseInt(document.getElementById("backgroundOptions").value)) {
+        case 1:
+            dontShow();
+            if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").remove();
+            if (localStorage.getItem("PDFPointer-ytLink") !== null) document.querySelector("[data-translate=applyyt]").click();
+            break;
+        case 2:
+            dontShow(true);
+            document.querySelector(".video-background").style.display = "none";
+            document.getElementById("ytframe").src = "";
+            if (localStorage.getItem("PDFPointer-customImg") !== null) imgEmbed();
+            break;
+        default:
+            document.getElementById("ytlinkask").style.opacity = 0;
+            document.getElementById("imgAsk").style.opacity = 0;
+            if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").remove();
+            document.getElementById("ytframe").src = "";
+            document.getElementById("styleItem").style.opacity = 0;
+            setTimeout(() => { document.getElementById("ytlinkask").style.display = "none"; document.getElementById("styleItem").style.display = "none"; document.getElementById("imgAsk").style.display = "none"; }, 400);
+            break;
+    }
+};
+document.querySelector("[data-translate=chooseimg]").addEventListener("click", () => {
+    let input = document.createElement("input");
+    input.type = "file";
+    input.onchange = function () {
+        let read = new FileReader();
+        read.onload = function () {
+            let img = document.createElement("img");
+            img.onload = function () {
+                let canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                canvas.getContext("2d").drawImage(img, 0, 0);
+                let imgUrl = canvas.toDataURL("image/jpeg", 0.5);
+                localStorage.setItem("PDFPointer-customImg", imgUrl);
+                imgEmbed();
+            }
+            img.src = read.result;
+        }
+        read.readAsDataURL(input.files[0]);
+    }
+    input.click();
+})
+function ytEmbed() {
+    document.querySelector(".video-background").style.display = "block";
+    let buildSymbol = "?";
+    if (localStorage.getItem("PDFPointer-ytLink").indexOf("?") !== -1) buildSymbol = "&";
+    document.getElementById("ytframe").src = `https://www.youtube-nocookie.com/embed/${localStorage.getItem("PDFPointer-ytLink")}${buildSymbol}autoplay=1&mute=1`;
+    generateFilters();
+}
+function imgEmbed() {
+    if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").remove();
+    let img = document.createElement("img");
+    img.style = "z-index: -1; position: fixed; width: 100vw; height: 100vh; margin: 0; top: 0; object-fit: cover;";
+    img.src = localStorage.getItem("PDFPointer-customImg");
+    img.id = "imgRefer"
+    document.body.append(img);
+    generateFilters();
+}
+function generateFilters() {
+    let applyFilter = `blur(${document.getElementById("blurRange").value}px) brightness(${document.getElementById("brightRange").value}%)`;
+    if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").style.filter = applyFilter;
+    document.querySelector(".video-background").style.filter = applyFilter;
+}
+if (localStorage.getItem("PDFPointer-ytLink") === null) localStorage.setItem("PDFPointer-ytLink", "videoseries?list=PLuu93Gnhjs5BJ-kf5IxMwPGftIFqlMVZu");
+if (window.location.href.indexOf("ytconcentration") !== -1) localStorage.setItem("PDFPointer-backgroundId", "1");
+document.getElementById("blurRange").addEventListener("input", () => { localStorage.setItem("PDFPointer-blur", document.getElementById("blurRange").value); generateFilters() });
+document.getElementById("brightRange").addEventListener("input", () => { localStorage.setItem("PDFPointer-bright", document.getElementById("brightRange").value); generateFilters() });
+if (localStorage.getItem("PDFPointer-backgroundId") !== null) {
+    if (parseInt(localStorage.getItem("PDFPointer-backgroundId")) === 1) ytEmbed(); else if (parseInt(localStorage.getItem("PDFPointer-backgroundId")) === 2) imgEmbed();
+    document.getElementById("backgroundOptions").value = localStorage.getItem("PDFPointer-backgroundId");
+    let itemsLook = [["PDFPointer-ytLink", "PDFPointer-blur", "PDFPointer-bright"], [document.getElementById("ytLinkValue"), document.getElementById("blurRange"), document.getElementById("brightRange")]]
+    for (let i = 0; i < itemsLook.length; i++) if (localStorage.getItem(itemsLook[0][i]) !== null) itemsLook[1][i].value = localStorage.getItem(itemsLook[0][i]);
+    manageBackground();
+    generateFilters();
+}
