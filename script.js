@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.6";
+let appVersion = "1.0.7";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -99,7 +99,6 @@ function startPDFRead(link) {
         // document.documentElement.addEventListener("keyup", (e) => { shiftShortcut(e) });
         document.documentElement.addEventListener("mouseup", () => { zoomTrack[3] = false });
         document.documentElement.addEventListener("mouseleave", () => { zoomTrack[3] = false });
-        document.documentElement.addEventListener("mousemove", (e) => dragZoom(e));
         loadPDF[0] = pdfjsLib.getDocument(link);
         loadPDF[0].promise.then((pdf) => {
             loadPDF[1] = pdf;
@@ -156,7 +155,7 @@ function canvasPDF(pageNumber) {
         page.render(renderContext).promise.then(() => {
             canvasComplete = true;
             canvas.getContext("2d").drawImage(proxyCanvas, 0, 0, canvas.width, canvas.height)
-
+            if (optionProxy.changeItems.keepZoomSize) setFixedWidth();
             if (isFullscreen) {
                 let getAvailableSpace = (window.innerWidth * 10 / 100) + document.getElementById("containerOfOptions").offsetWidth;
                 document.getElementById("containerOfOptions").classList.add("fullcontainer");
@@ -192,7 +191,7 @@ function canvasPen() {
     let newCanvas = document.createElement("div");
     newCanvas.width = document.getElementById("displayCanvas").offsetWidth;
     newCanvas.height = document.getElementById("displayCanvas").offsetHeight;
-    newCanvas.style = `position: absolute; z-index: ${canvasIds[0]}; margin-top: 15px; margin-bottom: 15px; border-radius: 8px`;
+    newCanvas.style = `position: absolute; z-index: ${canvasIds[0]}; margin-top: 15px; margin-bottom: 15px; border-radius: 8px;`;
     newCanvas.classList.add("displayCanvas", "opacityRemove");
     newCanvas.setAttribute("topstatus", "0");
     newCanvas.setAttribute("leftstatus", "0");
@@ -215,8 +214,7 @@ function canvasPen() {
 }
 function canvasMove(event) {
     if (!canvasIds[1][1]) return;
-    let rectangle = document.getElementById("displayCanvas").getBoundingClientRect();
-    let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top];
+    let xy = [event.offsetX, event.offsetY];
     let AddToY = 0;
     if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) AddToY = 32; // It seems that WebKit manages pointers in a different way, so I need to add the height of the SVG
     if (canvasIds[1][2][0] !== null) {
@@ -321,7 +319,7 @@ let localOptions = {
         pointerColorEnabled: false,
         pointerColorColor: "#ffffff",
         keepZoomSize: null,
-        moveZoom: false,
+        moveZoom: true,
         resizeCanvas: false,
     },
     themes: [{
@@ -565,6 +563,7 @@ document.querySelector("[data-action=prev]").addEventListener("click", () => {
 function fixZoom() {
     for (let itemOld of document.querySelectorAll("g")) {
         item = itemOld.parentElement;
+        item.parentElement.style.transformOrigin = "top left";
         item.parentElement.style.transform = `scale(${1 / parseInt(item.parentElement.getAttribute("data-zoom"))})`;
         item.parentElement.height = originalWidth[2];
         item.parentElement.width = originalWidth[3];
@@ -838,6 +837,7 @@ document.addEventListener('fullscreenchange', (e) => {
         document.getElementById("containerOfOptions").classList.add("fullcontainer");
         document.getElementById("pdfcontainer").style = `display: flex; float: left; width: ${window.innerWidth - getAvailableSpace - 2}px`;
         canvasGeneralScale = 110;
+        document.querySelector("[data-action=fullscreen]").style.display = "none";
         startWidth[1] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
         startWidth[2] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
         canvasPDF(loadPDF[2]);
@@ -857,6 +857,8 @@ document.addEventListener('fullscreenchange', (e) => {
         document.querySelector("[data-action=fullscreen]").style.display = "inline";
         document.getElementById("containerOfOptions").style.marginTop = "0px";
         document.getElementById("containerOfOptions").style.marginBottom = "0px";
+        document.getElementById("pageContainer").style.marginLeft = "";
+        document.getElementById("pageContainer").style.margin = "0 auto";
         startWidth[2] = startWidth[0];
         canvasPDF(loadPDF[2]);
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-right: ${item.getAttribute("data-moveleft")}`;
@@ -878,11 +880,11 @@ document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
         zoomTrack[0] = 3;
         return;
     }
-    if (document.querySelectorAll("g").length > 0 && optionProxy.changeItems.moveZoom) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
     if (optionProxy.changeItems.keepZoomSize) {
-        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
+        setFixedWidth();
         resizeCanvasSameSize();
     } else {
+        if (isFullscreen) document.getElementById("pageContainer").style.marginLeft = `${document.getElementById("containerOfOptions").getBoundingClientRect().right + 40}px`;
         canvasGeneralResize();
     }
 });
@@ -906,22 +908,8 @@ function canvasGeneralResize() {
             item = itemOld.parentElement;
             if (item.parentElement.style.display === "none") continue;
             let generalScale = parseFloat(item.parentElement.getAttribute("data-zoom"));
+            item.parentElement.style.transformOrigin = "top left";
             item.parentElement.style.transform = `scale(${zoomTrack[0] / generalScale})`;
-            item.parentElement.style.marginTop = `${(parseInt((document.getElementById("displayCanvas").style.height.replace("px", "")) - parseInt(originalWidth[1].replace("px", ""))) / (zoomTrack[0] / generalScale))}px`;
-            item.parentElement.style.marginLeft = `${parseInt(((document.getElementById("displayCanvas").style.width.replace("px", "")) - parseInt(originalWidth[0].replace("px", ""))) / (zoomTrack[0] / generalScale))}px`;
-            if (Math.round(generalScale) !== generalScale) {
-                item.parentElement.style.marginTop = `${parseInt(item.parentElement.style.marginTop.replace("px", "")) / 2}px`;
-                item.parentElement.style.marginLeft = `${parseInt(item.parentElement.style.marginLeft.replace("px", "")) / 2}px`;
-            }
-            if ((zoomTrack[0] / generalScale) < 1) {
-                let rect = item.parentElement.getBoundingClientRect();
-                let itemDivide = 1 - (zoomTrack[0] / generalScale);
-                item.parentElement.style.marginTop = `${rect.height / 2 * -1 * (zoomTrack[0] / generalScale) * itemDivide}px`;
-                item.parentElement.style.marginLeft = `${rect.width / 2 * -1 * (zoomTrack[0] / generalScale) * itemDivide}px`;
-            } else if ((zoomTrack[0] / generalScale) === 1) {
-                item.parentElement.style.marginTop = `15px`;
-                item.parentElement.style.marginLeft = ``;
-            }
         } else {
             if (parseFloat(itemOld.parentElement.parentElement.getAttribute("data-zoom")) === zoomTrack[0]) itemOld.parentElement.parentElement.style.display = "inline"; else itemOld.parentElement.parentElement.style.display = "none";
         }
@@ -949,77 +937,40 @@ document.querySelector("[data-action=zoomout]").addEventListener("click", () => 
         zoomTrack[0] = 0.5;
         return;
     }
-    if (document.querySelectorAll("g").length > 0 && optionProxy.changeItems.moveZoom) topAlert(globalTranslations.zoomCanvas, "zoomCanvas");
-    document.getElementById("displayCanvas").getContext("2d").clearRect(0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
     if (optionProxy.changeItems.keepZoomSize) {
-        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0])
+        setFixedWidth();
         resizeCanvasSameSize();
     } else {
+        if (isFullscreen) document.getElementById("pageContainer").style.marginLeft = `${document.getElementById("containerOfOptions").getBoundingClientRect().right + 40}px`;
         canvasGeneralResize();
     }
     zoomTrack[1] = 0;
     zoomTrack[2] = 0;
 
 })
+let storeOriginalSize = [];
 function resizeCanvasSameSize() {
+    document.getElementById("displayCanvas").style.width = `${parseInt(storeOriginalSize[0].replace("px", "") * zoomTrack[0])}px`;
+    document.getElementById("displayCanvas").style.height = `${parseInt(storeOriginalSize[1].replace("px", "") * zoomTrack[0])}px`;
+    document.getElementById("displayCanvas").style.minHeight = document.getElementById("displayCanvas").style.height;
+    document.getElementById("displayCanvas").width = storeOriginalSize[2] * zoomTrack[0];
+    document.getElementById("displayCanvas").height = storeOriginalSize[3] * zoomTrack[0];
+    document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
     for (let item of document.querySelectorAll("g")) {
         if (optionProxy.changeItems.moveZoom) {
+            item.parentElement.parentElement.style.transformOrigin = "top left";
             item.parentElement.parentElement.style.transform = `scale(${zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom"))})`;
-            item.parentElement.parentElement.style.marginTop = `${zoomTrack[2] / (zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom")))}px`;
-            item.parentElement.parentElement.style.marginLeft = `${zoomTrack[1] / (zoomTrack[0] / parseInt(item.parentElement.parentElement.getAttribute("data-zoom")))}px`;
         } else {
             if (parseFloat(item.parentElement.parentElement.getAttribute("data-zoom")) === zoomTrack[0]) item.parentElement.parentElement.style.display = "inline"; else item.parentElement.parentElement.style.display = "none";
         }
     }
 }
-function dragZoom(e) {
-    if (canvasIds[1][1] || zoomTrack[0] === 1 || !zoomTrack[3]) return;
-    if (optionProxy.changeItems.keepZoomSize) {
-        document.getElementById("displayCanvas").style.width = parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) * zoomTrack[0];
-        document.getElementById("displayCanvas").width = parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) * zoomTrack[0];
-        let rect = document.getElementById("displayCanvas").getBoundingClientRect();
-        let xy = [e.screenX, e.screenY];
-        if (precedentZoomPosition == xy) {
-            precedentZoomPosition = xy; // I highly doubt that this is necessary but this was a mess to make, and I want to avoid other hours of debug :D
-        } else {
-            zoomTrack[1] -= (precedentZoomPosition[0] - xy[0]) * zoomTrack[0];
-            zoomTrack[2] -= (precedentZoomPosition[1] - xy[1]) * zoomTrack[0];
-            document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], zoomTrack[2], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
-            checkIfOutside(9, 1, true) // Width, height
-            checkIfOutside(9, parseInt(document.getElementById("displayCanvas").style.height.replace("px", "")) - 2, false) // Width, height
-            function checkIfOutside(width, height, keepWidth) {
-                let data = document.getElementById("displayCanvas").getContext("2d").getImageData(width, height, 1, 1).data;
-                if (Array.from(data)[3] === 0) {
-                    if (keepWidth) {
-                        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, zoomTrack[1], 0, document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
-                        precedentZoomPosition[1] = 1;
-                        zoomTrack[2] = 1;
-                    } else {
-                        precedentZoomPosition[1] *= -1;
-                        document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, precedentZoomPosition[1], document.getElementById("displayCanvas").width * zoomTrack[0], document.getElementById("displayCanvas").height * zoomTrack[0]);
-                        precedentZoomPosition[0] = 1;
-                        zoomTrack[1] = 1;
-                        zoomTrack[2] = precedentZoomPosition[1];
-                    }
-                }
-                precedentZoomPosition = xy;
-            }
-
-            for (let itemOld of document.querySelectorAll("g")) {
-                let item = itemOld.parentElement.parentElement
-                if (item.id === "displayCanvas" || item.style.display === "none") continue;
-                let rect = document.getElementById("displayCanvas").getBoundingClientRect();
-                if (item.getAttribute("topstatus") == "0") item.setAttribute("topstatus", zoomTrack[2]);
-                if (item.getAttribute("leftstatus") == "0") item.setAttribute("leftstatus", zoomTrack[1]);
-                let marginArchive = [`-${(parseInt(item.getAttribute("topstatus")) - zoomTrack[2]) / 2}px`, `-${(parseInt(item.getAttribute("leftstatus")) - zoomTrack[1]) / 2}px`]
-                for (let i = 0; i < marginArchive.length; i++) if (marginArchive[i].startsWith("--")) marginArchive[i] = marginArchive[i].substring(2);
-                item.style.marginTop = marginArchive[0];
-                item.style.marginLeft = marginArchive[1];
-                if (Math.abs(parseInt(item.style.marginTop.replace("px", ""))) >= rect.top || Math.abs(parseInt(item.style.marginLeft.replace("px", ""))) >= rect.left) item.style.visibility = "hidden"; else item.style.visibility = "visible";
-            }
-        }
-    }
+function setFixedWidth() {
+    if (document.getElementById("canvasContainer").style.width !== "") return;
+    document.getElementById("canvasContainer").style = `overflow: auto; width: ${document.getElementById("displayCanvas").style.width}; height: ${document.getElementById("displayCanvas").style.height}; position: relative`;
+    storeOriginalSize = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height];
 }
+let pixelMove = [];
 function storeCustomOptions(option, key) {
     for (let i = 0; i < key.length; i++) localStorage.setItem(key[i], JSON.stringify(option[i]));
 }
@@ -1213,7 +1164,9 @@ for (let item of document.querySelectorAll("video")) item.addEventListener("erro
 let currentScroll = false;
 document.body.addEventListener("wheel", () => {
     if (document.getElementById("toolMain").style.visibility === "hidden") return;
-    if (window.scrollY > (document.getElementById("generalToolContainer").getBoundingClientRect().bottom + document.getElementById("generalToolContainer").getBoundingClientRect().top)) {
+    if (isFullscreen) {
+        document.getElementById("generalToolContainer").style = "position: fixed; z-index: 9999997;";
+    } else if (window.scrollY > (document.getElementById("generalToolContainer").getBoundingClientRect().bottom + document.getElementById("generalToolContainer").getBoundingClientRect().top)) {
         if (currentScroll) return;
         currentScroll = true;
         document.getElementById("generalToolContainer").style = "position: fixed; z-index: 9999997; top: 15px;";

@@ -55,7 +55,7 @@ You can see them also from the website's settings.
 
 You can change the background with a local image, the default background color and YouTube videos. Yes, this means you can keep those Minecraft parkour backgrounds also when reading PDF. 
 
-![An image showing Minecraft parkour in the background while displaying a PDF.](https://i.imgur.com/rGt4eiX.png)
+![An image showing Minecraft parkour in the background while displaying a PDF.](https://i.imgur.com/LI8VHGd.png)
 
 *The industrial revolution and its consequences...*
 
