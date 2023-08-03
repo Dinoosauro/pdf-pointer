@@ -392,6 +392,7 @@ video {
   filter: brightness(200%);
 
 }
+
 .containerPhotoRemove {
   animation-name: brightnessAnimateMinus;
   animation-duration: 0.3s;
@@ -701,10 +702,11 @@ input[type=range] {
   accent-color: var(--accent);
   padding: 0px;
 }
+
 .fillWidth {
-    width: 100%;
-    width: -moz-available; 
-    width: -webkit-fill-available; 
+  width: 100%;
+  width: -moz-available;
+  width: -webkit-fill-available;
 }
 
 
@@ -715,6 +717,7 @@ input[type='range']::-webkit-slider-runnable-track {
   background-repeat: no-repeat;
   border-radius: 15px;
 }
+
 input[type='range']::-webkit-slider-thumb {
   width: 15px;
   height: 15px;
@@ -725,20 +728,22 @@ input[type='range']::-webkit-slider-thumb {
   margin-top: -5px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
 }
+
 @-moz-document url-prefix() {
   input[type=range] {
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
   }
+
   input[type="range"]::-moz-range-progress {
     background-color: var(--accent);
     border-radius: 5px;
   }
-  
+
   input[type="range"]::-moz-range-track {
     background-color: var(--accent);
     border-radius: 5px;
   }
-  
+
   input[type="range"]::-moz-range-thumb {
     width: 15px;
     height: 15px;
@@ -749,6 +754,7 @@ input[type='range']::-webkit-slider-thumb {
     margin-top: -6px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
   }
+
   input[type="range"]::-moz-range-track {
     height: 5px;
     background: var(--accent);
@@ -756,12 +762,27 @@ input[type='range']::-webkit-slider-thumb {
     background-repeat: no-repeat;
     border-radius: 15px;
   }
-  
-  
 }
+
 :-moz-selection,
-::selection{
-    background: #fe57a1;
-    color: #fff;
-    text-shadow: none;
+::selection {
+  background: #fe57a1;
+  color: #fff;
+  text-shadow: none;
+}
+
+.hoverTool {
+  position: absolute;
+  background-color: var(--optionbackground);
+  transition: opacity 0.30s ease-in-out;
+  display: none;
+  z-index: 9999998;
+  border-radius: 8px;
+}
+
+.hoverInner {
+  padding: 10px;
+  border-radius: 8px;
+  -webkit-backdrop-filter: brightness(70%);
+  backdrop-filter: brightness(70%);
 }

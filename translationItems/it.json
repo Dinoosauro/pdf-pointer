@@ -86,7 +86,23 @@
         "customItalic": "Scrivi '1-5' per esportare tutte le pagine da 1 a 5, oppure '1,5' per esportare le pagine 1 e 5. Lascia bianco per scaricare solo questa pagina",
         "resize": "Ridimensiona l'immagine finale.",
         "resizeItalic": "Il rapporto tra larghezza ed altezza rimarrà invariato",
-        "saveZip": "Salva come file .zip"
+        "saveZip": "Salva come file .zip",
+        "hoverTranslation": {
+            "prev": "Mostra pagina precedente",
+            "contract": "Diminusci dimensione del canvas",
+            "zoomout": "Diminuisci zoom",
+            "pen": "Crea annotazione",
+            "timer": "Cambia timer per eliminare l'annotazione",
+            "erase": "Elimina annotazione",
+            "color": "Cambia colore dell'annotazione",
+            "fullscreen": "Modalità a schermo intero",
+            "normalscreen": "Esci dalla modalità a schermo intero",
+            "downloadAsImg": "Esporta PDF come immagine",
+            "settings": "Impostazioni",
+            "zoomin": "Aumenta zoom",
+            "expand": "Aumenta dimensione del canvas",
+            "next": "Mostra pagina successiva"
+        }
     },
     "themeCreation": {
         "title": "Creatore dei temi",

@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.1.0";
+let appVersion = "1.1.1";
 fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
@@ -52,6 +52,7 @@ function startPDFRead(link) {
         document.getElementById("pageContainer").style.visibility = "visible";
         document.getElementById("toolMain").classList.add("animate__animated", "animate__backInUp");
         document.getElementById("pageContainer").classList.add("animate__animated", "animate__backInUp");
+        setTimeout(() => {setupTranlsation()}, 1100);
         function shiftShortcut(e) {
             if (blockKey) return;
             function switchItem(typeSwitch) {
@@ -194,7 +195,23 @@ let globalTranslations = {
     customItalic: "Use '1-5' for downloading from 1 to 5 or '1,5' for downloading page 1 and 5. Leave blank for downloading only the current page.",
     resize: "Resize the image width and height",
     resizeItalic: "The aspect ratio will remain the same.",
-    saveZip: "Save as a .zip file"
+    saveZip: "Save as a .zip file",
+    hoverTranslation: {
+        prev: "Show previous page",
+        contract: "Decrease canvas size",
+        zoomout: "Decrease zoom",
+        pen: "Create drawing",
+        timer: "Change timer to delete drawing",
+        erase: "Delete annotazione",
+        color: "Change drawing color",
+        fullscreen: "Full screen mode",
+        normalscreen: "Exit from full screen mode",
+        downloadAsImg: "Export PDF as an image",
+        settings: "Settings",
+        zoomin: "Increase zoom",
+        expand: "Increase canvas size",
+        next: "Show next page"
+    }
 }
 function canvasPen() {
     if (!document.querySelector("[data-action=pen]").classList.contains("clickImg") && !isFromKey) return;
@@ -882,7 +899,8 @@ document.addEventListener('fullscreenchange', (e) => {
         document.querySelector("[data-action=normalscreen]").style.display = "inline";
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-bottom: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-top: ${item.getAttribute("data-moveright")}`;
-        if (zoomTrack[0] < 3) document.querySelector("[data-action=zoomin]").click(); elsedocument.querySelector("[data-action=zoomout]").click();
+        if (zoomTrack[0] < 3) document.querySelector("[data-action=zoomin]").click(); else document.querySelector("[data-action=zoomout]").click();
+                setupTranlsation();
     } else {
         isFullscreen = false;
         document.getElementById("toolMain").classList.add("vertcenter");
@@ -898,6 +916,7 @@ document.addEventListener('fullscreenchange', (e) => {
         startWidth[2] = startWidth[0];
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-right: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-left: ${item.getAttribute("data-moveright")}`;
+                setupTranlsation();
 
     }
 });
@@ -1249,6 +1268,7 @@ function showResizeCanvasBtn(show) {
 }
 document.getElementById("resizeCanvasCheck").addEventListener("input", () => {
     if (document.getElementById("resizeCanvasCheck").checked) showResizeCanvasBtn("block"); else showResizeCanvasBtn("none");
+    setupTranlsation();
 });
 if (!optionProxy.changeItems.resizeCanvas || !localStorage.getItem("PDFPointer-resizecanvas")) showResizeCanvasBtn("none");
 document.querySelector("[data-action=expand]").addEventListener("click", () => {
@@ -1344,7 +1364,7 @@ function ytEmbed() {
 function imgEmbed() {
     if (document.getElementById("imgRefer") !== null) document.getElementById("imgRefer").remove();
     let img = document.createElement("img");
-    img.style = "z-index: -1; position: fixed; width: 100vw; height: 100vh; margin: 0; top: 0; object-fit: cover;";
+    img.style = "z-index: -1; position: fixed; width: 100vw; height: 100vh; margin: 0; top: 0; left: 0; object-fit: cover;";
     img.src = localStorage.getItem("PDFPointer-customImg");
     img.id = "imgRefer"
     document.body.append(img);
@@ -1433,7 +1453,7 @@ function createSaveImgDropdown() {
         optionProxy.export.processPage = [];
         optionProxy.export.pageId = 0;
         if (customText.value === "") {
-            optionProxy.export.processPage = [loadPDF[2]]; 
+            optionProxy.export.processPage = [loadPDF[2]];
         } else {
             for (let item of customText.value.split(",")) {
                 if (item.indexOf("-") !== -1) {
@@ -1463,7 +1483,7 @@ function createSaveImgDropdown() {
     zipText.textContent = globalTranslations.saveZip;
     checkContainer.append(checkbox, span);
     checkContainer.style.marginRight = "10px";
-    for (let item of [select, saveBtn, slider, customText, resizeSlider]) hoverItem(item);
+    for (let item of [select, saveBtn, slider, customText, resizeSlider, span]) hoverItem(item);
     dropdown.append(document.createElement("br"), document.createElement("br"), infoLabel, document.createElement("br"), select, document.createElement("br"), document.createElement("br"), qualityContainer, document.createElement("br"), document.createElement("br"), customPage, document.createElement("br"), infoItalic, document.createElement("br"), customText, document.createElement("br"), document.createElement("br"), resizeLabel, document.createElement("br"), resizeItalic, document.createElement("br"), resizeSlider, document.createElement("br"), document.createElement("br"), checkContainer, zipText, document.createElement("br"), document.createElement("br"), saveBtn);
     document.body.append(dropdown);
 }
@@ -1591,3 +1611,30 @@ function safariFixSelect() {
     }
 }
 safariFixSelect();
+function setupTranlsation() {
+    document.getElementById("hoverContainer").innerHTML = "";
+    for (let item of document.querySelectorAll("[data-action]")) {
+        let hoverContent = document.createElement("div");
+        hoverContent.classList.add("hoverTool");
+        if (!isFullscreen) {
+            hoverContent.style.top = `${item.getBoundingClientRect().bottom + 12}px`;
+            hoverContent.style.left = `${item.getBoundingClientRect().left - 25}px`;
+        } else {
+            hoverContent.style.top = `${item.getBoundingClientRect().bottom - 25}px`;
+            hoverContent.style.left = `${item.getBoundingClientRect().right + 12}px`;
+        }
+        let hoverInner = document.createElement("div");
+        hoverInner.classList.add("hoverInner");
+        hoverInner.textContent = globalTranslations.hoverTranslation[item.getAttribute("data-action")];
+        item.addEventListener("mouseenter", () => {
+            hoverContent.style.display = "block";
+            setTimeout(() => {hoverContent.style.opacity = "1";},25);
+        })
+        item.addEventListener("mouseleave", () => {
+            hoverContent.style.opacity = "0";
+            setTimeout(() => {hoverContent.style.display = "none";},350);
+        });
+        hoverContent.append(hoverInner);
+        document.getElementById("hoverContainer").append(hoverContent);
+    }
+}
