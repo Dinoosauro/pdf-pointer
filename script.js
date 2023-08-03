@@ -1422,6 +1422,7 @@ function createSaveImgDropdown() {
     let customText = document.createElement("input");
     customText.type = "text";
     customText.classList.add("fillWidth");
+    saveBtn.style.opacity = "1";
     customText.addEventListener("input", () => {
         let shouldDisabled = !/^[0-9,-]*$/.test(customText.value);
         if (!shouldDisabled) for (let item of customText.value.split(",")) if (item.split("-").length > 2) shouldDisabled = true;
@@ -1431,8 +1432,9 @@ function createSaveImgDropdown() {
         if (saveBtn.style.opacity !== "1") return;
         optionProxy.export.processPage = [];
         optionProxy.export.pageId = 0;
-
-        if (customText.value === "") optionProxy.export.processPage = [loadPDF[2]]; else {
+        if (customText.value === "") {
+            optionProxy.export.processPage = [loadPDF[2]]; 
+        } else {
             for (let item of customText.value.split(",")) {
                 if (item.indexOf("-") !== -1) {
                     for (let i = parseInt(item.substring(0, item.indexOf("-"))); i < parseInt(item.substring(item.lastIndexOf("-") + 1)) + 1; i++) optionProxy.export.processPage.push(i);
