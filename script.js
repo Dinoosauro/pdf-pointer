@@ -10,8 +10,8 @@ if ('serviceWorker' in navigator) {
 let jsonImg = {
     toload: true
 };
-let appVersion = "1.0.7";
-fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) caches.keys().then((names) => { for (let item in names) { caches.delete(item); location.reload(true); } }) }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
+let appVersion = "1.1.0";
+fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e));
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) });
 let avoidDuplicate = false;
 let startWidth = [[document.documentElement.clientWidth, document.documentElement.clientHeight], [], [document.documentElement.clientWidth, document.documentElement.clientHeight]];
@@ -39,7 +39,9 @@ function unclickItems(action) {
 }
 let loadPDF = [null, null, 1]; // [PDF element, single PDF, page]
 let eraseFromKey = false;
+let pdfName = "";
 let changeItemFromKey = [false, "cursorpointer"];
+let blockKey = false;
 function startPDFRead(link) {
     document.getElementById("openDiv").classList.add("animate__animated", "animate__backOutDown");
     document.getElementById("intro").classList.add("animate__animated", "animate__backOutDown");
@@ -51,6 +53,7 @@ function startPDFRead(link) {
         document.getElementById("toolMain").classList.add("animate__animated", "animate__backInUp");
         document.getElementById("pageContainer").classList.add("animate__animated", "animate__backInUp");
         function shiftShortcut(e) {
+            if (blockKey) return;
             function switchItem(typeSwitch) {
                 if (typeSwitch) {
                     document.querySelector("[data-action=erase]").classList.remove("clickImg");
@@ -113,6 +116,22 @@ function getProportion(a, b, c, isHalf) {
 }
 let canvasComplete = true;
 let proxyCanvas;
+function greatViewport(viewport) {
+    let futureScale = 1;
+    let newCanvasScale = canvasGeneralScale;
+    if (viewport.width / viewport.height > 1.2) newCanvasScale = newCanvasScale - (((viewport.width / viewport.height) - 1) * 10 * 6); // Fix for 4:3 and other landscape formats
+    if (viewport.width / viewport.height < 0.6) newCanvasScale = newCanvasScale + ((1.1 - (viewport.width / viewport.height)) * 10 * 6); // Fix for 9:16 and other vertical formats
+    if (viewport.width > viewport.height) futureScale = getProportion(viewport.width, viewport.height, startWidth[2][0] * newCanvasScale / 100, true) / viewport.width; else futureScale = getProportion(viewport.width, viewport.height, startWidth[2][1] * newCanvasScale / 100, false) / viewport.height;
+    return futureScale;
+}
+function setUpCanvas(canvas, viewport, askReturn) {
+    let outputScale = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(viewport.width * outputScale);
+    canvas.height = Math.floor(viewport.height * outputScale);
+    canvas.style.width = Math.floor(viewport.width) + "px";
+    canvas.style.height = Math.floor(viewport.height) + "px";
+    if (askReturn) return canvas;
+}
 function canvasPDF(pageNumber) {
     if (!canvasComplete) {
         setTimeout(() => {
@@ -122,27 +141,16 @@ function canvasPDF(pageNumber) {
     }
     canvasComplete = false;
     loadPDF[1].getPage(pageNumber).then(function (page) {
-        let viewport = page.getViewport({ scale: 1, });
-        let futureScale = 1;
-        let newCanvasScale = canvasGeneralScale;
-        if (viewport.width / viewport.height > 1.2) newCanvasScale = newCanvasScale - (((viewport.width / viewport.height) - 1) * 10 * 6); // Fix for 4:3 and other landscape formats
-        if (viewport.width / viewport.height < 0.6) newCanvasScale = newCanvasScale + ((1.1 - (viewport.width / viewport.height)) * 10 * 6); // Fix for 9:16 and other vertical formats
-        if (viewport.width > viewport.height) futureScale = getProportion(viewport.width, viewport.height, startWidth[2][0] * newCanvasScale / 100, true) / viewport.width; else futureScale = getProportion(viewport.width, viewport.height, startWidth[2][1] * newCanvasScale / 100, false) / viewport.height;
         let outputScale = window.devicePixelRatio || 1;
+        let viewport = page.getViewport({ scale: 1, });
+        let futureScale = greatViewport(viewport);
         viewport = page.getViewport({ scale: futureScale });
+        setUpCanvas(document.getElementById("displayCanvas"), viewport, false);
         let canvas = document.getElementById("displayCanvas");
-        canvas.width = Math.floor(viewport.width * outputScale);
-        canvas.height = Math.floor(viewport.height * outputScale);
-        canvas.style.width = Math.floor(viewport.width) + "px";
-        canvas.style.height = Math.floor(viewport.height) + "px";
         futureScale *= 3;
         viewport = page.getViewport({ scale: futureScale });
-        proxyCanvas = document.createElement("canvas");
+        proxyCanvas = setUpCanvas(document.createElement("canvas"), viewport, true);
         let context = proxyCanvas.getContext('2d');
-        proxyCanvas.width = Math.floor(viewport.width * outputScale);
-        proxyCanvas.height = Math.floor(viewport.height * outputScale);
-        proxyCanvas.style.width = Math.floor(viewport.width) + "px";
-        proxyCanvas.style.height = Math.floor(viewport.height) + "px";
         let transform = outputScale !== 1
             ? [outputScale, 0, 0, outputScale, 0, 0]
             : null;
@@ -155,7 +163,7 @@ function canvasPDF(pageNumber) {
         page.render(renderContext).promise.then(() => {
             canvasComplete = true;
             canvas.getContext("2d").drawImage(proxyCanvas, 0, 0, canvas.width, canvas.height)
-            if (optionProxy.changeItems.keepZoomSize) setFixedWidth();
+            if (optionProxy.changeItems.keepZoomSize) setFixedWidth(true); else originalWidth = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").height, document.getElementById("displayCanvas").width];
             if (isFullscreen) {
                 let getAvailableSpace = (window.innerWidth * 10 / 100) + document.getElementById("containerOfOptions").offsetWidth;
                 document.getElementById("containerOfOptions").classList.add("fullcontainer");
@@ -179,6 +187,14 @@ let globalTranslations = {
     noShowAgain: "Don't show again",
     zoomCanvas: "Zooming in PDFs and keeping annotations is experimental, and it might (and most probalby will) cause glitches.",
     webKitColor: "Select the color from the input below, and then click on the \"Save custom color\" button to choose a name for it.",
+    exportInformation: "You can export the PDF page (even with annotations) as an image",
+    save: "Save as image",
+    qualityInfo: "Choose the image quality",
+    customExport: "Export the following pages",
+    customItalic: "Use '1-5' for downloading from 1 to 5 or '1,5' for downloading page 1 and 5. Leave blank for downloading only the current page.",
+    resize: "Resize the image width and height",
+    resizeItalic: "The aspect ratio will remain the same.",
+    saveZip: "Save as a .zip file"
 }
 function canvasPen() {
     if (!document.querySelector("[data-action=pen]").classList.contains("clickImg") && !isFromKey) return;
@@ -235,14 +251,20 @@ function canvasMove(event) {
     canvasIds[1][3].innerHTML = canvasIds[1][0].getSerializedSvg();
 }
 let eraseTime = false;
+let isCanvasDrawing = false;
+function canvasDrawCheck() {
+    if (isCanvasDrawing) {
+        canvasPen();
+        if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) eraseTime = false;
+        isCanvasDrawing = false;
+    }
+}
+document.addEventListener("mouseup", () => { canvasDrawCheck() });
 function addEvents(newCanvas) {
     newCanvas.addEventListener("mousedown", () => {
         canvasPen();
+        isCanvasDrawing = true;
         if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) eraseTime = true;
-    });
-    newCanvas.addEventListener("mouseup", () => {
-        canvasPen();
-        if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) eraseTime = false;
     });
     newCanvas.addEventListener("mousemove", (event) => {
         canvasMove(event);
@@ -393,7 +415,11 @@ let localOptions = {
         },
         customItemRefer: "e"
     }
-    ]
+    ],
+    export: {
+        processPage: [],
+        pageId: 0,
+    }
 }
 if (localStorage.getItem("PDFPointer-customColors") !== null && localStorage.getItem("PDFPointer-customColors") !== "{}") localOptions.availableHighlightColors = JSON.parse(localStorage.getItem("PDFPointer-customColors"));
 let optionProxy = ObservableSlim.create(localOptions, true, function (change) {
@@ -418,8 +444,10 @@ function usefulDropdownGenerator(alertType, options, typeCustomInput) {
             optionProxy.dropdownSelectedOptions[alertType] = numberOptions.indexOf(option) + 1;
         });
         dropdown.appendChild(child);
+        hoverItem(child);
     }
     let input = addDropdownTextbox("Custom input", typeCustomInput);
+    hoverItem(input);
     input.addEventListener("click", () => {
         optionProxy.dropdownSelectedOptions[alertType] = dropdown.childNodes.length - 1;
     });
@@ -440,7 +468,8 @@ document.querySelector("[data-action=timer]").addEventListener("click", () => {
 document.querySelector("[data-action=color]").addEventListener("click", () => {
     usefulDropdownGenerator("color", Object.keys(optionProxy.availableHighlightColors), "color");
 });
-function createDropdown(buttonReference) {
+function createDropdown(buttonReference, changeIcon) {
+    blockKey = true;
     optionProxy.showAlert.timer = true;
     let div = document.createElement("div");
     div.classList.add("animate__animated", "animate__backInDown")
@@ -448,8 +477,12 @@ function createDropdown(buttonReference) {
     close.width = 25;
     close.height = 25;
     close.setAttribute("data-customanimate", "1");
-    getImg([close], "save");
+    let iconRef = "save";
+    if (changeIcon) iconRef = "fullscreenoff";
+    getImg([close], iconRef);
+    hoverItem(close);
     close.addEventListener("click", () => {
+        blockKey = false;
         div.classList.add("animate__backOutUp");
         setTimeout(() => {
             div.remove();
@@ -465,7 +498,7 @@ function createDropdown(buttonReference) {
     var divPosition = buttonReference.getBoundingClientRect();
     div.classList.add("dropdown");
     let styleThings = `top: ${parseInt(divPosition.top) + 75 + window.scrollY}px; `;
-    if (divPosition.left + 25 + (25 * document.body.offsetWidth / 100) < document.body.offsetHeight) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (25 * document.body.offsetWidth / 100)}px; `;
+    if (divPosition.left + 25 + (25 * document.body.offsetWidth / 100) < document.body.offsetWidth) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (25 * document.body.offsetWidth / 100)}px; `;
     styleThings = styleThings.replace("right: -", "left: ").replace("left: -", "right: "); // Quick fix for dialog outside client view due to negative numbers
     div.style = styleThings;
     return div;
@@ -704,6 +737,7 @@ function fetchThemes() {
             for (let key in theme.colorProperties) document.documentElement.style.setProperty(`--${key}`, `${theme.colorProperties[key]}`);
             getImg(document.querySelectorAll("[fetchlink]"));
             localStorage.setItem("PDFPointer-selectedtheme", theme.customItemRefer);
+            safariFixSelect();
         });
         applyContainerNew[0].setAttribute("data-themerefer", theme.customItemRefer);
         applyContainerNew[1] = createContainerInfo("export", theme.colorProperties.background, theme.colorProperties.accent, themeContainerOption);
@@ -756,6 +790,7 @@ function dialogGeneralAnimation(id, open) {
 }
 document.querySelector("[data-action=settings]").addEventListener("click", () => {
     dialogGeneralAnimation("settings", true);
+    blockKey = true;
     if (!defaultCheck) {
         for (let i = 0; i < switchIds.length; i++) {
             switchIds[i][2].setAttribute("defaultHeight", `${switchIds[i][2].offsetHeight}px`);
@@ -769,6 +804,7 @@ document.querySelector("[data-action=settings]").addEventListener("click", () =>
 
 })
 document.getElementById("closeSettings").addEventListener("click", () => {
+    blockKey = false;
     dialogGeneralAnimation("settings", false);
 })
 document.getElementById("fileOpen").onchange = function () {
@@ -777,6 +813,7 @@ document.getElementById("fileOpen").onchange = function () {
         fileRead.onload = function () {
             startPDFRead(fileRead.result);
         }
+        pdfName = document.getElementById("fileOpen").files[0].name;
         fileRead.readAsDataURL(document.getElementById("fileOpen").files[0]);
     }
 }
@@ -830,25 +867,24 @@ function intelligentCursor(element) {
 document.querySelector("[data-action=erase]").addEventListener("click", () => { zoomTrack[3] = false; });
 document.getElementById("displayCanvas").addEventListener("hover", intelligentCursor(document.getElementById("displayCanvas")));
 document.addEventListener('fullscreenchange', (e) => {
+    canvasDrawCheck();
     if (document.fullscreenElement) {
         isFullscreen = true;
         let getAvailableSpace = (window.innerWidth * 10 / 100) + document.getElementById("containerOfOptions").offsetWidth;
         document.getElementById("toolMain").classList.remove("vertcenter");
         document.getElementById("containerOfOptions").classList.add("fullcontainer");
         document.getElementById("pdfcontainer").style = `display: flex; float: left; width: ${window.innerWidth - getAvailableSpace - 2}px`;
-        canvasGeneralScale = 110;
         document.querySelector("[data-action=fullscreen]").style.display = "none";
         startWidth[1] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
         startWidth[2] = [document.documentElement.clientWidth, document.documentElement.clientHeight];
-        canvasPDF(loadPDF[2]);
         document.getElementById("containerOfOptions").style.marginTop = "30px";
         document.getElementById("containerOfOptions").style.marginBottom = "30px";
         document.querySelector("[data-action=normalscreen]").style.display = "inline";
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-bottom: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-top: ${item.getAttribute("data-moveright")}`;
+        if (zoomTrack[0] < 3) document.querySelector("[data-action=zoomin]").click(); elsedocument.querySelector("[data-action=zoomout]").click();
     } else {
         isFullscreen = false;
-        canvasGeneralScale = 90;
         document.getElementById("toolMain").classList.add("vertcenter");
         document.getElementById("containerOfOptions").classList.remove("fullcontainer");
         document.getElementById("pdfcontainer").style = "";
@@ -860,7 +896,6 @@ document.addEventListener('fullscreenchange', (e) => {
         document.getElementById("pageContainer").style.marginLeft = "";
         document.getElementById("pageContainer").style.margin = "0 auto";
         startWidth[2] = startWidth[0];
-        canvasPDF(loadPDF[2]);
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-right: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-left: ${item.getAttribute("data-moveright")}`;
 
@@ -897,12 +932,7 @@ function canvasGeneralResize() {
     document.getElementById("displayCanvas").height = originalWidth[2] * zoomTrack[0];
     document.getElementById("displayCanvas").width = originalWidth[3] * zoomTrack[0];
     document.getElementById("displayCanvas").getContext("2d").drawImage(proxyCanvas, 0, 0, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height);
-    if (document.body.offsetWidth < parseInt(document.getElementById("displayCanvas").style.width.replace("px", ""))) document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) - document.body.offsetWidth)}px`;
-    if (isFullscreen) {
-        document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("canvasMargin").style.marginLeft.replace("px", "")) + document.getElementById("toolMain").getBoundingClientRect().left + 200)}px`;
-        document.getElementById("canvasMargin").style.marginRight = `50px`;
-    }
-    if (zoomTrack[0] === 1) document.getElementById("canvasMargin").style.marginLeft = `0px`;
+    if (document.body.offsetWidth < parseInt(document.getElementById("displayCanvas").style.width.replace("px", ""))) document.getElementById("canvasMargin").style.marginLeft = `${(parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")) - document.body.offsetWidth)}px`; else document.getElementById("canvasMargin").style.marginLeft = `0px`;
     for (let itemOld of document.querySelectorAll("g")) {
         if (optionProxy.changeItems.moveZoom) {
             item = itemOld.parentElement;
@@ -965,8 +995,8 @@ function resizeCanvasSameSize() {
         }
     }
 }
-function setFixedWidth() {
-    if (document.getElementById("canvasContainer").style.width !== "") return;
+function setFixedWidth(force) {
+    if (document.getElementById("canvasContainer").style.width !== "" && !force) return;
     document.getElementById("canvasContainer").style = `overflow: auto; width: ${document.getElementById("displayCanvas").style.width}; height: ${document.getElementById("displayCanvas").style.height}; position: relative`;
     storeOriginalSize = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").width, document.getElementById("displayCanvas").height];
 }
@@ -995,6 +1025,7 @@ function dropFile(event) {
         fileRead.onload = function () {
             startPDFRead(fileRead.result);
         }
+        pdfName = itemToRead.name;
         fileRead.readAsDataURL(itemToRead);
     }
     event.preventDefault();
@@ -1084,10 +1115,7 @@ if (localStorage.getItem("PDFPointer-endtour") === null) {
     document.getElementById("introContainer").style.display = "inline";
     document.getElementById("introContainer").style.opacity = 1;
 }
-for (let item of document.querySelectorAll("[data-customAnimate='1']")) {
-    item.addEventListener("mouseenter", () => { item.classList.remove("closeAnimationTool"); item.classList.add("btnTourAnimate") });
-    item.addEventListener("mouseleave", () => { item.classList.remove("btnTourAnimate"); item.classList.add("closeAnimationTool") });
-}
+for (let item of document.querySelectorAll("[data-customAnimate='1']")) hoverItem(item);
 let switchIds = [[document.getElementById("pointerSelectionDiv"), document.getElementById("pointerCheck"), document.getElementById("pointerContainer"), "changeItems.pointerColorEnabled"], [document.getElementById("alertContainer"), document.getElementById("alertCheck"), document.getElementById("alertMain"), "changeItems.showTips"]];
 for (let i = 0; i < switchIds.length; i++) switchSubsectionShow(switchIds[i][0], switchIds[i][1], switchIds[i][2], switchIds[i][3]);
 function switchSubsectionShow(containerDiv, switchVal, generalDiv, optionToChange) {
@@ -1287,9 +1315,15 @@ document.querySelector("[data-translate=chooseimg]").addEventListener("click", (
             let img = document.createElement("img");
             img.onload = function () {
                 let canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
-                canvas.getContext("2d").drawImage(img, 0, 0);
+                let outputScale = window.devicePixelRatio || 1;
+                if (canvas.width > canvas.height) {
+                    canvas.height = window.screen.height * 1.5 * outputScale;
+                    canvas.width = img.width * canvas.height / img.height; // I know that there's another function that does proportion but it's easier to do that here
+                } else {
+                    canvas.width = window.screen.width * 1.5 * outputScale;
+                    canvas.height = img.height * canvas.width / img.width; // I know that there's another function that does proportion but it's easier to do that here
+                }
+                canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
                 let imgUrl = canvas.toDataURL("image/jpeg", 0.5);
                 localStorage.setItem("PDFPointer-customImg", imgUrl);
                 imgEmbed();
@@ -1335,3 +1369,223 @@ if (localStorage.getItem("PDFPointer-backgroundId") !== null) {
     manageBackground();
     generateFilters();
 }
+document.querySelector("[data-action=downloadAsImg]").addEventListener("click", () => { createSaveImgDropdown() });
+function createSaveImgDropdown() {
+    // Another function is created since basically it's completely different from every other dropdown
+    let dropdown = createDropdown(document.querySelector("[data-action=downloadAsImg]"), true);
+    let select = document.createElement("select");
+    select.id = "exportSelect";
+    select.classList.add("fillWidth");
+    for (let item of ["JPG", "PNG", "WebP"]) {
+        let option = document.createElement("option");
+        option.textContent = item;
+        option.value = item;
+        select.append(option)
+    }
+    select.firstChild.selected = "true";
+    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) {
+        select.childNodes[2].disabled = true;
+        let newStyle = document.createElement("style");
+        newStyle.innerHTML = `input[type='range'],input[type='range']::-webkit-slider-runnable-track,input[type='range']::-webkit-slider-thumb {-webkit-appearance: none;border-radius: 15px;}`;
+        document.head.append(newStyle);
+    }
+    let infoLabel = document.createElement("l");
+    infoLabel.textContent = globalTranslations.exportInformation;
+    let saveBtn = document.createElement("div");
+    saveBtn.classList.add("vertcenter", "opacityRemove");
+    let save2 = document.createElement("div");
+    save2.classList.add("optionId", "button", "hoverEnd");
+    let savefinal = document.createElement("div");
+    savefinal.classList.add("vertcenter");
+    savefinal.textContent = globalTranslations.save;
+    save2.append(savefinal);
+    saveBtn.append(save2);
+    let qualityContainer = document.createElement("div");
+    qualityContainer.classList.add("opacityRemove")
+    let qualityInformation = document.createElement("l");
+    qualityInformation.textContent = globalTranslations.qualityInfo;
+    let slider = createRange("1", "0.9", "0.01", "exportSlider", "0.01");
+    select.addEventListener("input", () => {
+        if (select.value === "PNG") {
+            qualityContainer.style.opacity = "0";
+            setTimeout(() => { if (qualityContainer.style.opacity === "0") qualityContainer.style.display = "none" }, 400);
+        } else {
+            qualityContainer.style.display = "block";
+            setTimeout(() => { qualityContainer.style.opacity = "1" }, 15);
+        }
+    })
+    let customPage = document.createElement("l");
+    customPage.textContent = globalTranslations.customExport;
+    let infoItalic = document.createElement("i");
+    infoItalic.textContent = globalTranslations.customItalic;
+    infoItalic.style = "font-size: 8pt";
+    let customText = document.createElement("input");
+    customText.type = "text";
+    customText.classList.add("fillWidth");
+    customText.addEventListener("input", () => {
+        let shouldDisabled = !/^[0-9,-]*$/.test(customText.value);
+        if (!shouldDisabled) for (let item of customText.value.split(",")) if (item.split("-").length > 2) shouldDisabled = true;
+        if (shouldDisabled) saveBtn.style.opacity = "0.4"; else saveBtn.style.opacity = "1";
+    })
+    saveBtn.addEventListener("click", () => {
+        if (saveBtn.style.opacity !== "1") return;
+        optionProxy.export.processPage = [];
+        optionProxy.export.pageId = 0;
+
+        if (customText.value === "") optionProxy.export.processPage = [loadPDF[2]]; else {
+            for (let item of customText.value.split(",")) {
+                if (item.indexOf("-") !== -1) {
+                    for (let i = parseInt(item.substring(0, item.indexOf("-"))); i < parseInt(item.substring(item.lastIndexOf("-") + 1)) + 1; i++) optionProxy.export.processPage.push(i);
+                } else {
+                    optionProxy.export.processPage.push(parseInt(item));
+                }
+            }
+        }
+        exportCanvas();
+    });
+    qualityContainer.append(qualityInformation, document.createElement("br"), slider);
+    let resizeLabel = document.createElement("l");
+    resizeLabel.textContent = globalTranslations.resize;
+    let resizeItalic = document.createElement("i");
+    resizeItalic.textContent = globalTranslations.resizeItalic;
+    resizeItalic.style = "font-size: 8pt";
+    let resizeSlider = createRange("5", "3", "0.1", "resizeSlider", "0.1");
+    let checkContainer = document.createElement("label");
+    checkContainer.classList.add("switch");
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = "zipExport";
+    let span = document.createElement("span");
+    span.classList.add("slider", "round");
+    let zipText = document.createElement("l");
+    zipText.textContent = globalTranslations.saveZip;
+    checkContainer.append(checkbox, span);
+    checkContainer.style.marginRight = "10px";
+    for (let item of [select, saveBtn, slider, customText, resizeSlider]) hoverItem(item);
+    dropdown.append(document.createElement("br"), document.createElement("br"), infoLabel, document.createElement("br"), select, document.createElement("br"), document.createElement("br"), qualityContainer, document.createElement("br"), document.createElement("br"), customPage, document.createElement("br"), infoItalic, document.createElement("br"), customText, document.createElement("br"), document.createElement("br"), resizeLabel, document.createElement("br"), resizeItalic, document.createElement("br"), resizeSlider, document.createElement("br"), document.createElement("br"), checkContainer, zipText, document.createElement("br"), document.createElement("br"), saveBtn);
+    document.body.append(dropdown);
+}
+function createRange(max, value, min, id, step) {
+    let range = document.createElement("input");
+    range.type = "range";
+    range.max = max;
+    range.min = min;
+    range.id = id;
+    range.step = step;
+    range.value = value;
+    range.classList.add("fillWidth");
+    return range;
+}
+let zip = new JSZip();
+function zipDownload() {
+    zip.generateAsync({ type: "blob" }).then((file) => {
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(file);
+        a.download = `${pdfName.substring(0, pdfName.lastIndexOf("."))}-img.zip`;
+        a.click();
+        zip = new JSZip();
+    });
+}
+function exportCanvas() {
+    let outputScale = window.devicePixelRatio || 1;
+    let currentPage = optionProxy.export.processPage[optionProxy.export.pageId];
+    loadPDF[1].getPage(currentPage).then(function (page) {
+        optionProxy.export.pageId++;
+        let viewport = page.getViewport({ scale: 1, });
+        let futureScale = greatViewport(viewport);
+        viewport = page.getViewport({ scale: futureScale * parseFloat(document.getElementById("resizeSlider").value) });
+        let finalCanvas = setUpCanvas(document.createElement("canvas"), viewport, true);
+        let transform = outputScale !== 1
+            ? [outputScale, 0, 0, outputScale, 0, 0]
+            : null;
+
+        let renderContext = {
+            canvasContext: finalCanvas.getContext("2d"),
+            transform: transform,
+            viewport: viewport
+        };
+        page.render(renderContext).promise.then(() => {
+            let divContainer = document.querySelectorAll("[data-page]");
+            let i = 0;
+            function advance() {
+                i++;
+                if (i < divContainer.length) divLoop(); else downloadCanvas();
+            }
+            function downloadCanvas() {
+                let fileName = `${pdfName.substring(0, pdfName.lastIndexOf("."))}-Page-${currentPage}.${document.getElementById("exportSelect").value.toLowerCase()}`;
+                if (!document.getElementById("zipExport").checked) {
+                    let a = document.createElement("a");
+                    switch (document.getElementById("exportSelect").value.toLowerCase()) {
+                        case "jpg":
+                            a.href = finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value));
+                            break;
+                        case "webp":
+                            a.href = finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value));
+                            break;
+                        default:
+                            a.href = finalCanvas.toDataURL("image/png");
+                            break;
+                    }
+                    a.download = fileName;
+                    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) setTimeout(() => {
+                        // Safari for some reason needs more time for download an image, otherwise it won't downlaod the next one.
+                        a.click();
+                        if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
+                    }, Math.random() * (100 - 20) + 20); else {
+                        a.click();
+                        if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
+                    }
+                } else {
+                    switch (document.getElementById("exportSelect").value.toLowerCase()) {
+                        case "jpg":
+                            zip.file(fileName, finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
+                            break;
+                        case "webp":
+                            zip.file(fileName, finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
+                            break;
+                        default:
+                            zip.file(fileName, finalCanvas.toDataURL("image/png").replace(/^data:.+;base64,/, ''), { base64: true });
+                            break;
+                    }
+                    if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas(); else zipDownload();
+
+                }
+            }
+            function divLoop() {
+                let div = divContainer[i];
+                if (div !== undefined && parseInt(div.getAttribute("data-page")) === currentPage && div.innerHTML !== "") {
+                    let img = document.createElement("img");
+                    img.width = finalCanvas.width;
+                    img.height = finalCanvas.height;
+                    img.addEventListener("load", () => {
+                        finalCanvas.getContext("2d").drawImage(img, 0, 0, finalCanvas.width, finalCanvas.height);
+                        advance();
+                    });
+                    img.src = URL.createObjectURL(new Blob([div.innerHTML.replaceAll("\"", "'")], { type: "image/svg+xml" }));
+                } else {
+                    advance();
+                }
+            }
+            divLoop();
+        }).catch((ex) => {
+            optionProxy.export.pageId++;
+            console.warn(ex);
+            if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport").checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
+        });
+    }).catch((ex) => {
+        optionProxy.export.pageId++;
+        console.warn(ex);
+        if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport").checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
+    });
+}
+function hoverItem(item) {
+    item.addEventListener("mouseenter", () => { item.classList.remove("closeAnimationTool"); item.classList.add("btnTourAnimate") });
+    item.addEventListener("mouseleave", () => { item.classList.remove("btnTourAnimate"); item.classList.add("closeAnimationTool") });
+}
+function safariFixSelect() {
+    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) {
+        let rgbOption = hexToRgbNew(getComputedStyle(document.body).getPropertyValue("--text").replace("#", "")).split(",");
+        document.getElementById("safariStyle").innerHTML = `select {-webkit-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'><path fill='rgb(${rgbOption[0]},${rgbOption[1]},${rgbOption[2]}' d='M7.406 7.828l4.594 4.594 4.594-4.594 1.406 1.406-6 6-6-6z'></path></svg>"); background-position: 100% 50%; background-repeat: no-repeat; font-size: 10pt}`;
+    }
+}
+safariFixSelect();

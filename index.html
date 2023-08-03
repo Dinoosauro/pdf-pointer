@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="./manifest.json" />
     <link rel="apple-touch-icon" href="./assets/icon.png" />
+    <style id="safariStyle"></style>
     <meta name="apple-mobile-web-app-status-bar" content="#282a36" />
     <meta name="theme-color" content="#c0c2d9" />
 </head>
@@ -119,7 +120,7 @@
     <div class="vertcenter opacityRemove" style="display: none; z-index: 9999999; position: absolute;" id="settings">
         <div class="settingsMax dialog">
             <img style="position: absolute; right: 15px; top: 15px;" width="30" height="30" id="closeSettings"
-                class="linkWithoutBrightness" fetchLink="save" data-customanimate='1'>
+                class="linkWithoutBrightness" fetchLink="fullscreenoff" data-customanimate='1'>
             <h2 style="margin: 0px; padding: 0px;" data-translate="settings">Settings</h2><br><br>
             <div style="overflow-x: auto; width: 70vw;">
                 <div class="card optioncolor">
@@ -393,6 +394,7 @@
                         <h4 class="link marginRight" data-license="apache" data-author="">PDF.js</h4>
                         <h4 class="link marginRight" data-license="mit" data-author="2017 Elliot">observable-slim</h4>
                         <h4 class="link marginRight" data-license="mit" data-author="2014 Gliffy Inc">canvas2svg</h4>
+                        <h4 class="link marginRight" data-license="mit" data-author="2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso">JSZip</h4>
                         <h4 class="link marginRight" data-license="icons">Icons</h4>
                         <h4 class="link marginRight" data-license="privacyNotice" data-author="">Privacy</h4>
                     </div><br><br>
@@ -475,6 +477,9 @@
                     <div class="optionId" data-action="normalscreen" style="display: none;">
                         <img fetchlink="fullscreenoff" class="imgTool">
                     </div>
+                    <div class="optionId" data-action="downloadAsImg">
+                        <img fetchlink="imgsave" class="imgTool">
+                    </div>
                     <div class="optionId" data-action="settings">
                         <img fetchlink="settings" class="imgTool">
                     </div>
@@ -515,6 +520,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
     integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" integrity="sha256-rMfkFFWoB2W1/Zx+4bgHim0WC7vKRVrq6FTeZclH1Z4=" crossorigin="anonymous"></script>
 <script src="./script.js"></script>
 <script src="./canvas2svg.js"></script>
 </body>

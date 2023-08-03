@@ -3,27 +3,31 @@ Display PDFs with a pointer, make quick annotations (that automatically disappea
 
 Try it: https://dinoosauro.github.io/pdf-pointer/
 ## Open a file
-![Screenshot 2023-07-08 alle 12 38 01](https://i.imgur.com/R94fMa0.png)
+![The welcome screen of PDFPointer](https://i.imgur.com/R94fMa0.png)
 When you open the webpage, you'll be asked to open a file. Select a PDF and PDFPointer will automatically display it. You can also drag and drop the file.
 
 At the right, you can see that it's possible to install the app for offline use. See the "Offline Use" section of this README for more information.
 ## Functions
 You can access to all of the functions from the toolbar.
-![Screenshot 2023-07-08 alle 12 26 23](https://i.imgur.com/mAyIlnL.png)
+![A screenshot of the toolbar options in PDFPointer](https://i.imgur.com/mAyIlnL.png)
 
 ### Draw into a PDF
 With PDFPointer, you can create quick annotations that disappear automatically. To do that, click the pen icon from the tools above. Start drawing, and, by default, the annotations will disappear after 15 seconds. If you want to change it, click on the Timer icon and then choosse another option. If you want to erase sooner the drawing, click on the eraser icon. You can also change the color of the drawing tool clicking the _color_ icon next to the erase one.
-![Screenshot 2023-07-08 alle 12 24 26](https://i.imgur.com/eYJ2l22.png)
+![A screenshot of a PDF opened in PDFPointer](https://i.imgur.com/ggdGxFW.png)
 ### Fullscreen
 Click on the fullscreen icon (the one after the color one) and the document will be displayed in full screen. The bar will automatically move to the left of the screen.
-![Screenshot 2023-07-08 alle 12 30 47](https://i.imgur.com/LzI3IUZ.png)
+![An image showing PDFPointer in full screen](https://i.imgur.com/Emsfipt.png)
+### Save as image
+You can download your PDF with annotations as a JPG/PNG/WebP image by clicking the save image button. You'll be asked the pages to export, the image resolution and its quality (for lossy compression formats). PDFPointer will then export them.
+
+You can also export them in a .zip file. This can be useful if your PDF has lots of pages.
 ### Settings
 In the settings, you can change lots of things:
 - Delete/Add custom colors
 - Choose if alerts should be shown (and their length)
 - Change the color of the pointer
 - [Change, delete or create an application theme](https://github.com/Dinoosauro/pdf-pointer/tree/main/themeCreator)
-- Change the zoom option between zooming the PDF canvas or scrolling it; kepp annotations when zooming (even if it'll be a lot buggy) and enable a button to expand the PDF canvas size.
+- Change the zoom option between zooming the PDF canvas or scrolling it; kepp annotations when zooming and enable a button to expand the PDF canvas size.
 - Change the background color/image/video of the application.
 - Change the language of the application
 - See keyboard shortcuts

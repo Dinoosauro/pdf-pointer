@@ -42,6 +42,7 @@ h4 {
 .optioncolor {
   background-color: var(--optioncolor);
   margin-bottom: 15px;
+  overflow-y: hidden;
 }
 
 .link {
@@ -179,6 +180,7 @@ select {
   border-radius: 8px;
   transition: opacity 0.3s animate__backOutUp;
   padding-top: 3vw;
+  max-width: 25vw;
 }
 
 .dropdownItem {
@@ -390,7 +392,6 @@ video {
   filter: brightness(200%);
 
 }
-
 .containerPhotoRemove {
   animation-name: brightnessAnimateMinus;
   animation-duration: 0.3s;
@@ -699,4 +700,68 @@ input:checked+.slider:before {
 input[type=range] {
   accent-color: var(--accent);
   padding: 0px;
+}
+.fillWidth {
+    width: 100%;
+    width: -moz-available; 
+    width: -webkit-fill-available; 
+}
+
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 5px;
+  background: var(--accent);
+  background-size: var(--background-size, 0%) 100%;
+  background-repeat: no-repeat;
+  border-radius: 15px;
+}
+input[type='range']::-webkit-slider-thumb {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  background: var(--accent);
+  border: solid var(--accent) 1px;
+  border-radius: 50%;
+  margin-top: -5px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
+}
+@-moz-document url-prefix() {
+  input[type=range] {
+    background-color: rgba(0,0,0,0);
+  }
+  input[type="range"]::-moz-range-progress {
+    background-color: var(--accent);
+    border-radius: 5px;
+  }
+  
+  input[type="range"]::-moz-range-track {
+    background-color: var(--accent);
+    border-radius: 5px;
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    background: var(--accent);
+    border: solid var(--accent) 1px;
+    border-radius: 50%;
+    margin-top: -6px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 5px;
+    background: var(--accent);
+    background-size: var(--background-size, 0%) 100%;
+    background-repeat: no-repeat;
+    border-radius: 15px;
+  }
+  
+  
+}
+:-moz-selection,
+::selection{
+    background: #fe57a1;
+    color: #fff;
+    text-shadow: none;
 }

@@ -78,7 +78,15 @@
         "changeLang": "La tua lingua è stata impostata automaticamente su: Italiano.",
         "noShowAgain": "Non mostrare più",
         "zoomCanvas": "Il mantenimento delle annotazioni con lo zoom è sperimentale, e pertanto ci potrebbero essere (e molto probabilmente ci saranno) dei glitch.",
-        "webKitColor": "Seleziona il colore dal selettore qui sotto, e poi clicca sul pulsante \"Salva colore personalizzato\" per scegliere un nome."
+        "webKitColor": "Seleziona il colore dal selettore qui sotto, e poi clicca sul pulsante \"Salva colore personalizzato\" per scegliere un nome.",
+        "exportInformation": "Puoi esportare questa pagina come immagine:",
+        "save": "Salva immagine",
+        "qualityInfo": "Selezionare la qualità dell'immagine",
+        "customExport": "Esporta le seguenti pagine:",
+        "customItalic": "Scrivi '1-5' per esportare tutte le pagine da 1 a 5, oppure '1,5' per esportare le pagine 1 e 5. Lascia bianco per scaricare solo questa pagina",
+        "resize": "Ridimensiona l'immagine finale.",
+        "resizeItalic": "Il rapporto tra larghezza ed altezza rimarrà invariato",
+        "saveZip": "Salva come file .zip"
     },
     "themeCreation": {
         "title": "Creatore dei temi",
