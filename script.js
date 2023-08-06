@@ -103,6 +103,8 @@ function startPDFRead(link) {
         // document.documentElement.addEventListener("keyup", (e) => { shiftShortcut(e) });
         document.documentElement.addEventListener("mouseup", () => { zoomTrack[3] = false });
         document.documentElement.addEventListener("mouseleave", () => { zoomTrack[3] = false });
+        document.documentElement.addEventListener("touchstart", () => { zoomTrack[3] = false });
+        document.documentElement.addEventListener("touchend", () => { zoomTrack[3] = false });
         loadPDF[0] = pdfjsLib.getDocument(link);
         loadPDF[0].promise.then((pdf) => {
             loadPDF[1] = pdf;
@@ -277,13 +279,15 @@ function canvasDrawCheck() {
     }
 }
 document.addEventListener("mouseup", () => { canvasDrawCheck() });
+document.addEventListener("touchend", () => { canvasDrawCheck() });
+document.addEventListener("touchcancel", () => { canvasDrawCheck() });
 function addEvents(newCanvas) {
-    newCanvas.addEventListener("mousedown", () => {
+    function mousedown() {
         canvasPen();
         isCanvasDrawing = true;
         if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) eraseTime = true;
-    });
-    newCanvas.addEventListener("mousemove", (event) => {
+    }
+    function mouseover(event) {
         canvasMove(event);
         canvasEraser(event);
         if (changeItemFromKey[0]) {
@@ -291,12 +295,23 @@ function addEvents(newCanvas) {
             cursorChange(newCanvas, changeItemFromKey[1]);
         }
         if (changeItemFromKey[1] === "cursorerase") canvasEraser(event, true);
-    });
-    newCanvas.addEventListener("mouseleave", () => { canvasIds[1][2][0] = null; newCanvas.style.cursor = "pointer"; });
+
+    }
+    newCanvas.addEventListener("mousedown", () => {mousedown();});
+    newCanvas.addEventListener("touchstart", () => {mousedown();});
+    newCanvas.addEventListener("mousemove", (event) => {mouseover(event)});
+    newCanvas.addEventListener("touchmove", (event) => {event.preventDefault(); mouseover({offsetX: event.touches[0].pageX - newCanvas.getBoundingClientRect().left - window.scrollX - newCanvas.scrollLeft, offsetY: event.touches[0].pageY - newCanvas.getBoundingClientRect().top - window.scrollY - newCanvas.scrollTop, clientX: event.touches[0].pageX, clientY: event.touches[0].pageY})});
+    for (let type of ["mouseleave", "touchend"]) newCanvas.addEventListener(type, () => { canvasIds[1][2][0] = null; newCanvas.style.cursor = "pointer"; });
     newCanvas.addEventListener("hover", () => { intelligentCursor(newCanvas) })
     newCanvas.addEventListener("mousedown", (e) => {
         if (!document.querySelector("[data-action=erase]").classList.contains("clickImg")) zoomTrack[3] = true;
         precedentZoomPosition = [e.screenX, e.screenY];
+    });
+    newCanvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        var touch = e.touches[0];
+        if (!document.querySelector("[data-action=erase]").classList.contains("clickImg")) zoomTrack[3] = true;
+        precedentZoomPosition = [touch.pageX, touch.pageY];
     });
     newCanvas.addEventListener("mouseenter", () => { cursorChange(newCanvas) });
 }
@@ -514,8 +529,10 @@ function createDropdown(buttonReference, changeIcon) {
     div.append(close);
     var divPosition = buttonReference.getBoundingClientRect();
     div.classList.add("dropdown");
+    let percentageWidth = 25;
+    if (screen.availHeight > screen.availWidth) {percentageWidth = 60; div.classList.add("verticalDropdown")}
     let styleThings = `top: ${parseInt(divPosition.top) + 75 + window.scrollY}px; `;
-    if (divPosition.left + 25 + (25 * document.body.offsetWidth / 100) < document.body.offsetWidth) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (25 * document.body.offsetWidth / 100)}px; `;
+    if (divPosition.left + 25 + (percentageWidth * document.body.offsetWidth / 100) < document.body.offsetWidth) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (percentageWidth * document.body.offsetWidth / 100)}px; `;
     styleThings = styleThings.replace("right: -", "left: ").replace("left: -", "right: "); // Quick fix for dialog outside client view due to negative numbers
     div.style = styleThings;
     return div;
@@ -592,10 +609,7 @@ function topAlert(text, alertType, isChange) {
     setTimeout(() => { alertContainer.style.opacity = "1"; }, 350);
 }
 function showRightCanvas() {
-    let canvasArray = document.querySelectorAll("[data-page]");
-    for (let canvas of canvasArray) {
-        if (canvas.getAttribute("data-page") === `${loadPDF[2]}`) canvas.style.display = "inline"; else canvas.style.display = "none";
-    }
+    for (let canvas of document.querySelectorAll("[data-page]")) if (canvas.getAttribute("data-page") === `${loadPDF[2]}`) canvas.style.display = "inline"; else canvas.style.display = "none";
 }
 document.querySelector("[data-action=next]").addEventListener("click", () => {
     loadPDF[2]++;
@@ -619,11 +633,15 @@ function fixZoom() {
         item.parentElement.width = originalWidth[3];
         item.parentElement.style.marginTop = `0px`;
         item.parentElement.style.marginLeft = `0px`;
-        if (parseFloat(item.parentElement.getAttribute("data-zoom")) === 1 && parseInt(item.parentElement.getAttribute("data-page")) === loadPDF[2]) item.parentElement.style.display = "inline"; else item.parentElement.style.display = "none";
+        if (parseInt(item.parentElement.getAttribute("data-page")) === loadPDF[2] && optionProxy.changeItems.moveZoom || parseInt(item.parentElement.getAttribute("data-page")) === loadPDF[2] && !optionProxy.changeItems.moveZoom && parseInt(item.parentElement.getAttribute("data-zoom")) === 1) item.parentElement.style.display = "inline"; else item.parentElement.style.display = "none";
     }
     zoomTrack[0] = 1;
     zoomTrack[1] = 0;
     zoomTrack[2] = 0;
+    if (optionProxy.changeItems.keepZoomSize) {
+        setFixedWidth();
+        resizeCanvasSameSize();
+    }
 }
 function bounceTextEvents(item, animationItem) {
     animationItem.addEventListener("mouseenter", () => {
@@ -924,10 +942,7 @@ let zoomTrack = [1, 0, 0, false]; // Zoom level, x position, y position.
 let precedentZoomPosition = [0, 0]; // x, y
 let originalWidth = 0;
 document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
-    if (localStorage.getItem("PDFPointer-zoomType") === null) {
-        dialogGeneralAnimation("zoomChooseContainer", true)
-        return;
-    }
+    if (localStorage.getItem("PDFPointer-zoomType") === null) optionProxy.changeItems.keepZoomSize = false;
     zoomTrack[0] += 0.5;
     if (zoomTrack[0] > 3) {
         topAlert(`300% ${globalTranslations.maxZoom}`, "maxZoom");
@@ -976,10 +991,7 @@ function closeCanvasDialog() {
     dialogGeneralAnimation("zoomChooseContainer", false);
 }
 document.querySelector("[data-action=zoomout]").addEventListener("click", () => {
-    if (localStorage.getItem("PDFPointer-zoomType") === null) {
-        dialogGeneralAnimation("zoomChooseContainer", true)
-        return;
-    }
+    if (localStorage.getItem("PDFPointer-zoomType") === null) optionProxy.changeItems.keepZoomSize = false;
     zoomTrack[0] -= 0.5;
     if (zoomTrack[0] < 0.5) {
         topAlert(`50% ${globalTranslations.minZoom}`, "minZoom");

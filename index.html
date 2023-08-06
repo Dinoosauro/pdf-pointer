@@ -117,7 +117,7 @@
             </div>
         </div>
     </div>
-    <div class="vertcenter opacityRemove" style="display: none; z-index: 9999999; position: absolute;" id="settings">
+    <div class="vertcenter opacityRemove" style="display: none; z-index: 9999999; position: fixed;" id="settings">
         <div class="settingsMax dialog">
             <img style="position: absolute; right: 15px; top: 15px;" width="30" height="30" id="closeSettings"
                 class="linkWithoutBrightness" fetchLink="fullscreenoff" data-customanimate='1'>
@@ -235,6 +235,7 @@
                         </div>
                     </div><br>
                     <div class="vertcenter">
+                        <div style="display: none;">
                         <div style="display: flex; float: left;">
                             <l data-translate="moveZoom">
                                 Keep annotations when zooming the PDF</l>
@@ -245,7 +246,7 @@
                                 <span class="slider round"></span>
                             </label>
                         </div>
-                    </div><br><br>
+                    </div><br><br></div>
                     <div class="vertcenter">
                         <div style="display: flex; float: left;">
                             <l data-translate="resizeCanvas">Permit to resize the PDF even in the "fixed PDF space" mode
