@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        input[type=color] {
+            margin-left: 5px;
+        }
+
+        .accent {
+            background-color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div style="display: flex; height: 48px; justify-content: center">
+        <img fetchlink="logo" width="48px" height="48px">
+        <div style="display: flex; align-items: center; margin-left: 15px;">
+            <h1 style="margin-bottom: 0px; padding-bottom: 0px; padding-top: 0px; margin-top: 4px;">PdfPointer</h1>
+        </div>
+    </div>
+    <h2 data-translation="title">Theme creator</h2>
+    <l data-translation="description">You will see here some colors. Change their colors and, when you have done everything, click the save button.</l>
+    <br><br>
+    <div class="settingsMax" style="height: 100%; border-radius: 8px;">
+        <div class="vertcenter column">
+            <div class="vertcenter">
+                <div class="optionId" data-click="prev">
+                    <img fetchlink="prev" class="imgTool" id="previmg">
+                </div>
+                <i style="margin-left: 10px; margin-right: 10px;"><span data-translation="step">Step</span> <span id="progress">0</span> <span data-translation="of">of</span> 7</i>
+                <div class="optionId" data-click="next">
+                    <img fetchlink="next" class="imgTool" id="nextimg">
+                </div>
+            </div>
+        </div>
+        <div data-step="0">
+            <l data-translation="readyTheme">Ready for your new theme? Go to the first step. You can also import a theme from a JSON file.</l><br><br>
+            <div class="optionId button accent" style="width: 25%; margin-left: 15px;" id="import">
+                <div class="vertcenter" data-translation="import">Import theme</div>
+            </div>
+        </div>
+        <div data-step="1">
+            <l data-translation="textSelection">This is an example of a text. Change it from the color input:</l>
+            <input type="color" data-action="text">
+        </div>
+        <div data-step="2">
+            <l data-translation="backgroundSelection">Do you like this background? Try change it.</l>
+            <input type="color" data-action="background">
+        </div>
+        <div data-step="3">
+            <l data-translation="iconSelection">Usually, the icons have a lighter color. Try change it: you'll see the edits on the image below.</l>
+            <input type="color" data-action="accent"><br><br>
+            <l data-translation="squareSelection">There's also a square around the image. This is just like a button, try to change its color here</l>
+            <input type="color" data-action="optionitem"><br><br>
+            <l data-translation="toolbarSelection">Lastly, there's an external square, that shows the toolbar. Just like everything else, change it from
+                here:
+            </l> <input type="color" data-action="optionbackground">
+            <div class="optionContainer vertcenter" id="containerOfOptions" style="width: 30%;">
+                <div class="optionId" style="width: 30px; height: 30px;">
+                    <img class="vertcenter" id="img" width="30px" height="30px">
+                </div>
+            </div>
+        </div>
+        <div style="background-color: var(--settingsoverlay)" data-step="4">
+            <div>
+                <h2 data-translation="settings">Settings</h2>
+                <l data-translation="settingsSelection">Settings have a different background. Change it:</l> <input type="color"
+                    data-action="settingsoverlay">
+                <div class="card optioncolor">
+                    <l data-translation="separationSelection">Every settings section is separated from a lighter (or darker, if you prefer light mode (👎🏻))
+                        section. Just like every other property, change it from the input here:</l> <input type="color"
+                        data-action="optioncolor">
+                </div>
+            </div>
+        </div>
+        <div data-step="5">
+            <div class="card">
+                <l data-translation="cardSelection">Sometimes, there's something like just like a card. You can see this just by opening the website
+                    (look
+                    at the open file card). Choose its color:</l><input type="color" data-action="card">
+            </div>
+        </div>
+        <div data-step="6">
+            <l data-translation="finalSelection">I know, there are lots of parameters to change. However, this is the last one. I hope this proccess
+                hasn't
+                been so traumatizing.<br><br>With some combinations of color, the text can seem less readable in
+                dropdown
+                menus. Change it and look the result</l><input type="color" data-action="safetext"><br><br>
+            <div class="dropdown" style="position: relative; width: 30%;">
+                <div class="dropdownItem" style="margin-left: 22px; margin-top: 22px">
+                    <l class="dropdownLabel" data-translation="example">Example option</l>
+                </div>
+                <div class="dropdownItem" style="border-left: solid 2px var(--accent); margin-left: 22px;">
+                    <l class="dropdownLabel" data-translation="selectedOption">You selected this!</l>
+                </div>
+            </div>
+        </div>
+        <div data-step="7">
+            <l data-translation="finalText">And... your theme is now ready! Here you can find a button to save it or to export it as a JSON file.</l><br><br>
+            <div style="display: flex;">
+                <div class="optionId button accent" style="width: 25%;" id="save">
+                    <div class="vertcenter" data-translation="save">Save theme</div>
+                </div>
+                <div class="optionId button accent" style="width: 25%; margin-left: 15px;" id="export">
+                    <div class="vertcenter" data-translation="export">Export theme</div>
+                </div>
+
+            </div>
+        </div>
+
+        <br><br><br>
+
+    </div><br><br>
+    <div class="optionId button accent" style="width: 25%;" id="backPage">
+        <div class="vertcenter" data-translation="back">Go back</div>
+    </div>
+    <form id="reset" style="display: none;"><input type="file" id="fileClick"></form>
+
+    <script src="./colorScript.js"></script>
+</body>
