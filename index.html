@@ -208,8 +208,8 @@
                         </div>
                     </div><br><br>
                     <div id="alertContainer" style="display: none; opacity: 0;" class="opacityRemove">
-                        <l data-translate="timeAlert">Alert duration (in milliseconds): </l><input type="number"
-                            id="alertNumberDuration" data-customanimate='1'><br><br>
+                        <l data-translate="timeAlert" style="margin-right: 10px;">Alert duration (in milliseconds): </l>
+                        <input type="number" id="alertNumberDuration" data-customanimate='1'><br><br>
                     </div>
                 </div>
                 <div class="card optioncolor">
@@ -236,17 +236,18 @@
                     </div><br>
                     <div class="vertcenter">
                         <div style="display: none;">
-                        <div style="display: flex; float: left;">
-                            <l data-translate="moveZoom">
-                                Keep annotations when zooming the PDF</l>
-                        </div>
-                        <div style="display: flex; float: right;">
-                            <label class="switch" data-customanimate='1'>
-                                <input type="checkbox" id="moveZoomCheck">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div><br><br></div>
+                            <div style="display: flex; float: left;">
+                                <l data-translate="moveZoom">
+                                    Keep annotations when zooming the PDF</l>
+                            </div>
+                            <div style="display: flex; float: right;">
+                                <label class="switch" data-customanimate='1'>
+                                    <input type="checkbox" id="moveZoomCheck">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div><br><br>
+                    </div>
                     <div class="vertcenter">
                         <div style="display: flex; float: left;">
                             <l data-translate="resizeCanvas">Permit to resize the PDF even in the "fixed PDF space" mode
@@ -272,8 +273,8 @@
                     </div><br>
                     <div id="ytlinkask" style="display: none; opacity: 0;" class="opacityRemove vertcenter">
                         <div class="vertcenter">
-                            <l data-translate="ytChoose">Write the link to the YouTube video/playlist</l><input
-                                type="text" id="ytLinkValue" data-customanimate='1' style="margin-left: 10px;"><br>
+                            <l data-translate="ytChoose">Write the link to the YouTube video/playlist</l>
+                            <input type="text" id="ytLinkValue" data-customanimate='1' style="margin-left: 10px;"><br>
                         </div>
 
                         <div class="vertcenter">
@@ -395,7 +396,9 @@
                         <h4 class="link marginRight" data-license="apache" data-author="">PDF.js</h4>
                         <h4 class="link marginRight" data-license="mit" data-author="2017 Elliot">observable-slim</h4>
                         <h4 class="link marginRight" data-license="mit" data-author="2014 Gliffy Inc">canvas2svg</h4>
-                        <h4 class="link marginRight" data-license="mit" data-author="2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso">JSZip</h4>
+                        <h4 class="link marginRight" data-license="mit"
+                            data-author="2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso">
+                            JSZip</h4>
                         <h4 class="link marginRight" data-license="icons">Icons</h4>
                         <h4 class="link marginRight" data-license="privacyNotice" data-author="">Privacy</h4>
                     </div><br><br>
@@ -522,9 +525,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/observable-slim@0.1.6/observable-slim.min.js"
     integrity="sha256-341Ic5TC+A1mlexmfBZ26gLdXxNroE0kqtsmzgwqgu8=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" integrity="sha256-rMfkFFWoB2W1/Zx+4bgHim0WC7vKRVrq6FTeZclH1Z4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"
+    integrity="sha256-rMfkFFWoB2W1/Zx+4bgHim0WC7vKRVrq6FTeZclH1Z4=" crossorigin="anonymous"></script>
 <script>// Adding separated JS files if debugging with local server
-    if (location.hostname === "localhost" && location.pathname.indexOf("dist") === -1) {let a = document.createElement("script"); a.src = "./script.js"; document.body.append(a);}
+    if (location.hostname === "localhost" && location.pathname.indexOf("dist") === -1) { let a = document.createElement("script"); a.src = "./script.js"; document.body.append(a); }
 </script>
 <script src="./canvas2svg.js"></script>
 </body>
