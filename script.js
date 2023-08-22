@@ -1720,3 +1720,4 @@ function setupTranlsation() { // Add a hover description of each action butotn
         document.getElementById("hoverContainer").append(hoverContent);
     }
 }
+document.getElementById("ytLinkValue").type = "text"; // For some reason Webpack deletes this, idk why
