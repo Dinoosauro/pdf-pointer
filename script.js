@@ -1398,14 +1398,14 @@ document.querySelector("[data-translate=chooseimg]").addEventListener("click", (
                 let canvas = document.createElement("canvas");
                 let outputScale = window.devicePixelRatio || 1;
                 if (canvas.width > canvas.height) {
-                    canvas.height = window.screen.height * multiplicationType * outputScale;
+                    canvas.height = window.screen.height * multiplicationType * outputScale < img.height ? window.screen.height * multiplicationType * outputScale : img.height;
                     canvas.width = img.width * canvas.height / img.height; // I know that there's another function that does proportion but it's easier to do that here
                 } else {
-                    canvas.width = window.screen.width * multiplicationType * outputScale;
+                    canvas.width = window.screen.width * multiplicationType * outputScale < img.width ? window.screen.width * multiplicationType * outputScale : img.width;
                     canvas.height = img.height * canvas.width / img.width; // I know that there's another function that does proportion but it's easier to do that here
                 }
                 canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-                let imgUrl = canvas.toDataURL("image/jpeg", 0.5); // Get the data URL of the new image
+                let imgUrl = canvas.toDataURL(lookWebP ? "image/webp" : "image/jpeg", 0.5); // Get the data URL of the new image
                 if (imgUrl.length > 1_333_333) { // The image size is too big, especially since lots of other things may be in the LocalStorage's limited memory (5MB). It'll be resized.
                     multiplicationType -= 0.15;
                     generateImage();
@@ -1459,6 +1459,7 @@ if (localStorage.getItem("PDFPointer-backgroundId") !== null) { // The user has 
     generateFilters();
 }
 document.querySelector("[data-action=downloadAsImg]").addEventListener("click", () => { createSaveImgDropdown() }); // The action that permits to save the PDF as an image
+let lookWebP = document.createElement("canvas").toDataURL("image/webp").startsWith("data:image/webp");
 function createSaveImgDropdown() {
     // Another function is created since basically it's completely different from every other dropdown
     if (optionProxy.showAlert.downloadImg) return;
@@ -1475,11 +1476,11 @@ function createSaveImgDropdown() {
     }
     select.firstChild.selected = "true";
     if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) { 
-        select.childNodes[2].disabled = true; // Disable WebP export if the user is using WebKit
         let newStyle = document.createElement("style"); 
         newStyle.innerHTML = `input[type='range'],input[type='range']::-webkit-slider-runnable-track,input[type='range']::-webkit-slider-thumb {-webkit-appearance: none;border-radius: 15px;}`; // Fix input type range broken for Safari by adding custom stylesheet
         document.head.append(newStyle);
     }
+    if (!lookWebP) select.childNodes[2].disabled = true; // Disable WebP export if the browser doesn't support WebP encoding
     // Create label with export information
     let infoLabel = document.createElement("l");
     infoLabel.textContent = globalTranslations.exportInformation;
