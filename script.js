@@ -31,11 +31,11 @@ for (let action of actions) {
 }
 function clickItem(action) {
     console.log(action, action.firstChild);
-    getImg([action.childNodes[1].src], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
+    getImg([action.querySelector("img")], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
     action.classList.add("clickImg"); // Add brightness
 }
 function unclickItems(action) {
-    getImg([action.childNodes[1].src], action.getAttribute("data-action")); // Get the regular SVG
+    getImg([action.querySelector("img")], action.getAttribute("data-action")); // Get the regular SVG
     action.classList.remove("clickImg"); // Remove extra brightness
 }
 let loadPDF = {
