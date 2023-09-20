@@ -11,8 +11,8 @@ if ('serviceWorker' in navigator) {
 let jsonImg = { // The object that will contain all the image SVGs, so that they can be applied to all the images
     toload: true // Since the fetch request is still not done, the object will contain only an attribute: toLoad
 };
-let appVersion = "1.1.1";
-fetch("https://dinoosauro.github.io/UpdateVersion/pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
+let appVersion = "1.2.0";
+fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) }); // Fetch the new SVGs
 let avoidDuplicate = false;
 let startWidth = [[document.documentElement.clientWidth, document.documentElement.clientHeight], [], [document.documentElement.clientWidth, document.documentElement.clientHeight]]; // Fetch the viewport the user loaded the page so that it can ve used later to get PDF viewport width/height
@@ -31,11 +31,12 @@ for (let action of actions) {
     });
 }
 function clickItem(action) {
-    getImg([action.firstChild.src], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
+    console.log(action, action.firstChild);
+    getImg([action.childNodes[1]], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
     action.classList.add("clickImg"); // Add brightness
 }
 function unclickItems(action) {
-    getImg([action.childNodes[1].src], action.getAttribute("data-action")); // Get the regular SVG
+    getImg([action.childNodes[1]], action.getAttribute("data-action")); // Get the regular SVG
     action.classList.remove("clickImg"); // Remove extra brightness
 }
 let loadPDF = {
@@ -152,9 +153,9 @@ function canvasPDF(pageNumber) { // Draw a specific page to a canvas
         viewport = page.getViewport({ scale: futureScale });
         setUpCanvas(document.getElementById("displayCanvas"), viewport, false);
         let canvas = document.getElementById("displayCanvas");
-        futureScale *= 3; // 300% zoom
+        futureScale *= Math.floor(parseInt(document.getElementById("zoomPercentageEdit").value) / 100); // The maxinum zoom, as chosen by the user
         viewport = page.getViewport({ scale: futureScale }); // Get the final viewport another time
-        proxyCanvas = setUpCanvas(document.createElement("canvas"), viewport, true); // Create a new canvas with the 300% zoom, and assign it to the proxyCanvas property
+        proxyCanvas = setUpCanvas(document.createElement("canvas"), viewport, true); // Create a new canvas with the maxinum zoom, and assign it to the proxyCanvas property
         let context = proxyCanvas.getContext('2d');
         let transform = outputScale !== 1
             ? [outputScale, 0, 0, outputScale, 0, 0]
@@ -168,6 +169,7 @@ function canvasPDF(pageNumber) { // Draw a specific page to a canvas
         page.render(renderContext).promise.then(() => { // Render the page to the proxy canvas
             canvasComplete = true;
             canvas.getContext("2d").drawImage(proxyCanvas, 0, 0, canvas.width, canvas.height) // Draw the page to the displayed canvas, resizing it to the canvas size
+            document.getElementById("currentPageUpdate").textContent = pageNumber; // Write the current page under the canvas
             if (optionProxy.changeItems.keepZoomSize) setFixedWidth(true); else originalWidth = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").height, document.getElementById("displayCanvas").width]; // If the size of the canvas must be the same, it'll be passed in a function that will adjust the style of the container. Otherwise, the current canvas width/height will be stored
             if (isFullscreen) {
                 // UI Fixes for fullscreen mode
@@ -188,7 +190,7 @@ let globalTranslations = { // English translations to variables assigned directl
     dropdownClose: "Close this drowdown menu to apply the new color. You can also add new colors form Settings.",
     seconds: "Seconds",
     nameColor: "How do you want to name this color?",
-    maxZoom: "is the maxinum zoom level permitted",
+    maxZoom: "is the maxinum zoom level permitted. You can change it from Settings.",
     minZoom: "is the mininum zoom level permitted",
     noShowAgain: "Don't show again",
     zoomCanvas: "Zooming in PDFs and keeping annotations is experimental, and it might (and most probalby will) cause glitches.",
@@ -201,6 +203,7 @@ let globalTranslations = { // English translations to variables assigned directl
     resize: "Resize the image width and height",
     resizeItalic: "The aspect ratio will remain the same.",
     saveZip: "Save as a .zip file",
+    maxZoomChanged: "The maxinum zoom will be updated after refreshing PDFPointer or changing the PDF page",
     hoverTranslation: {
         prev: "Show previous page",
         contract: "Decrease canvas size",
@@ -215,7 +218,8 @@ let globalTranslations = { // English translations to variables assigned directl
         settings: "Settings",
         zoomin: "Increase zoom",
         expand: "Increase canvas size",
-        next: "Show next page"
+        next: "Show next page",
+        pagethumbnail: "Show thumbnails"
     }
 }
 function canvasPen() { // Draw into the canvas
@@ -977,8 +981,8 @@ let originalWidth = 0;
 document.querySelector("[data-action=zoomin]").addEventListener("click", () => { // Zoom in the PDF canvas
     if (localStorage.getItem("PDFPointer-zoomType") === null) optionProxy.changeItems.keepZoomSize = false; // Set default zoom file: the canvas will be expanded, and its size in the DOM will change
     zoomTrack.zoomLevel += 0.5;
-    if (zoomTrack.zoomLevel > 3) { // 300% is the maxinum zoom
-        topAlert(`300% ${globalTranslations.maxZoom}`, "maxZoom");
+    if (zoomTrack.zoomLevel > Math.floor(parseInt(document.getElementById("zoomPercentageEdit").value) / 100)) { // 300% is the maxinum zoom
+        topAlert(`${document.getElementById("zoomPercentageEdit").value}% ${globalTranslations.maxZoom}`, "maxZoom");
         zoomTrack.zoomLevel = 3;
         return;
     }
@@ -990,6 +994,11 @@ document.querySelector("[data-action=zoomin]").addEventListener("click", () => {
         canvasGeneralResize();
     }
 });
+document.getElementById("zoomPercentageEdit").addEventListener("change", () => {
+    localStorage.setItem("PDFPointer-maxZoomLength", document.getElementById("zoomPercentageEdit").value);
+    topAlert(globalTranslations.maxZoomChanged, "maxZoomChange");
+})
+if (localStorage.getItem("PDFPointer-maxZoomLength") !== null) document.getElementById("zoomPercentageEdit").value = parseInt(localStorage.getItem("PDFPointer-maxZoomLength")); // Restore maxinum zoom
 function canvasGeneralResize() { // Resize the default canvas and its annotations
     if (originalWidth === 0) originalWidth = [document.getElementById("displayCanvas").style.width, document.getElementById("displayCanvas").style.height, document.getElementById("displayCanvas").height, document.getElementById("displayCanvas").width] // Update the canvas width and height
     let oldHeight = document.getElementById("displayCanvas").height;
@@ -1588,15 +1597,76 @@ function zipDownload() { // Download zip file function
         zip = new JSZip();
     });
 }
-function exportCanvas() { // The function that manages to export a canvas image
+let thumbnailProgress = { // An object that contains useful information for the thumbnail generation
+    load: 1, // The last page PDFPointer has generated a thumbnail
+    limit: 0, // When this equals 5, stop generating thumbnails until further user interaction
+    isLoading: false // If true, stop every thumbnail generating activity since there's another activity going on
+};
+let thumbnailContainer = document.getElementById("thumbnailContainer"); // The div that will contain all the thumbnails
+function thumbnailAppend(canvas, continueGen) { // Appends the new thumbnail to the DOM
+    let containerDiv = document.createElement("div"); 
+    let number = document.createElement("l"); // The label that will contain the page number
+    number.textContent = thumbnailProgress.load;
+    canvas.onclick = () => { // Go to the selected page
+        loadPDF.page = parseInt(number.textContent);
+        showRightCanvas();
+        canvasPDF(loadPDF.page);
+        fixZoom();
+    }
+    // Add a cool circle around the page number
+    let numberContainer = document.createElement("div");
+    numberContainer.classList.add("numberCircle");
+    number.classList.add("vertcenter");
+    number.style = "width: 100%; height: 100%";
+    numberContainer.append(number);
+    containerDiv.append(canvas, document.createElement("br"), numberContainer); // Append the canvas and the number to the container DIV
+    thumbnailContainer.append(containerDiv); // And append everything to the DOM
+    thumbnailProgress.load++;
+    thumbnailProgress.limit++;
+    if (continueGen && thumbnailProgress.limit < 5) startThumbnailProcess(continueGen); else if (continueGen) {thumbnailProgress.limit = 0; thumbnailProgress.isLoading = false} // If it's necessary to continue generating thumbnails (continueGen) and we're under the limit of generations per user input, generate another one. Otherwise, restore the limit.
+}
+function startThumbnailProcess(continueGen) { // A small function that simplifiees the start of the thumbnail generation
+    exportCanvas(true, thumbnailProgress.load, continueGen);
+}
+document.querySelector("[data-action=pagethumbnail]").addEventListener("click", () => {
+    if (thumbnailContainer.classList.contains("animate__animated")) return; // If an animation is going on, wait that it's finished before doing anything else.
+    if (thumbnailContainer.style.display === "none") {  // Must become visible
+    thumbnailContainer.style.display = "";
+    thumbnailContainer.classList.add("animate__animated", "animate__backInLeft"); // Show the introduction section
+    thumbnailContainer.style.maxWidth = `${(document.querySelector("[data-action=pagethumbnail]").getBoundingClientRect().left - 85)}px`; // Make sure the button to hide the thumbnails (this one) will always be visible
+    setTimeout(() => {thumbnailContainer.classList.remove("animate__animated", "animate__backInLeft")}, 1000); // Remove the animation attributes
+    startThumbnailProcess(true); // And start generating
+} else { // Must be hidden
+    thumbnailContainer.classList.add("animate__animated", "animate__backOutLeft");
+    setTimeout(() => {
+        // Delete everythihng on the div, since the user might make further annotations.
+        thumbnailContainer.innerHTML = "";
+        thumbnailContainer.style.display = "none";
+        thumbnailProgress = {
+            load: 1,
+            limit: 0,
+            isLoading: false
+        }
+        thumbnailContainer.classList.remove("animate__animated", "animate__backOutLeft")
+    }, 1000)
+    }
+})
+thumbnailContainer.addEventListener("scroll", () => { // Load further thumbnails only if the user has scrolled more of 85% of the thumbnail div length
+    if (Math.round((thumbnailContainer.scrollTop / (thumbnailContainer.scrollHeight - thumbnailContainer.offsetHeight)) * 100) > 85 && !thumbnailProgress.isLoading) {
+        thumbnailProgress.isLoading = true;
+        thumbnailProgress.limit = 0;
+        startThumbnailProcess(true);
+    }
+})
+function exportCanvas(shouldReturn, pageReq, shouldGenAnother) { // The function that manages to export a canvas image, both for Image Export and for thumbnail generation (shouldReturn)
     // Get the PDF page in a canvas
     let outputScale = window.devicePixelRatio || 1; 
-    let currentPage = optionProxy.export.processPage[optionProxy.export.pageId];
+    let currentPage = shouldReturn ? pageReq : optionProxy.export.processPage[optionProxy.export.pageId];
     loadPDF.promise.getPage(currentPage).then(function (page) {
         optionProxy.export.pageId++;
         let viewport = page.getViewport({ scale: 1, });
         let futureScale = greatViewport(viewport);
-        viewport = page.getViewport({ scale: futureScale * parseFloat(document.getElementById("resizeSlider").value) });
+        viewport = page.getViewport({ scale: futureScale * (shouldReturn ? 0.5 : parseFloat(document.getElementById("resizeSlider").value)) }); // If shouldReturn is true, generate a low-quality thumbnail, otherwise look at the value.
         let finalCanvas = setUpCanvas(document.createElement("canvas"), viewport, true);
         let transform = outputScale !== 1
             ? [outputScale, 0, 0, outputScale, 0, 0]
@@ -1612,48 +1682,9 @@ function exportCanvas() { // The function that manages to export a canvas image
             let i = 0;
             function advance() {
                 i++;
-                if (i < divContainer.length) divLoop(); else downloadCanvas();
+                if (i < divContainer.length) divLoop(); else if (!shouldReturn) downloadCanvas(finalCanvas, currentPage); else thumbnailAppend(finalCanvas, shouldGenAnother);
             }
-            function downloadCanvas() { // Finished merging the annotations on the PDF, so export it
-                let fileName = `${pdfName.substring(0, pdfName.lastIndexOf("."))}-Page-${currentPage}.${document.getElementById("exportSelect").value.toLowerCase()}`;
-                if (!document.getElementById("zipExport").checked) { // Direclty download the image
-                    let a = document.createElement("a");
-                    switch (document.getElementById("exportSelect").value.toLowerCase()) {
-                        case "jpg":
-                            a.href = finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value));
-                            break;
-                        case "webp":
-                            a.href = finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value));
-                            break;
-                        default:
-                            a.href = finalCanvas.toDataURL("image/png");
-                            break;
-                    }
-                    a.download = fileName;
-                    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) setTimeout(() => {
-                        // Safari for some reason needs more time for download an image, otherwise it won't download the next one.
-                        a.click();
-                        if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
-                    }, Math.random() * (100 - 20) + 20); else {
-                        a.click();
-                        if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
-                    }
-                } else {
-                    switch (document.getElementById("exportSelect").value.toLowerCase()) { // Add the image to the zip file
-                        case "jpg":
-                            zip.file(fileName, finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
-                            break;
-                        case "webp":
-                            zip.file(fileName, finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
-                            break;
-                        default:
-                            zip.file(fileName, finalCanvas.toDataURL("image/png").replace(/^data:.+;base64,/, ''), { base64: true });
-                            break;
-                    }
-                    if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas(); else zipDownload();
-
-                }
-            }
+            
             function divLoop() { // Look for each page and merge the annotations
                 let div = divContainer[i];
                 if (div !== undefined && parseInt(div.getAttribute("data-page")) === currentPage && div.innerHTML !== "") { // If the div exists, the page is the same as the one we're exporting, and the SVG content is not empty, let's continue
@@ -1673,15 +1704,57 @@ function exportCanvas() { // The function that manages to export a canvas image
         }).catch((ex) => {
             // If there's an error, try with the next page
             optionProxy.export.pageId++; 
+            thumbnailProgress.isLoading = false;
             console.warn(ex);
-            if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport").checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
+            if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport")?.checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
         });
     }).catch((ex) => {+
             // If there's an error, try with the next page
         optionProxy.export.pageId++;
+        thumbnailProgress.isLoading = false;
         console.warn(ex);
-        if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport").checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
+        if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport")?.checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
     });
+}
+function downloadCanvas(finalCanvas, currentPage) { // Finished merging the annotations on the PDF, so export it
+    let fileName = `${pdfName.substring(0, pdfName.lastIndexOf("."))}-Page-${currentPage}.${document.getElementById("exportSelect").value.toLowerCase()}`;
+    if (!document.getElementById("zipExport").checked) { // Direclty download the image
+        let a = document.createElement("a");
+        switch (document.getElementById("exportSelect").value.toLowerCase()) {
+            case "jpg":
+                a.href = finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value));
+                break;
+            case "webp":
+                a.href = finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value));
+                break;
+            default:
+                a.href = finalCanvas.toDataURL("image/png");
+                break;
+        }
+        a.download = fileName;
+        if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) setTimeout(() => {
+            // Safari for some reason needs more time for download an image, otherwise it won't download the next one.
+            a.click();
+            if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
+        }, Math.random() * (100 - 20) + 20); else {
+            a.click();
+            if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas();
+        }
+    } else {
+        switch (document.getElementById("exportSelect").value.toLowerCase()) { // Add the image to the zip file
+            case "jpg":
+                zip.file(fileName, finalCanvas.toDataURL("image/jpeg", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
+                break;
+            case "webp":
+                zip.file(fileName, finalCanvas.toDataURL("image/webp", parseFloat(document.getElementById("exportSlider").value)).replace(/^data:.+;base64,/, ''), { base64: true });
+                break;
+            default:
+                zip.file(fileName, finalCanvas.toDataURL("image/png").replace(/^data:.+;base64,/, ''), { base64: true });
+                break;
+        }
+        if (optionProxy.export.pageId < optionProxy.export.processPage.length) exportCanvas(); else zipDownload();
+
+    }
 }
 function hoverItem(item) { // Add custom animatino to some elements (brightness)
     item.addEventListener("mouseenter", () => { item.classList.remove("closeAnimationTool"); item.classList.add("btnTourAnimate") });
@@ -1721,4 +1794,9 @@ function setupTranlsation() { // Add a hover description of each action butotn
         document.getElementById("hoverContainer").append(hoverContent);
     }
 }
-document.getElementById("ytLinkValue").type = "text"; // For some reason Webpack deletes this, idk why
+for (let item of document.querySelectorAll("[data-text]")) item.type = "text"; // For some reason Webpack deletes this, idk why
+function resizeCheck() { // Avoids that toolbar content goes outside the screen at the left (it wouldn't be clickable)
+    document.getElementById("containerOfOptions").style.justifyContent = Math.floor(document.getElementById("containerOfOptions").scrollWidth) > Math.floor(document.getElementById("containerOfOptions").getBoundingClientRect().width + 10) ? "flex-start" : "center";
+}
+resizeCheck();
+window.addEventListener("resize", () => resizeCheck()); 

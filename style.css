@@ -281,10 +281,12 @@ input::placeholder {
   display: block;
   overflow: scroll;
 }
+
 .verticalDropdown {
   max-width: 60vw !important;
   width: 60vw;
 }
+
 .colorContainer {
   background-color: var(--optionbackground);
   width: 90%;
@@ -788,4 +790,41 @@ input[type='range']::-webkit-slider-thumb {
   border-radius: 8px;
   -webkit-backdrop-filter: brightness(70%);
   backdrop-filter: brightness(70%);
+}
+
+.thumbnailContainer {
+  position: fixed;
+  top: 15vh;
+  height: 70vh;
+  border-radius: 16px;
+  background-color: var(--card);
+  overflow: auto;
+  padding-right: 25px;
+  padding-left: 25px;
+  z-index: 9999997;
+  margin-left: 10px;
+}
+
+.thumbnailContainer>div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.thumbnailContainer:nth-child(2)>div {
+  margin-top: 35px;
+}
+
+.thumbnailContainer>div>canvas {
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid var(--background);
+}
+.numberCircle {
+  background-color: var(--background);
+  width: 18px;
+  height: 18px;
+  padding: 10px;
+  border-radius: 50%;
 }

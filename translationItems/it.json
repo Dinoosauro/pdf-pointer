@@ -73,7 +73,7 @@
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",
         "seconds": "Secondi",
         "nameColor": "Come vuoi chiamare questo colore?",
-        "maxZoom": "è il livello massimo di zoom permesso.",
+        "maxZoom": "è il livello massimo di zoom permesso. Puoi cambiarlo dalle impostazioni.",
         "minZoom": "è il livello minimo di zoom permesso.",
         "changeLang": "La tua lingua è stata impostata automaticamente su: Italiano.",
         "noShowAgain": "Non mostrare più",
@@ -87,6 +87,7 @@
         "resize": "Ridimensiona l'immagine finale.",
         "resizeItalic": "Il rapporto tra larghezza ed altezza rimarrà invariato",
         "saveZip": "Salva come file .zip",
+        "maxZoomChanged": "Lo zoom massimo sarà aggiornato con l'aggiornamento di PDFPointer oppure col cambio di pagina",
         "hoverTranslation": {
             "prev": "Mostra pagina precedente",
             "contract": "Diminusci dimensione del canvas",
@@ -101,7 +102,8 @@
             "settings": "Impostazioni",
             "zoomin": "Aumenta zoom",
             "expand": "Aumenta dimensione del canvas",
-            "next": "Mostra pagina successiva"
+            "next": "Mostra pagina successiva",
+            "pagethumbnail": "Visualizza miniature"
         }
     },
     "themeCreation": {

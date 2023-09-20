@@ -46,7 +46,8 @@ let copyAssets = [
   'assets/FirstZoomOption.mp4',
   'assets/SecondZoomOption.mp4',
   'service-worker.js',
-  'translationItems/it.json'
+  'translationItems/it.json',
+  'pdfpointer-updatecode'
 ]
 for (let item of copyAssets) {
   if (item.indexOf("/") !== -1 && !fs.existsSync(`dist/${item.substring(0, item.lastIndexOf("/"))}`)) fs.mkdirSync(`dist/${item.substring(0, item.lastIndexOf("/"))}`);
