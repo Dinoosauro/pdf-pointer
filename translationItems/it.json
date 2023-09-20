@@ -68,6 +68,7 @@
     "ytChoose": "Inserire il link del video/playlist di YouTube:",
     "applyyt": "Applica",
     "chooseimg": "Scegli immagine",
+    "maxZoomPercentage": "Cambia la percentuale di zoom massimo",
     "globalTranslations": {
         "shiftAlert": "Puoi anche premere Shift per disegnare direttamente sul PDF. Premilo di nuovo per smettere di disegnare",
         "dropdownClose": "Chiudi questo menù a cascata per applicare il nuovo colore. Puoi anche aggiungere colori personalizzati dalle impostazioni",
@@ -88,7 +89,6 @@
         "resizeItalic": "Il rapporto tra larghezza ed altezza rimarrà invariato",
         "saveZip": "Salva come file .zip",
         "maxZoomChanged": "Lo zoom massimo sarà aggiornato con l'aggiornamento di PDFPointer oppure col cambio di pagina",
-        "maxZoomPercentage": "Cambia la percentuale di zoom massimo",
         "hoverTranslation": {
             "prev": "Mostra pagina precedente",
             "contract": "Diminusci dimensione del canvas",
