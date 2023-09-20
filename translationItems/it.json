@@ -88,6 +88,7 @@
         "resizeItalic": "Il rapporto tra larghezza ed altezza rimarrà invariato",
         "saveZip": "Salva come file .zip",
         "maxZoomChanged": "Lo zoom massimo sarà aggiornato con l'aggiornamento di PDFPointer oppure col cambio di pagina",
+        "maxZoomPercentage": "Cambia la percentuale di zoom massimo",
         "hoverTranslation": {
             "prev": "Mostra pagina precedente",
             "contract": "Diminusci dimensione del canvas",
