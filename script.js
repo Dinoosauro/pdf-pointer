@@ -1,5 +1,5 @@
 // Setup service worker
-let positionLink = document.location.href.indexOf("github.io") ? `${location.origin}/pdf-pointer/` : location.origin;
+let positionLink = document.location.href.indexOf("github.io") !== -1 ? `${location.origin}/pdf-pointer/` : `${location.origin}/`;
 if ('serviceWorker' in navigator) {
     let registration;
     const registerServiceWorker = async () => {
@@ -31,11 +31,11 @@ for (let action of actions) {
 }
 function clickItem(action) {
     console.log(action, action.firstChild);
-    getImg([action.childNodes[1]], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
+    getImg([action.childNodes[1].src], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
     action.classList.add("clickImg"); // Add brightness
 }
 function unclickItems(action) {
-    getImg([action.childNodes[1]], action.getAttribute("data-action")); // Get the regular SVG
+    getImg([action.childNodes[1].src], action.getAttribute("data-action")); // Get the regular SVG
     action.classList.remove("clickImg"); // Remove extra brightness
 }
 let loadPDF = {
