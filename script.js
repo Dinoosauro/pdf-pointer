@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = { // The object that will contain all the image SVGs, so that they can be applied to all the images
     toload: true // Since the fetch request is still not done, the object will contain only an attribute: toLoad
 };
-let appVersion = "1.2.0";
+let appVersion = "1.2.1";
 fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) }); // Fetch the new SVGs
 let avoidDuplicate = false;
@@ -30,7 +30,6 @@ for (let action of actions) {
     });
 }
 function clickItem(action) {
-    console.log(action, action.firstChild);
     getImg([action.querySelector("img")], `${action.getAttribute("data-action")}-fill`); // Add a filled SVG, so that the user can notice that the item is selected
     action.classList.add("clickImg"); // Add brightness
 }
@@ -57,7 +56,7 @@ function startPDFRead(link) {
         document.getElementById("pageContainer").style.visibility = "visible"; // Make visible the PDF container
         document.getElementById("toolMain").classList.add("animate__animated", "animate__backInUp"); // Add an animation to the new visible elements
         document.getElementById("pageContainer").classList.add("animate__animated", "animate__backInUp"); // Add an animation to the new visible elements
-        setTimeout(() => {setupTranlsation()}, 1100);
+        setTimeout(() => { setupTranlsation() }, 1100);
         function shiftShortcut(e) {
             if (blockKey) return;
             function switchItem(typeSwitch) { // Changes the brightness between erase & pen actions (the two that can be triggered by keyboard functions)
@@ -75,24 +74,22 @@ function startPDFRead(link) {
             switch (e.key) {
                 case "Shift": // With shift, the user will stop every annotation being made
                     if (isFromKey) { // Interrupt the current drawing
-                        canvasIds.specific.shouldDraw = false; // Stop the current canvas
-                        canvasIds.zIndex++; // Increment the zIndex value, so that the next canvas will be on top of the current annotation
+                        stopCanvasDraw();
                         document.querySelector("[data-action=pen]").classList.remove("clickImg"); // Remove the pen brightness
                     } else switchItem(true); // Change icon to erase
                     if (changeItemFromKey[1] === "cursorerase") changeItemFromKey = [false, "cursorpointer"]; // Change the icon to pointer
-                    isFromKey = !isFromKey; 
+                    isFromKey = !isFromKey;
                     eraseFromKey = false; // No erase required
                     canvasPen(); // If isFromKey is true, the user will be able to draw, otherwise the drawing canvas will be finalized
                     break;
                 case "Alt": // Force interrupt the current drawing
-                    canvasIds.specific.shouldDraw = false; // Stop drawing
-                    canvasIds.zIndex++; // Increment zIndex so that the next canvas will be on top of the current annotation
+                    stopCanvasDraw();
                     isFromKey = false;  // Stop every possible input
                     eraseFromKey = false; // Stop every possible input
                     break;
                 case "Backspace": // The user wants to delete one or more canvas 
                     eraseFromKey = !eraseFromKey;
-                    if (eraseFromKey) { 
+                    if (eraseFromKey) {
                         changeItemFromKey = [true, "cursorerase"]; // Change pointer to erase icon
                         switchItem(false); // Add the extra brightness to the eraser tool
                     } else {
@@ -130,7 +127,7 @@ function greatViewport(viewport) { // Get the output viewport scale
 }
 function setUpCanvas(canvas, viewport, askReturn) { // Just like the function name, setup a canvas with its width/height
     let outputScale = window.devicePixelRatio || 1; // If the display of the user is great, adjust its pixel ratio
-    canvas.width = Math.floor(viewport.width * outputScale); 
+    canvas.width = Math.floor(viewport.width * outputScale);
     canvas.height = Math.floor(viewport.height * outputScale);
     canvas.style.width = Math.floor(viewport.width) + "px";
     canvas.style.height = Math.floor(viewport.height) + "px";
@@ -221,16 +218,20 @@ let globalTranslations = { // English translations to variables assigned directl
         pagethumbnail: "Show thumbnails"
     }
 }
+function stopCanvasDraw() {
+    canvasIds.specific.shouldDraw = false;
+    canvasIds.zIndex++;
+}
+let canvasStorage = []; // An array that'll store the canvas and, when ended, the image.
 function canvasPen() { // Draw into the canvas
     if (!document.querySelector("[data-action=pen]").classList.contains("clickImg") && !isFromKey) return; // The user doesn't want to draw into the cnavas
     if (!isFromKey) topAlert(globalTranslations.shiftAlert, "shiftAlert"); // Notice the user they can draw also by pressing Shift
     if (canvasIds.specific.shouldDraw) { // The user was already drawing, so the current canvas will be finalized
-        canvasIds.specific.shouldDraw = false;
-        canvasIds.zIndex++;
+        stopCanvasDraw();
         return;
     }
     // Create a container for the SVG canvas
-    let newCanvas = document.createElement("div"); 
+    let newCanvas = document.createElement("div");
     newCanvas.width = document.getElementById("displayCanvas").offsetWidth;
     newCanvas.height = document.getElementById("displayCanvas").offsetHeight;
     newCanvas.style = `position: absolute; z-index: ${canvasIds.zIndex}; margin-top: 15px; margin-bottom: 15px; border-radius: 8px;`;
@@ -287,14 +288,36 @@ function canvasDrawCheck() { // Stop canvas drawing and erasing
         isCanvasDrawing = false;
     }
 }
+function askCanvasForStorage(canvas) { // Draws the SVG in a canvas, so pixel color can be looked.
+    let canvasStore = document.createElement("canvas");
+    let img = document.createElement("img");
+    img.width = document.getElementById("displayCanvas").style.width.replace("px", "");
+    img.height = document.getElementById("displayCanvas").style.height.replace("px", "");
+    img.onload = () => {
+        canvasStore.width = document.getElementById("displayCanvas").style.width.replace("px", "");
+        canvasStore.height = document.getElementById("displayCanvas").style.height.replace("px", "");
+        let ctx = canvasStore.getContext("2d");
+        ctx.drawImage(img, 0, 0, parseInt(document.getElementById("displayCanvas").style.width.replace("px", "")), parseInt(document.getElementById("displayCanvas").style.height.replace("px", "")));
+        canvasStorage.push({ canvas: canvas, index: canvasIds.imgProgress, ctx: ctx });
+        canvasIds.imgProgress++;    
+    }
+    img.src = `data:image/svg+xml;utf8,${encodeURIComponent(canvas.innerHTML)}`;
+
+}
 for (let item of ["mouseup", "touchend", "touchcancel"]) document.addEventListener(item, () => { canvasDrawCheck() });
 function addEvents(newCanvas) { // Add a list of events to the new canvas
     function mousedown() { // Start drawing canvas
         canvasPen();
         isCanvasDrawing = true;
-        if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) eraseTime = true; // If the user wants to erase something
+        if (document.querySelector("[data-action=erase]").classList.contains("clickImg")) {
+        eraseTime = true;
+            for (let canvas of document.querySelectorAll("[data-page]")) {
+                canvasStorage = [];
+                askCanvasForStorage(canvas);
+            }
+        } // If the user wants to erase something
     }
-    function mouseover(event) { 
+    function mouseover(event) {
         canvasMove(event); // Checks if the user is drawing something
         canvasEraser(event); // Check if the user is erasing something
         if (changeItemFromKey[0]) { // The pointer icon must be changed
@@ -304,9 +327,9 @@ function addEvents(newCanvas) { // Add a list of events to the new canvas
         if (changeItemFromKey[1] === "cursorerase") canvasEraser(event, true); // If the user needs to erase something, start the class
 
     }
-    for (let item of ["mousedown", "touchstart"]) newCanvas.addEventListener(item, () => {mousedown();});
-    newCanvas.addEventListener("mousemove", (event) => {mouseover(event)});
-    newCanvas.addEventListener("touchmove", (event) => {event.preventDefault(); mouseover({offsetX: event.touches[0].pageX - newCanvas.getBoundingClientRect().left - window.scrollX - newCanvas.scrollLeft, offsetY: event.touches[0].pageY - newCanvas.getBoundingClientRect().top - window.scrollY - newCanvas.scrollTop, clientX: event.touches[0].pageX, clientY: event.touches[0].pageY})}); // Since touch gives different attrivutes, the ones used by the mouseover function must be manually "crafted"
+    for (let item of ["mousedown", "touchstart"]) newCanvas.addEventListener(item, () => { mousedown(); });
+    newCanvas.addEventListener("mousemove", (event) => { mouseover(event) });
+    newCanvas.addEventListener("touchmove", (event) => { event.preventDefault(); mouseover({ offsetX: event.touches[0].pageX - newCanvas.getBoundingClientRect().left - window.scrollX - newCanvas.scrollLeft, offsetY: event.touches[0].pageY - newCanvas.getBoundingClientRect().top - window.scrollY - newCanvas.scrollTop, clientX: event.touches[0].pageX, clientY: event.touches[0].pageY }) }); // Since touch gives different attrivutes, the ones used by the mouseover function must be manually "crafted"
     for (let type of ["mouseleave", "touchend"]) newCanvas.addEventListener(type, () => { canvasIds.specific.previousItem[0] = null; newCanvas.style.cursor = "pointer"; }); // When the user leaves the canvas, set the previous position to null (since it can re-enter the canvas from another position, and this would break the canvas drawing) and set the pointer to normal
     newCanvas.addEventListener("hover", () => { intelligentCursor(newCanvas) }) // Change cursor
 
@@ -334,19 +357,23 @@ function cursorChange(canvas, cursor) { // Change the canvas cursor
 function canvasEraser(event, skip) {
     if (skip !== true) if (!document.querySelector("[data-action=erase]").classList.contains("clickImg") || !eraseTime) return; // skip !== true since it can also be undefined
     let rectangle = document.getElementById("displayCanvas").getBoundingClientRect(); // Get the rectangle position
-    let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top + 16];
-    let getCanvases = document.querySelectorAll("g"); // Fetch all the SVG forms
-    for (let canvas of getCanvases) {
-        let canvasPosition = canvas.getBoundingClientRect(); // Get the position of the SVG form
-        if (canvas.getAttribute("pdf") === "yes") continue; // Shouldn't happen now that canvas are no longer used
-        function deleteCanvas() {
-            if (canvas.parentElement.parentElement.getAttribute("data-delete") === null) canvas.parentElement.parentElement.setAttribute("data-delete", "1"); else return;
-            canvas.parentElement.parentElement.style.opacity = 0;
-            setTimeout(() => { canvas.parentElement.parentElement.remove() }, 700);
+    let xy = [event.clientX - rectangle.left, event.clientY - rectangle.top];
+    for (let canvas of canvasStorage) { // Get each object that contains the div containing the SVG and then its Canvas context
+        let ctx = canvas.ctx;
+        if (ctx === undefined) {
+            askCanvasForStorage(canvas);
+            continue;
         }
-        if ((canvasPosition.bottom - event.clientY) > -20 && (canvasPosition.bottom - event.clientY) < 20) deleteCanvas(); // Conditions to delete canvas
-        if ((canvasPosition.left - event.clientX) > -20 && (canvasPosition.left - event.clientX) < 20) deleteCanvas(); // Conditions to delete canvas
+        let arr = Array.from(ctx.getImageData(xy[0], xy[1], 1, 1).data);
+        if (arr[3] !== 0) { // If it isn't transparent, there's a drawing there. So, it must be deleted
+            if (canvas.canvas.getAttribute("data-delete") === null) canvas.canvas.setAttribute("data-delete", "1"); else continue; // Set the item state as deleted
+            canvasStorage.splice(canvasStorage.findIndex(e => e.index === canvas.index), 1);
+            canvas.canvas.style.opacity = 0;
+            setTimeout(() => {
+                canvas.canvas.remove();
+            }, 700);
 
+        }
     }
 }
 function hexToRgbNew(hex) { // Borrowed from https://stackoverflow.com/a/11508164
@@ -359,6 +386,7 @@ function hexToRgbNew(hex) { // Borrowed from https://stackoverflow.com/a/1150816
 }
 let canvasIds = { // An object that contains information for generating or editing a canvas
     zIndex: 1,
+    imgProgress: 0,
     specific: {
         canvasElement: null,
         shouldDraw: false,
@@ -471,7 +499,7 @@ let localOptions = { // An object that contains each option from PDFPointer. I t
     }
 }
 if (localStorage.getItem("PDFPointer-customColors") !== null && localStorage.getItem("PDFPointer-customColors") !== "{}") // The user has set up custom colors in the past, therefore the'll be added
-localOptions.availableHighlightColors = JSON.parse(localStorage.getItem("PDFPointer-customColors")); // Restore available colors to the ones the user has modified in the past
+    localOptions.availableHighlightColors = JSON.parse(localStorage.getItem("PDFPointer-customColors")); // Restore available colors to the ones the user has modified in the past
 let optionProxy = ObservableSlim.create(localOptions, true, function (change) { // Create a proxy that will intercept edits in the options
     let changes = change[0];
     if (changes.type === "update") { // A value has been modified
@@ -525,7 +553,7 @@ function createDropdown(buttonReference, changeIcon, optionKey) {
     let div = document.createElement("div");
     div.classList.add("animate__animated", "animate__backInDown") // Add animation
     // Add close button
-    let close = document.createElement("img"); 
+    let close = document.createElement("img");
     close.width = 25;
     close.height = 25;
     close.setAttribute("data-customanimate", "1");
@@ -549,7 +577,7 @@ function createDropdown(buttonReference, changeIcon, optionKey) {
     div.classList.add("dropdown");
     // If the screen is vertical, update the vertical width
     let percentageWidth = 25;
-    if (screen.availHeight > screen.availWidth) {percentageWidth = 60; div.classList.add("verticalDropdown")}
+    if (screen.availHeight > screen.availWidth) { percentageWidth = 60; div.classList.add("verticalDropdown") }
     let styleThings = `top: ${parseInt(divPosition.top) + 75 + window.scrollY}px; `;
     if (divPosition.left + 25 + (percentageWidth * document.body.offsetWidth / 100) < document.body.offsetWidth) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (percentageWidth * document.body.offsetWidth / 100)}px; `;
     styleThings = styleThings.replace("right: -", "left: ").replace("left: -", "right: "); // Quick fix for dialog outside client view due to negative numbers
@@ -614,7 +642,7 @@ function topAlert(text, alertType, isChange) { // Create an alert at the top of 
         alert.append(returnDefault);
     }
     // Create a new link to not show the dialog for this reason again
-    let doNotShow = document.createElement("l"); 
+    let doNotShow = document.createElement("l");
     doNotShow.classList.add("noshow", "link");
     doNotShow.style.marginLeft = "10px";
     doNotShow.textContent = globalTranslations.noShowAgain;
@@ -808,9 +836,9 @@ function fetchThemes() { // Get current themes and add them to the "Manage theme
             applyContainerNew[2] = createContainerInfo("bin", theme.colorProperties.background, theme.colorProperties.accent, themeContainerOption); // Delete button
             applyContainerNew[2].addEventListener("click", () => {
                 document.documentElement.style.setProperty("--deleteitem", theme.colorProperties.optionitem); // Change the delete item CSS variable so that there's a color changing animation before deleting the item
-                themeContainerOption.classList.add("runAnimation"); 
+                themeContainerOption.classList.add("runAnimation");
                 // Fetch the custom themes, get where the custom theme is and then delete it. This part should be rewritten using Array.find (?)
-                let customGet = JSON.parse(localStorage.getItem("PDFPointer-customThemeJson")).items; 
+                let customGet = JSON.parse(localStorage.getItem("PDFPointer-customThemeJson")).items;
                 let futureGet = [];
                 for (let i = 0; i < Object.keys(customGet).length; i++) if (i !== theme.trackCustom) futureGet.push(customGet[i]);
                 localStorage.setItem("PDFPointer-customThemeJson", JSON.stringify({ items: futureGet })); // Save the new item array
@@ -872,7 +900,8 @@ document.getElementById("fileOpen").onchange = function () { // The file input o
             startPDFRead(fileRead.result);
         }
         pdfName = document.getElementById("fileOpen").files[0].name;
-        fileRead.readAsDataURL(document.getElementById("fileOpen").files[0]);
+        document.title = `${pdfName} - PDFPointer`;
+        fileRead.readAsArrayBuffer(document.getElementById("fileOpen").files[0]);
     }
 }
 document.getElementById("openPicker").addEventListener("click", () => { document.getElementById("fileOpen").click() }) // The button that starts the PDF reading process
@@ -903,7 +932,7 @@ for (let i = 0; i < settingsToSave.localProperty.length; i++) { // Restore value
         }
     }
 }
-let checkBoxClick = { 
+let checkBoxClick = {
     checkbox: [document.getElementById("alertCheck"), document.getElementById("pointerCheck"), document.getElementById("moveZoomCheck"), document.getElementById("resizeCanvasCheck")],
     changeVal: ["changeItems.showTips", "changeItems.pointerColorEnabled", "changeItems.moveZoom", "changeItems.resizeCanvas"]
 }
@@ -949,7 +978,7 @@ document.addEventListener('fullscreenchange', (e) => { // The user has entered o
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-bottom: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-top: ${item.getAttribute("data-moveright")}`;
         if (zoomTrack.zoomLevel < 3) document.querySelector("[data-action=zoomin]").click(); else document.querySelector("[data-action=zoomout]").click();
-                setupTranlsation();
+        setupTranlsation();
     } else { // The user has exited fullscreen, restore default UI
         isFullscreen = false;
         document.getElementById("toolMain").classList.add("vertcenter");
@@ -965,7 +994,7 @@ document.addEventListener('fullscreenchange', (e) => { // The user has entered o
         startWidth[2] = startWidth[0];
         for (let item of document.querySelectorAll("[data-moveleft]")) item.style = `margin-right: ${item.getAttribute("data-moveleft")}`;
         for (let item of document.querySelectorAll("[data-moveright]")) item.style = `margin-left: ${item.getAttribute("data-moveright")}`;
-                setupTranlsation();
+        setupTranlsation();
 
     }
 });
@@ -1015,7 +1044,7 @@ function canvasGeneralResize() { // Resize the default canvas and its annotation
             if (item.parentElement.style.display === "none") continue;
             let generalScale = parseFloat(item.parentElement.getAttribute("data-zoom")); // Get the scale the SVG items were created
             // Scale the item
-            item.parentElement.style.transformOrigin = "top left"; 
+            item.parentElement.style.transformOrigin = "top left";
             item.parentElement.style.transform = `scale(${zoomTrack.zoomLevel / generalScale})`;
         } else {
             if (parseFloat(itemOld.parentElement.parentElement.getAttribute("data-zoom")) === zoomTrack.zoomLevel) itemOld.parentElement.parentElement.style.display = "inline"; else itemOld.parentElement.parentElement.style.display = "none";
@@ -1127,7 +1156,7 @@ for (let animateEnd of document.getElementsByClassName("optionId")) {
 // Get the preferred user language, and, if it's Italian, load the Italian language JSON
 let language = navigator.language || navigator.userLanguage;
 if (language.indexOf("it") !== -1 && window.location.href.indexOf("nolang") === -1 && localStorage.getItem("PDFPointer-nolang") !== "yes") { // Check if Italian is a preferred language
-    fetch(`./translationItems/it.json`).then((res) => { 
+    fetch(`./translationItems/it.json`).then((res) => {
         res.json().then((json) => {
             for (let item of document.querySelectorAll("[data-translate]")) item.textContent = json[item.getAttribute("data-translate")]; // Change text of content with data-translate attribute
             globalTranslations = json.globalTranslations; // Update global translations (the translations of strings that are handled by JavaScript)
@@ -1400,30 +1429,30 @@ document.querySelector("[data-translate=chooseimg]").addEventListener("click", (
         let read = new FileReader();
         read.onload = () => {
             let img = document.createElement("img");
-            img.onload =  () => {
+            img.onload = () => {
                 let multiplicationType = 1.5;
                 function generateImage() {
-                let canvas = document.createElement("canvas");
-                let outputScale = window.devicePixelRatio || 1;
-                if (canvas.width > canvas.height) {
-                    canvas.height = window.screen.height * multiplicationType * outputScale < img.height ? window.screen.height * multiplicationType * outputScale : img.height;
-                    canvas.width = img.width * canvas.height / img.height; // I know that there's another function that does proportion but it's easier to do that here
-                } else {
-                    canvas.width = window.screen.width * multiplicationType * outputScale < img.width ? window.screen.width * multiplicationType * outputScale : img.width;
-                    canvas.height = img.height * canvas.width / img.width; // I know that there's another function that does proportion but it's easier to do that here
+                    let canvas = document.createElement("canvas");
+                    let outputScale = window.devicePixelRatio || 1;
+                    if (canvas.width > canvas.height) {
+                        canvas.height = window.screen.height * multiplicationType * outputScale < img.height ? window.screen.height * multiplicationType * outputScale : img.height;
+                        canvas.width = img.width * canvas.height / img.height; // I know that there's another function that does proportion but it's easier to do that here
+                    } else {
+                        canvas.width = window.screen.width * multiplicationType * outputScale < img.width ? window.screen.width * multiplicationType * outputScale : img.width;
+                        canvas.height = img.height * canvas.width / img.width; // I know that there's another function that does proportion but it's easier to do that here
+                    }
+                    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let imgUrl = canvas.toDataURL(lookWebP ? "image/webp" : "image/jpeg", 0.5); // Get the data URL of the new image
+                    if (imgUrl.length > 1_333_333) { // The image size is too big, especially since lots of other things may be in the LocalStorage's limited memory (5MB). It'll be resized.
+                        multiplicationType -= 0.15;
+                        generateImage();
+                        return
+                    } else {
+                        localStorage.setItem("PDFPointer-customImg", imgUrl);
+                        imgEmbed();
+                    }
                 }
-                canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-                let imgUrl = canvas.toDataURL(lookWebP ? "image/webp" : "image/jpeg", 0.5); // Get the data URL of the new image
-                if (imgUrl.length > 1_333_333) { // The image size is too big, especially since lots of other things may be in the LocalStorage's limited memory (5MB). It'll be resized.
-                    multiplicationType -= 0.15;
-                    generateImage();
-                    return
-                } else {
-                localStorage.setItem("PDFPointer-customImg", imgUrl);
-                    imgEmbed();
-                }
-            }
-            generateImage();
+                generateImage();
             }
             img.src = read.result;
         }
@@ -1483,8 +1512,8 @@ function createSaveImgDropdown() {
         select.append(option)
     }
     select.firstChild.selected = "true";
-    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) { 
-        let newStyle = document.createElement("style"); 
+    if (navigator.userAgent.toLowerCase().indexOf("safari") !== -1 && navigator.userAgent.toLowerCase().indexOf("chrome") === -1) {
+        let newStyle = document.createElement("style");
         newStyle.innerHTML = `input[type='range'],input[type='range']::-webkit-slider-runnable-track,input[type='range']::-webkit-slider-thumb {-webkit-appearance: none;border-radius: 15px;}`; // Fix input type range broken for Safari by adding custom stylesheet
         document.head.append(newStyle);
     }
@@ -1530,7 +1559,7 @@ function createSaveImgDropdown() {
     saveBtn.style.opacity = "1";
     customText.addEventListener("input", () => {
         // Checks if there are any forbidden characters in the input
-        let shouldDisabled = !/^[0-9,-]*$/.test(customText.value); 
+        let shouldDisabled = !/^[0-9,-]*$/.test(customText.value);
         if (!shouldDisabled) for (let item of customText.value.split(",")) if (item.split("-").length > 2) shouldDisabled = true;
         if (shouldDisabled) saveBtn.style.opacity = "0.4"; else saveBtn.style.opacity = "1"; // If the criterias aren't met, set the button to a lower opacity.
     })
@@ -1603,7 +1632,7 @@ let thumbnailProgress = { // An object that contains useful information for the 
 };
 let thumbnailContainer = document.getElementById("thumbnailContainer"); // The div that will contain all the thumbnails
 function thumbnailAppend(canvas, continueGen) { // Appends the new thumbnail to the DOM
-    let containerDiv = document.createElement("div"); 
+    let containerDiv = document.createElement("div");
     let number = document.createElement("l"); // The label that will contain the page number
     number.textContent = thumbnailProgress.load;
     canvas.onclick = () => { // Go to the selected page
@@ -1622,7 +1651,7 @@ function thumbnailAppend(canvas, continueGen) { // Appends the new thumbnail to 
     thumbnailContainer.append(containerDiv); // And append everything to the DOM
     thumbnailProgress.load++;
     thumbnailProgress.limit++;
-    if (continueGen && thumbnailProgress.limit < 5) startThumbnailProcess(continueGen); else if (continueGen) {thumbnailProgress.limit = 0; thumbnailProgress.isLoading = false} // If it's necessary to continue generating thumbnails (continueGen) and we're under the limit of generations per user input, generate another one. Otherwise, restore the limit.
+    if (continueGen && thumbnailProgress.limit < 5) startThumbnailProcess(continueGen); else if (continueGen) { thumbnailProgress.limit = 0; thumbnailProgress.isLoading = false } // If it's necessary to continue generating thumbnails (continueGen) and we're under the limit of generations per user input, generate another one. Otherwise, restore the limit.
 }
 function startThumbnailProcess(continueGen) { // A small function that simplifiees the start of the thumbnail generation
     exportCanvas(true, thumbnailProgress.load, continueGen);
@@ -1630,24 +1659,24 @@ function startThumbnailProcess(continueGen) { // A small function that simplifie
 document.querySelector("[data-action=pagethumbnail]").addEventListener("click", () => {
     if (thumbnailContainer.classList.contains("animate__animated")) return; // If an animation is going on, wait that it's finished before doing anything else.
     if (thumbnailContainer.style.display === "none") {  // Must become visible
-    thumbnailContainer.style.display = "";
-    thumbnailContainer.classList.add("animate__animated", "animate__backInLeft"); // Show the introduction section
-    thumbnailContainer.style.maxWidth = `${(document.querySelector("[data-action=pagethumbnail]").getBoundingClientRect().left - 85)}px`; // Make sure the button to hide the thumbnails (this one) will always be visible
-    setTimeout(() => {thumbnailContainer.classList.remove("animate__animated", "animate__backInLeft")}, 1000); // Remove the animation attributes
-    startThumbnailProcess(true); // And start generating
-} else { // Must be hidden
-    thumbnailContainer.classList.add("animate__animated", "animate__backOutLeft");
-    setTimeout(() => {
-        // Delete everythihng on the div, since the user might make further annotations.
-        thumbnailContainer.innerHTML = "";
-        thumbnailContainer.style.display = "none";
-        thumbnailProgress = {
-            load: 1,
-            limit: 0,
-            isLoading: false
-        }
-        thumbnailContainer.classList.remove("animate__animated", "animate__backOutLeft")
-    }, 1000)
+        thumbnailContainer.style.display = "";
+        thumbnailContainer.classList.add("animate__animated", "animate__backInLeft"); // Show the introduction section
+        thumbnailContainer.style.maxWidth = `${(document.querySelector("[data-action=pagethumbnail]").getBoundingClientRect().left - 85)}px`; // Make sure the button to hide the thumbnails (this one) will always be visible
+        setTimeout(() => { thumbnailContainer.classList.remove("animate__animated", "animate__backInLeft") }, 1000); // Remove the animation attributes
+        startThumbnailProcess(true); // And start generating
+    } else { // Must be hidden
+        thumbnailContainer.classList.add("animate__animated", "animate__backOutLeft");
+        setTimeout(() => {
+            // Delete everythihng on the div, since the user might make further annotations.
+            thumbnailContainer.innerHTML = "";
+            thumbnailContainer.style.display = "none";
+            thumbnailProgress = {
+                load: 1,
+                limit: 0,
+                isLoading: false
+            }
+            thumbnailContainer.classList.remove("animate__animated", "animate__backOutLeft")
+        }, 1000)
     }
 })
 thumbnailContainer.addEventListener("scroll", () => { // Load further thumbnails only if the user has scrolled more of 85% of the thumbnail div length
@@ -1659,7 +1688,7 @@ thumbnailContainer.addEventListener("scroll", () => { // Load further thumbnails
 })
 function exportCanvas(shouldReturn, pageReq, shouldGenAnother) { // The function that manages to export a canvas image, both for Image Export and for thumbnail generation (shouldReturn)
     // Get the PDF page in a canvas
-    let outputScale = window.devicePixelRatio || 1; 
+    let outputScale = window.devicePixelRatio || 1;
     let currentPage = shouldReturn ? pageReq : optionProxy.export.processPage[optionProxy.export.pageId];
     loadPDF.promise.getPage(currentPage).then(function (page) {
         optionProxy.export.pageId++;
@@ -1683,7 +1712,7 @@ function exportCanvas(shouldReturn, pageReq, shouldGenAnother) { // The function
                 i++;
                 if (i < divContainer.length) divLoop(); else if (!shouldReturn) downloadCanvas(finalCanvas, currentPage); else thumbnailAppend(finalCanvas, shouldGenAnother);
             }
-            
+
             function divLoop() { // Look for each page and merge the annotations
                 let div = divContainer[i];
                 if (div !== undefined && parseInt(div.getAttribute("data-page")) === currentPage && div.innerHTML !== "") { // If the div exists, the page is the same as the one we're exporting, and the SVG content is not empty, let's continue
@@ -1692,7 +1721,7 @@ function exportCanvas(shouldReturn, pageReq, shouldGenAnother) { // The function
                     img.height = finalCanvas.height;
                     img.addEventListener("load", () => {
                         finalCanvas.getContext("2d").drawImage(img, 0, 0, finalCanvas.width, finalCanvas.height); // Draw the new image to the canvas, resizing it to the final export dimension
-                        advance(); 
+                        advance();
                     });
                     img.src = URL.createObjectURL(new Blob([div.innerHTML.replaceAll("\"", "'")], { type: "image/svg+xml" }));
                 } else {
@@ -1702,13 +1731,14 @@ function exportCanvas(shouldReturn, pageReq, shouldGenAnother) { // The function
             divLoop();
         }).catch((ex) => {
             // If there's an error, try with the next page
-            optionProxy.export.pageId++; 
+            optionProxy.export.pageId++;
             thumbnailProgress.isLoading = false;
             console.warn(ex);
             if (optionProxy.export.processPage[optionProxy.export.pageId] === undefined && document.getElementById("zipExport")?.checked) zipDownload(); else if (optionProxy.export.processPage[optionProxy.export.pageId] !== undefined) exportCanvas();
         });
-    }).catch((ex) => {+
-            // If there's an error, try with the next page
+    }).catch((ex) => {
+        +
+        // If there's an error, try with the next page
         optionProxy.export.pageId++;
         thumbnailProgress.isLoading = false;
         console.warn(ex);
@@ -1771,23 +1801,23 @@ function setupTranlsation() { // Add a hover description of each action butotn
     for (let item of document.querySelectorAll("[data-action]")) {
         let hoverContent = document.createElement("div");
         hoverContent.classList.add("hoverTool");
-        if (!isFullscreen) { 
-            hoverContent.style.top = `${item.getBoundingClientRect().bottom + 12}px`;
-            hoverContent.style.left = `${item.getBoundingClientRect().left - 25}px`;
-        } else {
-            hoverContent.style.top = `${item.getBoundingClientRect().bottom - 25}px`;
-            hoverContent.style.left = `${item.getBoundingClientRect().right + 12}px`;
-        }
         let hoverInner = document.createElement("div");
         hoverInner.classList.add("hoverInner");
         hoverInner.textContent = globalTranslations.hoverTranslation[item.getAttribute("data-action")];
         item.addEventListener("mouseenter", () => {
+            if (!isFullscreen) {
+                hoverContent.style.top = `${item.getBoundingClientRect().bottom + 12}px`;
+                hoverContent.style.left = `${item.getBoundingClientRect().left - 25}px`;
+            } else {
+                hoverContent.style.top = `${item.getBoundingClientRect().bottom - 25}px`;
+                hoverContent.style.left = `${item.getBoundingClientRect().right + 12}px`;
+            }
             hoverContent.style.display = "block";
-            setTimeout(() => {hoverContent.style.opacity = "1";},25);
+            setTimeout(() => { hoverContent.style.opacity = "1"; }, 25);
         })
         item.addEventListener("mouseleave", () => {
             hoverContent.style.opacity = "0";
-            setTimeout(() => {hoverContent.style.display = "none";},350);
+            setTimeout(() => { hoverContent.style.display = "none"; }, 350);
         });
         hoverContent.append(hoverInner);
         document.getElementById("hoverContainer").append(hoverContent);
