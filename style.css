@@ -15,9 +15,13 @@ body {
   background-color: var(--background);
   color: var(--text);
   font-family: 'Work Sans', sans-serif;
-  margin: 0px
+  margin: 0px;
+  -moz-user-select: text;
+  -khtml-user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
-
 .bodyProxy {
   margin: 5vw;
   margin-top: 30px;
@@ -827,4 +831,11 @@ input[type='range']::-webkit-slider-thumb {
   height: 18px;
   padding: 10px;
   border-radius: 50%;
+}
+.noselect {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

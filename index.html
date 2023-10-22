@@ -423,7 +423,7 @@
         </div>
     </div>
     <div id="welcomeClick" style="display: flex; height: 48px; justify-content: center; text-decoration: none;"
-        data-customanimate="1" class="linkWithoutBrightness">
+        data-customanimate="1" class="linkWithoutBrightness noselect">
         <img fetchlink="logo" draggable="false" width="48px" height="48px">
         <div style="display: flex; align-items: center; margin-left: 15px;">
             <h1 style="margin-bottom: 0px; padding-bottom: 0px; padding-top: 0px; margin-top: 4px;">PdfPointer</h1>
@@ -463,7 +463,7 @@
     <div id="generalToolContainer">
         <div style="position: absolute; z-index: 9999997;">
             <div class="vertcenter column" id="toolMain" style="visibility: hidden;">
-                <div class="optionContainer vertcenter" id="containerOfOptions"
+                <div class="optionContainer vertcenter noselect"  id="containerOfOptions"
                     style="margin-top: 10px; height: 100%; padding-top: 5px; padding-bottom: 5px; overflow: auto;">
                     <div class="optionId" data-action="prev">
                         <img fetchlink="prev" draggable="false" class="imgTool">
@@ -515,11 +515,11 @@
         </div>
     </div>
     <div style="height: 80px;"></div>
-    <div class="vertcenter" id="pdfcontainer">
-        <div class="vertcenter column" id="pageContainer" style="visibility: hidden;">
-            <div id="canvasMargin">
-                <div class="pageBackground columnflex" id="canvasContainer">
-                    <canvas class="displayCanvas pointer" id="displayCanvas" height="600px" width="500px"
+    <div class="vertcenter noselect" id="pdfcontainer">
+        <div class="vertcenter column noselect" id="pageContainer" style="visibility: hidden;">
+            <div id="canvasMargin" class="noselect">
+                <div class="pageBackground columnflex noselect" id="canvasContainer">
+                    <canvas class="displayCanvas pointer noselect" id="displayCanvas" height="600px" width="500px"
                         pdf="yes"></canvas>
                         <div class="vertcenter">
                             <div class="numberCircle">
