@@ -631,7 +631,7 @@ function topAlert(text, alertType, isChange) { // Create an alert at the top of 
     if (!optionProxy.changeItems.showTips || localStorage.getItem("PDFPointer-notshow") !== null && localStorage.getItem("PDFPointer-notshow").split(",").indexOf(alertType) !== -1) return; // If the user doesn't want to see tips, or if they have requested to not show that specific alert, return
     // Create the alert container
     let alertContainer = document.createElement("div");
-    alertContainer.classList.add("vertcenter", "opacityRemove");
+    alertContainer.classList.add("vertcenter", "opacityRemove", "noselect");
     alertContainer.style = "width: 100vw; z-index: 9999998";
     let alert = document.createElement("div");
     alert.classList.add("alert", "vertcenter");
