@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
 let jsonImg = { // The object that will contain all the image SVGs, so that they can be applied to all the images
     toload: true // Since the fetch request is still not done, the object will contain only an attribute: toLoad
 };
-let appVersion = "1.2.1";
+let appVersion = "1.2.2";
 fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
 fetch(`./assets/mergedContent.json`).then((res) => { res.json().then((json) => { jsonImg = json }) }); // Fetch the new SVGs
 let avoidDuplicate = false;
@@ -133,14 +133,23 @@ function setUpCanvas(canvas, viewport, askReturn) { // Just like the function na
     canvas.style.height = Math.floor(viewport.height) + "px";
     if (askReturn) return canvas;
 }
+let expectedTime = {
+    time: 0,
+    interval: null
+}
 function canvasPDF(pageNumber) { // Draw a specific page to a canvas
     if (!canvasComplete) { // Canvas operation still going. Wait until it has finished before continuing
         setTimeout(() => {
             canvasPDF(pageNumber);
-        }, 1500);
+        }, 300);
         return;
     }
     canvasComplete = false;
+    expectedTime.time = 0;
+    expectedTime.interval = setInterval(() => {
+        expectedTime.time++
+        if (expectedTime.time === 35) topAlert(globalTranslations.longPDFElaboation, "LongPDFElaboration");
+    }, 10);
     loadPDF.promise.getPage(pageNumber).then(function (page) {
         // See greatViewport()
         let outputScale = window.devicePixelRatio || 1;
@@ -173,9 +182,11 @@ function canvasPDF(pageNumber) { // Draw a specific page to a canvas
                 document.getElementById("containerOfOptions").classList.add("fullcontainer");
                 document.getElementById("pdfcontainer").style = `display: flex; float: left; width: ${window.innerWidth - getAvailableSpace - 2}px`;
             }
+            clearInterval(expectedTime.interval);
         });
     }, (ex) => { // Something went wrong, go back to previous state
         canvasComplete = true;
+        clearInterval(expectedTime.interval);
         loadPDF.page--;
         console.warn(ex);
     });
@@ -200,6 +211,7 @@ let globalTranslations = { // English translations to variables assigned directl
     resizeItalic: "The aspect ratio will remain the same.",
     saveZip: "Save as a .zip file",
     maxZoomChanged: "The maxinum zoom will be updated after refreshing PDFPointer or changing the PDF page",
+    longPDFElaboation: "If the PDF rendering required lots of time, try changing the maxinum zoom from the Settings.",
     hoverTranslation: {
         prev: "Show previous page",
         contract: "Decrease canvas size",
@@ -557,6 +569,7 @@ function createDropdown(buttonReference, changeIcon, optionKey) {
     close.width = 25;
     close.height = 25;
     close.setAttribute("data-customanimate", "1");
+    close.setAttribute("draggable", "false");
     getImg([close], changeIcon ? "fullscreenoff" : "save");
     hoverItem(close);
     close.addEventListener("click", () => { // Close the item
@@ -779,6 +792,7 @@ function createContainerInfo(name, backgroundColor, accentColor, hoverDiv) { // 
     apply.style.width = "20px";
     apply.style.height = "20px";
     apply.classList.add("vertcenter");
+    apply.setAttribute("draggable", "false");
     apply.addEventListener("mouseenter", () => { apply.classList.add("rotateAnimation") });
     apply.addEventListener("mouseleave", () => { apply.classList.remove("rotateAnimation") });
     getImg([apply], name, undefined, accentColor);
