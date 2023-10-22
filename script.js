@@ -552,6 +552,8 @@ function usefulDropdownGenerator(alertType, numberOptions, typeCustomInput) { //
         if (optionProxy.dropdownSelectedOptions[alertType] === i) dropdown.childNodes[i].style = "border-left: solid 2px var(--accent);"; else dropdown.childNodes[i].style = "padding-left: 22px";
     }
     if (typeCustomInput === "color") topAlert(globalTranslations.dropdownClose, "dropClose");
+        isFullscreen ? dropdown.style.bottom = `${parseInt(document.querySelector(`[data-action=${alertType}]`).getBoundingClientRect().bottom - dropdown.getBoundingClientRect().height + window.scrollY)}px` : dropdown.style.top = `${parseInt(document.querySelector(`[data-action=${alertType}]`).getBoundingClientRect().bottom + 75 + window.scrollY)}px`;
+
 }
 document.querySelector("[data-action=timer]").addEventListener("click", () => { // Create a dropdown timer
     usefulDropdownGenerator("timer", [`5 ${globalTranslations.seconds}`, `15 ${globalTranslations.seconds}`, `30 ${globalTranslations.seconds}`, `60 ${globalTranslations.seconds}`], "number");
@@ -570,6 +572,7 @@ function createDropdown(buttonReference, changeIcon, optionKey) {
     close.height = 25;
     close.setAttribute("data-customanimate", "1");
     close.setAttribute("draggable", "false");
+    close.setAttribute("data-closedropdown", "");
     getImg([close], changeIcon ? "fullscreenoff" : "save");
     hoverItem(close);
     close.addEventListener("click", () => { // Close the item
@@ -587,12 +590,13 @@ function createDropdown(buttonReference, changeIcon, optionKey) {
     close.classList.add("closeBtn", "saveDropdown");
     div.append(close);
     var divPosition = buttonReference.getBoundingClientRect(); // Get the page position of the button so that the dropdown will be generated a little bit below
+    console.log(buttonReference, divPosition)
     div.classList.add("dropdown");
     // If the screen is vertical, update the vertical width
     let percentageWidth = 25;
     if (screen.availHeight > screen.availWidth) { percentageWidth = 60; div.classList.add("verticalDropdown") }
-    let styleThings = `top: ${parseInt(divPosition.top) + 75 + window.scrollY}px; `;
-    if (divPosition.left + 25 + (percentageWidth * document.body.offsetWidth / 100) < document.body.offsetWidth) styleThings += `left: ${divPosition.left + 25}px; `; else styleThings += `right: ${divPosition.right - 25 - (percentageWidth * document.body.offsetWidth / 100)}px; `;
+    let styleThings = (divPosition.left + 25 + (percentageWidth * document.body.offsetWidth / 100) < document.body.offsetWidth) ? `left: ${divPosition.left + 25}px; ` : `right: ${divPosition.right - 25 - (percentageWidth * document.body.offsetWidth / 100)}px; `;
+    if (isFullscreen) styleThings = `left: ${document.getElementById("containerOfOptions").getBoundingClientRect().right  + 15}px; `;
     styleThings = styleThings.replace("right: -", "left: ").replace("left: -", "right: "); // Quick fix for dialog outside client view due to negative numbers
     div.style = styleThings;
     return div;
@@ -977,6 +981,7 @@ document.querySelector("[data-action=erase]").addEventListener("click", () => { 
 document.getElementById("displayCanvas").addEventListener("hover", intelligentCursor(document.getElementById("displayCanvas")));
 document.addEventListener('fullscreenchange', (e) => { // The user has entered or exited fullsreen
     canvasDrawCheck();
+    for (let item of document.querySelectorAll("[data-closedropdown]")) item.click(); // Close dropdowns, since they would be in the wrong position.
     if (document.fullscreenElement) { // The user is in fullscreen, adapt the UI by making the canvas bigger and moving the toolbar at the left
         isFullscreen = true;
         let getAvailableSpace = (window.innerWidth * 10 / 100) + document.getElementById("containerOfOptions").offsetWidth;
@@ -1617,6 +1622,8 @@ function createSaveImgDropdown() {
     for (let item of [select, saveBtn, slider, customText, resizeSlider, span]) hoverItem(item); // Add hover animations
     dropdown.append(document.createElement("br"), document.createElement("br"), infoLabel, document.createElement("br"), select, document.createElement("br"), document.createElement("br"), qualityContainer, document.createElement("br"), document.createElement("br"), customPage, document.createElement("br"), infoItalic, document.createElement("br"), customText, document.createElement("br"), document.createElement("br"), resizeLabel, document.createElement("br"), resizeItalic, document.createElement("br"), resizeSlider, document.createElement("br"), document.createElement("br"), checkContainer, zipText, document.createElement("br"), document.createElement("br"), saveBtn);
     document.body.append(dropdown);
+    isFullscreen ? dropdown.style.bottom = `${parseInt(document.querySelector(`[data-action=downloadAsImg]`).getBoundingClientRect().bottom - dropdown.getBoundingClientRect().height + window.scrollY)}px` : dropdown.style.top = `${parseInt(document.querySelector(`[data-action=downloadAsImg]`).getBoundingClientRect().bottom + 75 + window.scrollY)}px`;
+
 }
 function createRange(max, value, min, id, step) { // Create the slider
     let range = document.createElement("input");

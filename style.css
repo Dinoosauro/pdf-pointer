@@ -828,3 +828,10 @@ input[type='range']::-webkit-slider-thumb {
   padding: 10px;
   border-radius: 50%;
 }
+.noselect {
+  -moz-user-select: text;
+  -khtml-user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
