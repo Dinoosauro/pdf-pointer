@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="./logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap"
+    rel="stylesheet">
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon.png" />
+  <meta name="apple-mobile-web-app-status-bar" content="#151515" />
+  <meta name="theme-color" content="#2c8b9b" />
+  <title>PDFPointer</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    let positionLink = document.location.href.indexOf("github.io") !== -1 ? `${location.origin}/pdf-pointer/` : `${location.origin}/`;
+    if ('serviceWorker' in navigator) {
+      let registration;
+      const registerServiceWorker = async () => {
+        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: positionLink });
+      };
+      registerServiceWorker();
+    }
+    let appVersion = "2.0.0";
+    fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
