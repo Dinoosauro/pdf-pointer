@@ -4,7 +4,11 @@ import { DynamicImg } from "./DynamicImg";
 interface Props {
     children: ReactNode
 }
-// Create a dialog interface
+/**
+ * Create a dialog interface
+ * @param children the content inside the dialog
+ * @returns the Dialog ReactNode
+ */
 export default function Dialog({ children }: Props) {
     let ref = useRef<HTMLDivElement>(null)
     useEffect(() => {

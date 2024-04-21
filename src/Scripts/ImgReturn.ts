@@ -1,4 +1,9 @@
-// The container of all icons. The accent color is automatically applied to the SVG XML
+/**
+ * The container of all icons. The accent color is automatically applied to the SVG XML
+ * @param id the identifier of the icon
+ * @param accentColor if a custom accent color should be applied
+ * @returns a string, of the SVG XML with the accent color applied
+ */
 export default function getImg(id: string, accentColor?: string): string {
     let style = `style="--accent: ${accentColor ?? getComputedStyle(document.body).getPropertyValue("--accent")}; --text: ${getComputedStyle(document.body).getPropertyValue("--text")}"`;
     return {

@@ -11,13 +11,16 @@ import { createRoot } from "react-dom/client";
 import Settings from "./Settings";
 import Lang from "../Scripts/LanguageTranslations";
 interface Props {
-    pageSettings: any, // The same values as the "useState" of PdfUI
-    updatePage: ({ }: any) => void, // The function to update the "useState" of PdfUI
-    canvasAdaptWhenClicked: () => void, // A function used to adapt canvas width/height when clicked
-    settingsCallback?: (e: OptionUpdater) => void, // Send a message back to the function, used when the user changes a value from the toolbar
-    pdfObj: PDFJS.PDFDocumentProxy, // The PDF document
+    pageSettings: any,
+    updatePage: ({ }: any) => void,
+    canvasAdaptWhenClicked: () => void,
+    settingsCallback?: (e: OptionUpdater) => void,
+    pdfObj: PDFJS.PDFDocumentProxy,
 }
-let exportValue = { // The custom values for the PDF exportation as image
+/**
+ * The custom values for the PDF exportation as image
+ */
+let exportValue = {
     img: "png",
     pages: "",
     annotations: true,
@@ -36,9 +39,18 @@ declare global {
         showDirectoryPicker: ({ id, mode }: DirectoryPicker) => Promise<FileSystemDirectoryHandle>
     }
 }
+/**
+ * 
+ * @param pageSettings the same values as the "useState" of PdfUI
+ * @param updatePage the function to update the "useState" of PdfUI
+ * @param canvasAdaptWhenClicked a function used to adapt canvas width/height when clicked
+ * @param settingsCallback send a message back to the function, used when the user changes a value from the toolbar,
+ * @param pdfObj the PDF document
+ * @returns 
+ */
 export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClicked, settingsCallback, pdfObj }: Props) {
     let [CardShown, UpdateState] = useState("hello");
-    let usefulBtn = { // NOTE: Always add the key attribute. Otherwise React, when exiting from the custom Card mode, will trigger the animation on the first element, causing UI issues.
+    const usefulBtn = { // NOTE: Always add the key attribute. Otherwise React, when exiting from the custom Card mode, will trigger the animation on the first element, causing UI issues.
         pen: <CircularButton key={"KeyPenBtn"} hint={Lang("Show pen settings and enable annotations")} dropdown="pen" enabledSwitch={true} imgId="pen" click={canvasAdaptWhenClicked} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); UpdateState(CardShown === "pen" ? "hello" : "pen") }}></CircularButton>,
         circle: <CircularButton key={"KeyCircleBtn"} hint={Lang("Show cursor settings")} imgId="circle" enabledSwitch={true} dropdownCallback={() => UpdateState(CardShown === "circle" ? "hello" : "circle")}></CircularButton>,
         eraser: <CircularButton key={"KeyEraseBtn"} imgId="eraser" hint={Lang("Erase annotations from the PDF")} disableOpacity={true} enabledSwitch={true} click={() => { if (settingsCallback) settingsCallback({ interface: "EraserChanged", value: "" }) }}></CircularButton>,
@@ -46,7 +58,10 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
     }
     let exportButton = useRef<HTMLButtonElement>(null);
     let checkFlexDiv = useRef<HTMLDivElement>(null);
-    function fixToolbarContentJustification() { // Make sure no buttons are lost due to the div being justified in the center
+    /**
+     * Make sure no buttons are lost due to the div being justified in the center
+     */
+    function fixToolbarContentJustification() {
         if (checkFlexDiv.current && checkFlexDiv.current.getAttribute("data-autojustify") === "a") checkFlexDiv.current.style.justifyContent = checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width > -3 && checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width < 3 ? "center" : "left"; // Add a 3px tollerance for WebKit, since one of the two values might be a pixel greater than the other
     }
     useEffect(() => fixToolbarContentJustification());
@@ -96,7 +111,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                     </DropdownItem>
                 </> : <>
                     <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage({ ...pageSettings, page: pageSettings.page - 1 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.5 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.2 }) }}></CircularButton>
                     <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" dataTest="ThumbnailEnabler" enabledSwitch={true} disableOpacity={true} click={() => { updatePage({ ...pageSettings, showThumbnail: pageSettings.showThumbnail !== 1 ? 1 : 2 }) }}></CircularButton>
                     {usefulBtn.pen}
                     {usefulBtn.circle}
@@ -133,7 +148,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                         <input type="range" min={0.01} max={1} step={0.01} defaultValue={exportValue.quality} onChange={(e) => { exportValue.quality = parseFloat((e.target as HTMLInputElement).value) }}></input><br></br><br></br>
                         <div style={{ display: "flex", alignItems: "center" }}>
                             <input type="checkbox" defaultChecked={exportValue.annotations} onChange={e => exportValue.annotations = (e.target as HTMLInputElement).checked}></input><label>{Lang("Export also annotations")}</label></div><br></br>
-                                {document.createElement("canvas").getContext("2d")?.filter !== undefined && <><div style={{ display: "flex", alignItems: "center" }}>
+                        {document.createElement("canvas").getContext("2d")?.filter !== undefined && <><div style={{ display: "flex", alignItems: "center" }}>
                             <input type="checkbox" defaultChecked={exportValue.filter !== ""} onChange={e => {
                                 let getFilterCanvas = Array.from(document.querySelectorAll("canvas")).filter(e => e.style.filter !== "");
                                 if ((e.target as HTMLInputElement).checked && getFilterCanvas.length !== 0) { exportValue.filter = getFilterCanvas[0].style.filter; } else exportValue.filter = ""
@@ -163,7 +178,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                         createRoot(div).render(<Settings updateLang={() => updatePage({ ...pageSettings, langUpdate: pageSettings.langUpdate + 1 })}></Settings>); // With the "updatePage" parameter, all of the PdfUI is re-rendered, and thererfore the language change is applied.
                         document.body.append(div);
                     }}></CircularButton>
-                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale += 0.5 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale += 0.2 }) }}></CircularButton>
                     <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage({ ...pageSettings, page: pageSettings.page + 1 }) }}></CircularButton>
                 </>
                 }

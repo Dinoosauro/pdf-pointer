@@ -230,7 +230,7 @@ textarea {
 }
 
 select {
-  padding: 5px;
+  padding: 8px;
   margin: 0px 5px;
 }
 
@@ -485,4 +485,30 @@ a:visited {
     /* width = 100 / (9 / 16) = 177.777777 */
     width: 177.78vh;
   }
+}
+
+.moveCard {
+  padding: 12px;
+  background-color: var(--secondstruct);
+  border-radius: 8px;
+}
+
+.moveLine {
+  border-radius: 8px;
+  width: 20px;
+  top: 35px;
+  left: 5px;
+  background-color: var(--accent);
+  position: absolute;
+  height: 3px;
+  z-index: 1;
+  transition: 0.15s ease-in-out
+}
+
+.flex {
+  display: flex;
+}
+
+.sectionAdapt {
+  overflow: auto;
 }

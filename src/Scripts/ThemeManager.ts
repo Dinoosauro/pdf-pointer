@@ -1,7 +1,10 @@
 import { UpdateImages } from "../Components/DynamicImg";
 import { CustomProp } from "../Interfaces/CustomOptions";
 
-let defaultThemes: CustomProp[] = [{ // The default dark and light themes
+/**
+ * The default dark and light themes
+ */
+const defaultThemes: CustomProp[] = [{
     name: "Standard Dark",
     lists: [{
         ref: "background",
@@ -47,14 +50,23 @@ interface RemoveObj {
     category: string
 }
 export default {
-    remove: ({ id, category }: RemoveObj) => { // Remove a custom color or theme from the list
+    /**
+     * Remove a custom color or theme from the list
+     * @param id the color/theme ID that needs to be removed
+     * @param category "Color" if the resource to be deleted is a color; otherwise "Theme"
+     */
+    remove: ({ id, category }: RemoveObj) => {
         let getContent = JSON.parse(localStorage.getItem(`PDFPointer-Custom${category ?? "Theme"}`) ?? "[]") as CustomProp[];
         getContent.splice(getContent.findIndex(f => f.id === id), 1);
         localStorage.setItem(`PDFPointer-Custom${category ?? "Theme"}`, JSON.stringify(getContent));
     },
-    apply: (list: CustomProp["lists"]) => { // Apply a custom theme
+    /**
+     * Apply a custom theme
+     * @param list the resources that compose this theme
+     */
+    apply: (list: CustomProp["lists"]) => {
         if (list !== undefined) {
-            for (let item of list) if (/^#[0-9A-F]{6}$/i.test(item.value)) document.body.style.setProperty(`--${item.ref}`, item.value); // Check that the value is a hexadecimal color, and set it
+            for (const item of list) if (/^#[0-9A-F]{6}$/i.test(item.value)) document.body.style.setProperty(`--${item.ref}`, item.value); // Check that the value is a hexadecimal color, and set it
             localStorage.setItem(`PDFPointer-CurrentTheme`, JSON.stringify(list)); // Store the theme as the current theme, so that it'll be restored when the page is refreshed.
             UpdateImages(); // Re-render icons so that the accent color can be updated
         }

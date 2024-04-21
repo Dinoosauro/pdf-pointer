@@ -3,15 +3,22 @@ import BackgroundManager from "../Scripts/BackgroundManager";
 
 interface Props {
     children: ReactNode,
-    type?: -1 | 0 | 1 // Change card color (-1: background | 0: firststruct | 1: secondstruct)
-    zIndex?: number // Used so that toolbar dropdowns are over both the canvas events and the canvas annotations
+    type?: -1 | 0 | 1
+    zIndex?: number,
 }
+/**
+ * Create something similar to a Card
+ * @param children the content inside the card
+ * @param type change card color (-1: background | 0: firststruct | 1: secondstruct)
+ * @param zIndex used so that toolbar dropdowns are over both the canvas events and the canvas annotations
+ * @returns the Card ReactNode
+ */
 export default function Card({ children, type = 0, zIndex }: Props) {
     let ref = useRef<HTMLDivElement>(null);
     useLayoutEffect(() => {
         if (ref.current && type !== -1) BackgroundManager.updateCard(ref.current, type === 1 ? "var(--secondstruct)" : "var(--firststruct)");
     }, [])
-    let suggestedColor = localStorage.getItem("PDFPointer-BackgroundOptions") === null || type === -1 ? type === 1 ? "var(--secondstruct)" : type === -1 ? "var(--background)" : "var(--firststruct)" : "";
+    const suggestedColor = localStorage.getItem("PDFPointer-BackgroundOptions") === null || type === -1 ? type === 1 ? "var(--secondstruct)" : type === -1 ? "var(--background)" : "var(--firststruct)" : "";
     /*
         The structure is as it follows:
             * Card div: Apply the card styling. If type is zero, a Card container, with backdrop effects, will be generated.
@@ -25,6 +32,6 @@ export default function Card({ children, type = 0, zIndex }: Props) {
                     {children}
                 </div>
             </div>
-        </div>
+        </div >
     </>
 }

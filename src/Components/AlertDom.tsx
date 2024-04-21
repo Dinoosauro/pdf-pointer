@@ -4,13 +4,22 @@ import DropdownItem from "./DropdownItem";
 import Lang from "../Scripts/LanguageTranslations";
 
 interface Props {
-    id: string, // An identifier of the alert category, so that, if the user wants so, it won't be shown again
-    text: string, // The text contained by the alert
-    close: () => void // The function that'll handle deleting the element from the DOM
-    extra?: HTMLElement, // An extra element to add after the text
-    showSpinner?: boolean // Shows a spinner animation if the alert is for loading content
+    id: string,
+    text: string,
+    close: () => void
+    extra?: HTMLElement,
+    showSpinner?: boolean
 }
-// Shows an alert on the top of the screen
+// 
+/**
+ * Shows an alert on the top of the screen
+ * @param id an identifier of the alert category, so that, if the user wants so, it won't be shown again
+ * @param text the text contained by the alert
+ * @param close the function that'll handle deleting the element from the DOM
+ * @param extra an extra element to add after the text
+ * @param showSpinner shows a spinner animation if the alert is for loading content
+ * @returns the ReactNode of an alert
+ */
 export default function AlertDom({ id, text, extra, showSpinner, close }: Props) {
     return <>
         {showSpinner ? <span className="spinner" style={{ width: "20px", height: "20px" }}></span> : <DynamicImg id="alert"></DynamicImg>}

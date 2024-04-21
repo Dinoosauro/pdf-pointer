@@ -11,12 +11,16 @@ interface SetInnerObject {
     blob: Blob
 }
 export default {
-    db: () => { // Get the Indexed DB Database
+    /**
+     * Get the Indexed DB Database
+     * @returns A promise, with the requested database
+     */
+    db: () => {
         return new Promise<IDBDatabase>((resolve, reject) => {
-            let request = indexedDB.open("PDFPointerDB", 1); 
+            const request = indexedDB.open("PDFPointerDB", 1);
             request.onupgradeneeded = () => { // Create the new entry. "UserContent" will be the key that will identify the resource
-                let db = request.result;
-                let storage = db.createObjectStore("ContentBuffer", { keyPath: "UserContent" });
+                const db = request.result;
+                const storage = db.createObjectStore("ContentBuffer", { keyPath: "UserContent" });
                 storage.createIndex("blob", "blob", { unique: true });
                 storage.transaction.oncomplete = () => resolve(db);
                 storage.transaction.onerror = (ex) => reject(ex);
@@ -26,11 +30,17 @@ export default {
             request.onerror = (ex) => reject(ex)
         })
     },
-    get: ({ db, query }: GetObj) => { // Get a content from the database
+    /**
+     * Get a content from the database
+     * @param db the database required for this operation
+     * @param query the identifier of the requested resource
+     * @returns a Promise, with the requested entry if available
+     */
+    get: ({ db, query }: GetObj) => {
         return new Promise<SetInnerObject | undefined>((resolve, reject) => {
-            let transaction = db.transaction(["ContentBuffer"], "readonly");
-            let objectStore = transaction.objectStore("ContentBuffer");
-            let request = objectStore.get(query);
+            const transaction = db.transaction(["ContentBuffer"], "readonly");
+            const objectStore = transaction.objectStore("ContentBuffer");
+            const request = objectStore.get(query);
             request.onsuccess = () => {
                 db.close();
                 resolve(request.result);
@@ -41,11 +51,17 @@ export default {
             }
         })
     },
-    set: ({ db, object }: SetObj) => { // Set a Blob to the database
+    /**
+     * Set a Blob to the database
+     * @param db the database required for this operation
+     * @param object the content to save in the database
+     * @returns A promise, resolved when the content has been saved in the database
+     */
+    set: ({ db, object }: SetObj) => {
         return new Promise<void>((resolve, reject) => {
-            let transaction = db.transaction(["ContentBuffer"], "readwrite");
-            let objectStore = transaction.objectStore("ContentBuffer");
-            let storage = objectStore.get(object.UserContent ?? "Unknown"); // Check if the value already exists, so that it can be updated rather than added as a new entry
+            const transaction = db.transaction(["ContentBuffer"], "readwrite");
+            const objectStore = transaction.objectStore("ContentBuffer");
+            const storage = objectStore.get(object.UserContent ?? "Unknown"); // Check if the value already exists, so that it can be updated rather than added as a new entry
             storage.onsuccess = () => {
                 let requestUpdate = storage.result === undefined ? objectStore.add(object) : objectStore.put(object);
                 requestUpdate.onsuccess = () => {
@@ -63,7 +79,13 @@ export default {
             }
         })
     },
-    remove: ({ db, query }: GetObj) => { // Remove an item from the Database
+    /**
+     * Remove an item from the database
+     * @param db the database required for this operation
+     * @param query the identifier of the resource to delete
+     * @returns A promise, resolved when the item has been deleted
+     */
+    remove: ({ db, query }: GetObj) => {
         return new Promise<void>((resolve, reject) => {
             let transaction = db.transaction(["ContentBuffer"], "readwrite");
             let objectStore = transaction.objectStore("ContentBuffer");

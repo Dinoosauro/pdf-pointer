@@ -1,6 +1,9 @@
 import { ReactNode } from "react";
 
-let references = new Map<string, string>([ // The container of all the translations. Each english translation is associated to a key, that'll be used to fetch the translation to other languages
+/**
+ * The container of all the translations. Each english translation is associated to a key, that'll be used to fetch the translation to other languages
+ */
+let references = new Map<string, string>([
     ["Show this alert again?", "showAlert"],
     ["Close", "close"],
     ["Write the text:", "writeText"],
@@ -206,7 +209,12 @@ let dictionaries = {
         ["licensesDesc", "Vedi le licenze del software open-source"]
     ])
 }
-export default function Lang(str: string) { // Get the translated value
+/**
+ * Get the translated value
+ * @param str the string to translate
+ * @returns the translated string
+ */
+export default function Lang(str: string) {
     // @ts-ignore
     let map = dictionaries[localStorage.getItem("PDFPointer-Language") ?? navigator.language.substring(0, 2)];
     if (map !== undefined) return map.get(references.get(str) ?? "A generic value that'll never return a non-nullish string") ?? str;
