@@ -5,11 +5,13 @@ import { DynamicImg } from "./Components/DynamicImg";
 import PdfObj from "./Components/PdfUI"
 import { PDFDocumentProxy } from "pdfjs-dist";
 import * as PDFJS from "pdfjs-dist";
+// @ts-ignore
+import * as pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs";
 import { CustomProp } from "./Interfaces/CustomOptions";
 import ThemeManager from "./Scripts/ThemeManager";
 import Lang from "./Scripts/LanguageTranslations";
 import BackgroundManager from "./Scripts/BackgroundManager";
-PDFJS.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";
+PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 interface State {
   PDFObj: PDFDocumentProxy | null
 }
