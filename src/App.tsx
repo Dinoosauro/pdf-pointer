@@ -6,7 +6,7 @@ import PdfObj from "./Components/PdfUI"
 import { PDFDocumentProxy } from "pdfjs-dist";
 import * as PDFJS from "pdfjs-dist";
 // @ts-ignore
-import * as pdfjsWorker from "pdfjs-dist/build/pdf.worker.mjs";
+import * as pdfjsWorker from "pdfjs-dist/build/pdf.worker";
 import { CustomProp } from "./Interfaces/CustomOptions";
 import ThemeManager from "./Scripts/ThemeManager";
 import Lang from "./Scripts/LanguageTranslations";
