@@ -1,18 +1,31 @@
 import { useRef, useState } from "react";
 interface Props {
-    imgId: string, // The identifier of the image icon of the button
-    click?: (e?: any) => void, // The event that'll be triggered when the user clicks on the button
-    marginRight?: number, // Add a right margin at the right of the button
-    marginLeft?: number, // Add a left margin at the right of the button
-    enabledSwitch?: boolean, // When clicked, the button should switch from a section to another. This bool tells the function to render a custom animation for that
-    dropdown?: string, // 
-    dropdownCallback?: () => void, // Call this function after the opacity transition has been done
-    disableOpacity?: boolean, // Disable the opacity animation done
-    dataTest?: string, // Add a "data-test" attribute to the circular button
-    hint?: string // Add an hint that'll be displayed when hovering the button
+    imgId: string,
+    click?: (e?: any) => void,
+    marginRight?: number,
+    marginLeft?: number,
+    enabledSwitch?: boolean,
+    dropdown?: string,
+    dropdownCallback?: () => void,
+    disableOpacity?: boolean,
+    dataTest?: string,
+    hint?: string
 }
 import { DynamicImg } from "./DynamicImg";
 import getImg from "../Scripts/ImgReturn";
+/**
+ * Create a button with rounded corners, used for actions in the toolbar
+ * @param imgId the identifier of the image icon of the button
+ * @param click the event that'll be triggered when the user clicks on the button
+ * @param marginRight add a right margin at the right of the button
+ * @param marginLeft add a left margin at the right of the button
+ * @param enabledSwitch when clicked, the button should switch from a section to another. This bool tells the function to render a custom animation for that
+ * @param dropdownCallback call this function after the opacity transition has been done
+ * @param disableOpacity disable the opacity animation done,
+ * @param dataTest add a "data-test" attribute to the circular button
+ * @param hint add an hint that'll be displayed when hovering the button
+ * @returns the circular button ReactNode
+ */
 export default function CircularButton({ imgId, click, marginLeft, marginRight, enabledSwitch, dropdown, dropdownCallback, disableOpacity, dataTest, hint }: Props) {
     let [enabled, changeEnabled] = useState(false); // If the button is enabled
     let isSelectable = getImg(`${imgId}_fill`) !== ""; // Check if there's a specific icon for the clicked button
@@ -35,7 +48,7 @@ export default function CircularButton({ imgId, click, marginLeft, marginRight, 
                     target.style.opacity = "1";
                     setTimeout(() => document.body.style.setProperty("--showhint", "1"), 300); // Show again the hints 
                 }
-                if (dropdownCallback !== undefined) dropdownCallback(); 
+                if (dropdownCallback !== undefined) dropdownCallback();
             }
             if (enabledSwitch) {
                 for (let item of document.querySelectorAll("[data-noopacity=a]")) (item as HTMLDivElement).style.opacity = "1"; // Make visible the items that didn't need to be permanently invisible 

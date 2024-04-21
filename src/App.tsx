@@ -22,7 +22,19 @@ function app() {
     if (theme && theme.length !== 0) ThemeManager.apply(theme);
     let option = localStorage.getItem("PDFPointer-BackgroundOptions");
     if (option !== null) BackgroundManager.apply({ query: option });
+    if ('launchQueue' in window) { // The user has opened files from the File Explorer
+      (window.launchQueue as any).setConsumer(async (launchParams: any) => {
+        if (!launchParams.files.length) return;
+        getNewState(await launchParams.files[0].getFile());
+      });
+    }
   }, [])
+  async function getNewState(file: File) {
+    let doc = PDFJS.getDocument(await file.arrayBuffer());
+    document.title = `${file.name} - PDFPointer`;
+    let res = await doc.promise;
+    UpdateState(prevState => { return { ...prevState, PDFObj: res } });
+  }
   return <>
     <Header></Header><br></br>
     {CurrentState.PDFObj === null ? <>
@@ -36,12 +48,7 @@ function app() {
           let input = document.createElement("input");
           input.type = "file";
           input.onchange = async () => {
-            if (input.files !== null) {
-              let doc = PDFJS.getDocument(await input.files[0].arrayBuffer());
-              document.title = `${input.files[0].name} - PDFPointer`;
-              let res = await doc.promise;
-              UpdateState({ ...CurrentState, PDFObj: res });
-            }
+            input.files !== null && getNewState(input.files[0]);
           }
           input.click();
         }}>{Lang("Choose file")}</button>

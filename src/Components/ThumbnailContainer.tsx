@@ -4,7 +4,12 @@ interface Props {
     canvas: HTMLCanvasElement | null,
     pageNumber: number
 }
-// Create a container for each page thumbnail
+/**
+ * Create a container for each page thumbnail
+ * @param canvas the canvas HTMLElement that'll be added in the div
+ * @param pageNumber the number of the page to write in the circle below the canvas
+ * @returns the ThumbnailContainer ReactNode
+ */
 export default function ThumbnailContainer({ canvas, pageNumber }: Props) {
     let ref = useRef(null);
     useLayoutEffect(() => {

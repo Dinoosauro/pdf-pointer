@@ -1,4 +1,8 @@
 import { DynamicImg } from "./DynamicImg";
+/**
+ * The logo and the text of the website
+ * @returns the Header ReactNode
+ */
 export default function header() {
     return <>
         <div className="center">

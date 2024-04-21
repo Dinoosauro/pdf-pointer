@@ -4,34 +4,49 @@ import JSZip, { filter } from "jszip";
 import createAlert from "./AlertManager";
 import Lang from "./LanguageTranslations";
 interface Props {
-    imgType: string, // The format to export the image ("jpg", "png", "WebP")
-    pages: string, // A string that contains the pages that should be exported. Pages linked with a dash include the pages in the middle (es: 1-5 => 1,2,3,4,5). Pages linked with a comma will exclude pages in the middle (ex: 1,4,6 => 1, 4, 6)
-    getAnnotations: boolean, // Export also annotations
-    pdfObj: PDFJS.PDFDocumentProxy, // The PDF object where the pages will be fetched
-    scale: number, // The scale of the exported image
-    useZip: boolean, // Save the images in a ZIP file
-    quality: number, // Exported image quality, for lossy formats
-    handle?: FileSystemDirectoryHandle, // A directory handle of the File System API, so that files can be exported directly in the selected directory
-    filter: string // Add a CSS filter to the exported canvas (ex: dark mode)
+    imgType: string,
+    pages: string,
+    getAnnotations: boolean,
+    pdfObj: PDFJS.PDFDocumentProxy,
+    scale: number,
+    useZip: boolean,
+    quality: number,
+    handle?: FileSystemDirectoryHandle,
+    filter: string
 }
+/**
+ * 
+ * @param imgType The format to export the image ("jpg", "png", "WebP"),
+ * @param pages A string that contains the pages that should be exported. Pages linked with a dash include the pages in the middle (es: 1-5 => 1,2,3,4,5). Pages linked with a comma will exclude pages in the middle (ex: 1,4,6 => 1, 4, 6),
+ * @param getAnnotations Export also annotations
+ * @param pdfObj The PDF object where the pages will be fetched,
+ * @param scale The scale of the exported image,
+ * @param useZip Save the images in a ZIP file
+ * @param quality Exported image quality, for lossy formats
+ * @param handle A directory handle of the File System API, so that files can be exported directly in the selected directory
+ * @param filter Add a CSS filter to the exported canvas (ex: dark mode)
+ */
 export default async function ImageExport({ imgType, pages, getAnnotations, pdfObj, scale, useZip, quality, handle, filter }: Props) {
-    let elaborate: number[] = []; // The pages that'll be exported
+    /**
+     * The pages that'll be exported
+     */
+    let elaborate: number[] = [];
     let zip = new JSZip(); // Create a new JSZip object for ZIP exportation
-    for (let item of pages.split(",")) {
+    for (const item of pages.split(",")) {
         if (item === "") continue; // Avoid empty values
         if (item.indexOf("-") !== -1) { // Get also the pages in the middle 
             for (let i = parseInt(item.substring(0, item.indexOf("-") + 1)); i < parseInt(item.substring(item.lastIndexOf("-") + 1)) + 1; i++) elaborate.push(i);
         } else elaborate.push(parseInt(item)); // Just push the current number
     }
     elaborate = elaborate.filter(e => !isNaN(e)); // Delete values that aren't a number
-    for (let number of elaborate) { // Start exporting each page
+    for (const number of elaborate) { // Start exporting each page
         if (number > pdfObj.numPages || number < 1) continue; // Pages must start with 1, and obviously must not exceed the number of pages in the PDF
         createAlert.alert({ id: "ExportImageCreation", text: `${Lang("Exporting page")} ${number}...`, showSpinner: true, avoidTransition: true }) // Create an alert for warning the user of the current exportation
         // Render the canvas
-        let pdfPage = await pdfObj.getPage(number);
-        let outputScale = window.devicePixelRatio || 1;
-        let viewport = pdfPage.getViewport({ scale: scale });
-        let canvas = document.createElement("canvas");
+        const pdfPage = await pdfObj.getPage(number);
+        const outputScale = window.devicePixelRatio || 1;
+        const viewport = pdfPage.getViewport({ scale: scale });
+        const canvas = document.createElement("canvas");
         canvas.width = Math.floor(viewport.width * outputScale);
         canvas.height = Math.floor(viewport.height * outputScale);
         let context = canvas.getContext("2d");
@@ -43,7 +58,7 @@ export default async function ImageExport({ imgType, pages, getAnnotations, pdfO
             });
             await render.promise;
             if (filter !== "") { // If filters are provided, create a temp canvas where the result will be cloned, the filter will be applied and then the image will be drawn in the first canvas
-                let newCanvas = document.createElement("canvas");
+                const newCanvas = document.createElement("canvas");
                 newCanvas.width = canvas.width;
                 newCanvas.height = canvas.height;
                 let newCtx = newCanvas.getContext("2d");
@@ -54,8 +69,8 @@ export default async function ImageExport({ imgType, pages, getAnnotations, pdfO
                 }
             }
             if (getAnnotations) {
-                for (let annotation of Annotations.get({ page: number })) await new Promise((resolve) => { // Draw annotations only of the current page
-                    let image = new Image(); // Create an Image object so that the SVG can be drawn into a Canvas
+                for (const annotation of Annotations.get({ page: number })) await new Promise((resolve) => { // Draw annotations only of the current page
+                    const image = new Image(); // Create an Image object so that the SVG can be drawn into a Canvas
                     image.onload = () => {
                         context?.drawImage(image, 0, 0, canvas.width, canvas.height);
                         resolve("");
@@ -90,7 +105,7 @@ export default async function ImageExport({ imgType, pages, getAnnotations, pdfO
             await new Promise(async (resolve) => { // Create a new Blob for the canvas
                 canvas.toBlob(async (blob) => {
                     if (blob) {
-                        let name = `PdfPointer-${document.title.substring(0, document.title.lastIndexOf(" - "))}-Img-${number}.${imgType === "jpeg" ? "jpg" : imgType}`; // The document title follow the syntax "{PDF Name} - PDFPointer"
+                        const name = `PdfPointer-${document.title.substring(0, document.title.lastIndexOf(" - "))}-Img-${number}.${imgType === "jpeg" ? "jpg" : imgType}`; // The document title follow the syntax "{PDF Name} - PDFPointer"
                         if (useZip) { // Add the file to the zip
                             await zip.file(name, blob);
                         } else if (handle !== undefined) { // It's possible to use the File System API to create and export a new file

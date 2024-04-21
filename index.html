@@ -17,15 +17,14 @@
 <body>
   <div id="root"></div>
   <script>
-    let positionLink = document.location.href.indexOf("github.io") !== -1 ? `${location.origin}/pdf-pointer/` : `${location.origin}/`;
     if ('serviceWorker' in navigator) {
       let registration;
       const registerServiceWorker = async () => {
-        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: positionLink });
+        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1) });
       };
       registerServiceWorker();
     }
-    let appVersion = "2.0.0";
+    let appVersion = "2.0.1";
     fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
   </script>
   <script type="module" src="/src/main.tsx"></script>

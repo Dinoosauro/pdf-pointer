@@ -1,11 +1,17 @@
 import Lang from "../Scripts/LanguageTranslations"
 
 interface Props {
-    update: (e: string) => void, // The event to call when the user writes something in the text area
-    stop: () => void, // The event to call when the user has finalized the text
-    remove: () => void // The event to call if the user wants to remove the element
+    update: (e: string) => void,
+    stop: () => void,
+    remove: () => void
 }
-// The alert used when writing text to the PDF
+/**
+ * The alert used when writing text to the PDF
+ * @param update the event to call when the user writes something in the text area
+ * @param stop the event to call when the user has finalized the text
+ * @param remove the event to call if the user wants to remove the element
+ * @returns the AlertText ReactNode
+ */
 export default function AlertTextDom({ update, stop, remove }: Props) {
     return <>
         <label style={{ marginRight: "10px" }}>{Lang("Write the text:")}</label>

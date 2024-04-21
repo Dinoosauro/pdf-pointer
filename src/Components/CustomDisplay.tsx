@@ -22,10 +22,14 @@ declare global {
         showSaveFilePicker: ({ id, suggestedName, types }: SaveFilePicker) => Promise<FileSystemFileHandle>
     }
 }
-
+/**
+ * The container of the custom properties (currently "Color" and "Theme")
+ * @param category "Color" if the custom values should be the colors; otherwise "Theme" for editing custom themes
+ * @returns the CustomDisplay ReactNode
+ */
 export default function CustomDisplay({ category }: Props) {
     // Get the current theme values so that the color list can be updated
-    let themeValue = [{ ref: "background", desc: Lang("Background color"), value: getComputedStyle(document.body).getPropertyValue("--background") },
+    const themeValue = [{ ref: "background", desc: Lang("Background color"), value: getComputedStyle(document.body).getPropertyValue("--background") },
     { ref: "text", desc: Lang("Text color"), value: getComputedStyle(document.body).getPropertyValue("--text") },
     { ref: "firststruct", desc: Lang("Card color"), value: getComputedStyle(document.body).getPropertyValue("--firststruct") },
     { ref: "secondstruct", desc: Lang("Card subsections color"), value: getComputedStyle(document.body).getPropertyValue("--secondstruct") },
@@ -37,13 +41,24 @@ export default function CustomDisplay({ category }: Props) {
             for (let item of ref.current.querySelectorAll(".customItem")) setTimeout(() => (item as HTMLDivElement).style.height = "35px", 25);
         }
     })
-    function getId(): number { // Get a random ID for the custom color/theme, and check that it was not previously taken
+    /**
+     * Get a random ID for the custom color/theme, and check that it was not previously taken
+     * @returns an unique number
+     */
+    function getId(): number {
         let random = Math.random();
         return (JSON.parse(localStorage.getItem(`PDFPointer-Custom${category}`) ?? "[]") as CustomProp[]).findIndex(e => e.id === random) === -1 ? random : getId();
     }
-    async function intelliDownload(content: string) { // Download the themes or the colors
-        async function fallback() { // If the File System API isn't available, download normally the file
-            let a = document.createElement("a");
+    /**
+     * Download the themes or the colors
+     * @param content the string that'll be downloaded
+     */
+    async function intelliDownload(content: string) {
+        /**
+         * If the File System API isn't available, download normally the file
+         */
+        async function fallback() {
+            const a = document.createElement("a");
             a.href = URL.createObjectURL(new Blob([content], { type: "application/json" }));
             a.download = `PDFPointer-Custom${category}.json`;
             a.click();
@@ -52,8 +67,8 @@ export default function CustomDisplay({ category }: Props) {
         }
         if (window.showSaveFilePicker !== undefined) { // Try to save the file with the File System API
             try {
-                let picker = await window.showSaveFilePicker({ id: `PDFPointer-ExportCustom${category}`, suggestedName: `PDFPointer-Custom${category}.json`, types: [{ description: "A JSON File that can be read by PDFPointer", accept: { "application/json": [".json"] } }] });
-                let write = await picker.createWritable();
+                const picker = await window.showSaveFilePicker({ id: `PDFPointer-ExportCustom${category}`, suggestedName: `PDFPointer-Custom${category}.json`, types: [{ description: "A JSON File that can be read by PDFPointer", accept: { "application/json": [".json"] } }] });
+                const write = await picker.createWritable();
                 await write.write(content);
                 await write.close();
             } catch (ex) {
@@ -70,7 +85,7 @@ export default function CustomDisplay({ category }: Props) {
     return <>
         <div style={{ display: "flex", justifyContent: category === "Color" ? "center" : "", overflow: "auto" }}>
             {category === "Color" ? <>
-                <input type="color" style={{ height: "42px" }} onInput={(e) => typedColor = e.currentTarget.value}></input> 
+                <input type="color" style={{ height: "42px" }} onInput={(e) => typedColor = e.currentTarget.value}></input>
                 <input style={{ marginLeft: "10px", width: "fit-content", height: "38px" }} onInput={(e) => typedName = e.currentTarget.value} type="text" placeholder={Lang("Write the color name")}></input>
                 <button style={{ marginLeft: "10px", width: "fit-content" }} onClick={() => { // The button that'll add the new color to the list
                     let getContent = JSON.parse(localStorage.getItem(`PDFPointer-Custom${category}`) ?? "[]") as CustomProp[];
