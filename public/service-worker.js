@@ -8,7 +8,7 @@ const filestoCache = [
     './assets/index.css',
     './assets/index.js',
     './assets/path2d-polyfill.min.js',
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js"
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs"
 ];
 let language = navigator.language || navigator.userLanguage;
 if (language.indexOf("it") !== -1) filestoCache.push('./translationItems/it.json')
