@@ -111,7 +111,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                     </DropdownItem>
                 </> : <>
                     <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage({ ...pageSettings, page: pageSettings.page - 1 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.5 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.2 }) }}></CircularButton>
                     <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" dataTest="ThumbnailEnabler" enabledSwitch={true} disableOpacity={true} click={() => { updatePage({ ...pageSettings, showThumbnail: pageSettings.showThumbnail !== 1 ? 1 : 2 }) }}></CircularButton>
                     {usefulBtn.pen}
                     {usefulBtn.circle}
@@ -178,7 +178,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                         createRoot(div).render(<Settings updateLang={() => updatePage({ ...pageSettings, langUpdate: pageSettings.langUpdate + 1 })}></Settings>); // With the "updatePage" parameter, all of the PdfUI is re-rendered, and thererfore the language change is applied.
                         document.body.append(div);
                     }}></CircularButton>
-                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale += 0.5 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale += 0.2 }) }}></CircularButton>
                     <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage({ ...pageSettings, page: pageSettings.page + 1 }) }}></CircularButton>
                 </>
                 }

@@ -1,16 +1,24 @@
 {
-    "name": "PDFPointer",
-    "short_name": "PDFPointer",
-    "start_url": "index.html",
-    "display": "standalone",
-    "background_color": "#151515",
-    "theme_color": "#2c8b9b",
-    "orientation": "landscape-primary",
-    "icons": [
-        {
-            "src": "./icon.png",
-            "type": "image/png",
-            "sizes": "512x512"
-        }
-    ]
+  "name": "PDFPointer",
+  "short_name": "PDFPointer",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#151515",
+  "theme_color": "#2c8b9b",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "application/pdf": [".pdf"]
+      }
+    }
+  ]
 }
