@@ -7,6 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Work+Sans&display=swap"
     rel="stylesheet">
+  <script>
+    if ('serviceWorker' in navigator) {
+      let registration;
+      const registerServiceWorker = async () => {
+        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1) });
+      };
+      registerServiceWorker();
+    }
+    let appVersion = "2.0.2";
+    fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
+  </script>
+
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" href="./icon.png" />
   <meta name="apple-mobile-web-app-status-bar" content="#151515" />
@@ -16,17 +28,6 @@
 
 <body>
   <div id="root"></div>
-  <script>
-    if ('serviceWorker' in navigator) {
-      let registration;
-      const registerServiceWorker = async () => {
-        registration = await navigator.serviceWorker.register('./service-worker.js', { scope: window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1) });
-      };
-      registerServiceWorker();
-    }
-    let appVersion = "2.0.1";
-    fetch("./pdfpointer-updatecode", { cache: "no-store" }).then((res) => res.text().then((text) => { if (text.replace("\n", "") !== appVersion) if (confirm(`There's a new version of pdf-pointer. Do you want to update? [${appVersion} --> ${text.replace("\n", "")}]`)) { caches.delete("pdfpointer-cache"); location.reload(true); } }).catch((e) => { console.error(e) })).catch((e) => console.error(e)); // Check if the application code is the same as the current application version and, if not, ask the user to update
-  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
