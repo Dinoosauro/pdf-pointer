@@ -15,7 +15,7 @@ interface Props {
     filter: string
 }
 /**
- * 
+ * Export the PDF as image file(s)
  * @param imgType The format to export the image ("jpg", "png", "WebP"),
  * @param pages A string that contains the pages that should be exported. Pages linked with a dash include the pages in the middle (es: 1-5 => 1,2,3,4,5). Pages linked with a comma will exclude pages in the middle (ex: 1,4,6 => 1, 4, 6),
  * @param getAnnotations Export also annotations

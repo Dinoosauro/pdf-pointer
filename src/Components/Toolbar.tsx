@@ -10,12 +10,14 @@ import CustomCallback from "./CustomCallback";
 import { createRoot } from "react-dom/client";
 import Settings from "./Settings";
 import Lang from "../Scripts/LanguageTranslations";
+import RerenderButtons from "../Scripts/RerenderButtons";
 interface Props {
     pageSettings: any,
     updatePage: ({ }: any) => void,
     canvasAdaptWhenClicked: () => void,
     settingsCallback?: (e: OptionUpdater) => void,
     pdfObj: PDFJS.PDFDocumentProxy,
+    requestedTab?: string
 }
 /**
  * The custom values for the PDF exportation as image
@@ -46,15 +48,23 @@ declare global {
  * @param canvasAdaptWhenClicked a function used to adapt canvas width/height when clicked
  * @param settingsCallback send a message back to the function, used when the user changes a value from the toolbar,
  * @param pdfObj the PDF document
+ * @param requestedTab the ID of the Card that will be showj
  * @returns 
  */
-export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClicked, settingsCallback, pdfObj }: Props) {
+let stateReflect = "hello"
+export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClicked, settingsCallback, pdfObj, requestedTab }: Props) {
     let [CardShown, UpdateState] = useState("hello");
+    stateReflect = CardShown;
+    useEffect(() => {
+        if (!requestedTab) return;
+        const newTab = requestedTab.substring(0, requestedTab.indexOf(","));
+        UpdateState(stateReflect === newTab ? "hello" : newTab);
+    }, [requestedTab])
     const usefulBtn = { // NOTE: Always add the key attribute. Otherwise React, when exiting from the custom Card mode, will trigger the animation on the first element, causing UI issues.
-        pen: <CircularButton key={"KeyPenBtn"} hint={Lang("Show pen settings and enable annotations")} dropdown="pen" enabledSwitch={true} imgId="pen" click={canvasAdaptWhenClicked} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); UpdateState(CardShown === "pen" ? "hello" : "pen") }}></CircularButton>,
-        circle: <CircularButton key={"KeyCircleBtn"} hint={Lang("Show cursor settings")} imgId="circle" enabledSwitch={true} dropdownCallback={() => UpdateState(CardShown === "circle" ? "hello" : "circle")}></CircularButton>,
-        eraser: <CircularButton key={"KeyEraseBtn"} imgId="eraser" hint={Lang("Erase annotations from the PDF")} disableOpacity={true} enabledSwitch={true} click={() => { if (settingsCallback) settingsCallback({ interface: "EraserChanged", value: "" }) }}></CircularButton>,
-        text: <CircularButton key={"KeyTextBtn"} imgId="text" hint={Lang("Add text annotations to the PDF")} enabledSwitch={true} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedTextStatus", value: "" }); UpdateState(CardShown === "text" ? "hello" : "text") }}></CircularButton>
+        pen: <CircularButton doesChangeSection="pen" key={`KeyPenBtn`} hint={Lang("Show pen settings and enable annotations")} enabledSwitch={true} imgId="pen" click={canvasAdaptWhenClicked} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); requestedTab = undefined; UpdateState(CardShown === "pen" ? "hello" : "pen"); }}></CircularButton>,
+        circle: <CircularButton doesChangeSection="pointer" key={"KeyCircleBtn"} hint={Lang("Show cursor settings")} imgId="circle" enabledSwitch={true} dropdownCallback={() => { requestedTab = undefined; UpdateState(CardShown === "circle" ? "hello" : "circle") }}></CircularButton>,
+        eraser: <CircularButton doesChangeSection="erase" key={"KeyEraseBtn"} imgId="eraser" hint={Lang("Erase annotations from the PDF")} enabledSwitch={true} click={() => { if (settingsCallback) settingsCallback({ interface: "EraserChanged", value: "" }) }}></CircularButton>,
+        text: <CircularButton doesChangeSection="text" key={"KeyTextBtn"} imgId="text" hint={Lang("Add text annotations to the PDF")} enabledSwitch={true} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedTextStatus", value: "" }); UpdateState(CardShown === "text" ? "hello" : "text") }}></CircularButton>
     }
     let exportButton = useRef<HTMLButtonElement>(null);
     let checkFlexDiv = useRef<HTMLDivElement>(null);
@@ -88,10 +98,10 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                     </DropdownItem>
                     {CardShown === "text" && <>
                         <DropdownItem disableAutoDisappear={true} defaultValueRef="textFont" title={Lang("Change text font:")} content={<input defaultValue={""} type="text" placeholder="Work Sans" onInput={(e) => { if (settingsCallback) settingsCallback({ interface: "TextFontUpdater", value: (e.target as HTMLInputElement).value }) }}></input>}><CircularButton marginLeft={15} imgId="textfont"></CircularButton></DropdownItem>
-                        <CircularButton hint={Lang("Make text bold")} enabledSwitch={true} disableOpacity={true} imgId="textbold" click={() => { if (settingsCallback) settingsCallback({ interface: "TextBoldChanged", value: "" }) }}></CircularButton>
-                        <CircularButton hint={Lang("Make text italic")} enabledSwitch={true} disableOpacity={true} imgId="textitalic" click={() => { if (settingsCallback) settingsCallback({ interface: "TextItalicChanged", value: "" }) }}></CircularButton>
-                        <CircularButton hint={Lang("Make text underlined")} enabledSwitch={true} disableOpacity={true} imgId="textunderline" click={() => { if (settingsCallback) settingsCallback({ interface: "TextUnderlineChanged", value: "" }) }}></CircularButton>
-                        <CircularButton hint={Lang("Make text striked")} marginRight={15} enabledSwitch={true} disableOpacity={true} imgId="textstrikethrough" click={() => { if (settingsCallback) settingsCallback({ interface: "TextStrikeChanged", value: "" }) }}></CircularButton>
+                        <CircularButton hint={Lang("Make text bold")} enabledSwitch={true} imgId="textbold" click={() => { if (settingsCallback) settingsCallback({ interface: "TextBoldChanged", value: "" }) }}></CircularButton>
+                        <CircularButton hint={Lang("Make text italic")} enabledSwitch={true} imgId="textitalic" click={() => { if (settingsCallback) settingsCallback({ interface: "TextItalicChanged", value: "" }) }}></CircularButton>
+                        <CircularButton hint={Lang("Make text underlined")} enabledSwitch={true} imgId="textunderline" click={() => { if (settingsCallback) settingsCallback({ interface: "TextUnderlineChanged", value: "" }) }}></CircularButton>
+                        <CircularButton hint={Lang("Make text striked")} marginRight={15} enabledSwitch={true} imgId="textstrikethrough" click={() => { if (settingsCallback) settingsCallback({ interface: "TextStrikeChanged", value: "" }) }}></CircularButton>
                         <DropdownItem title={Lang("Underlined/Striked line height:")} defaultValueRef="textStrikeLineWidth" content={<input type="range" min={1} max={99} defaultValue={4} step={1} onChange={(e) => { if (settingsCallback) settingsCallback({ interface: "TextStrikeLineChange", value: (e.target as HTMLInputElement).value }) }}></input>}>
                             <CircularButton hint={Lang("Change the line height for underlined/striked text")} imgId="linethickness"></CircularButton>
                         </DropdownItem>
@@ -112,7 +122,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                 </> : <>
                     <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage({ ...pageSettings, page: pageSettings.page - 1 }) }}></CircularButton>
                     <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.2 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" dataTest="ThumbnailEnabler" enabledSwitch={true} disableOpacity={true} click={() => { updatePage({ ...pageSettings, showThumbnail: pageSettings.showThumbnail !== 1 ? 1 : 2 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" dataTest="ThumbnailEnabler" enabledSwitch={true} click={() => { updatePage({ ...pageSettings, showThumbnail: pageSettings.showThumbnail !== 1 ? 1 : 2 }) }}></CircularButton>
                     {usefulBtn.pen}
                     {usefulBtn.circle}
                     {usefulBtn.eraser}
@@ -159,7 +169,7 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                         <button ref={exportButton} onClick={async () => {
                             let handle;
                             try { // If the user doesn't want to save the file as ZIP, and the File System API is supported, use the "showDirectoryPicker" method
-                                handle = window.showDirectoryPicker !== undefined && !exportValue.zip ? await window.showDirectoryPicker({ mode: "readwrite" }) : undefined;
+                                handle = window.showDirectoryPicker !== undefined && !exportValue.zip ? await window.showDirectoryPicker({ mode: "readwrite", id: "PDFPointer-PDFExportFolder" }) : undefined;
                             } catch (ex) {
                                 console.warn({
                                     type: "RejectedPicker",

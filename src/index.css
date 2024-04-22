@@ -441,7 +441,7 @@ a:visited {
 }
 
 
-.opacityHoverContainer:hover>.opacityHover {
+.opacityHoverContainer:hover+.opacityHover {
   opacity: var(--showhint);
 }
 
