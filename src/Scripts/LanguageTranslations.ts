@@ -103,7 +103,17 @@ let references = new Map<string, string>([
     ["Invalid image provided. Fallback to basic color wallpaper", "failedImageDecoding"],
     ["Delete content", "deleteContent"],
     ["Licenses", "licenses"],
-    ["See the licenses of the open-source software", "licensesDesc"]
+    ["See the licenses of the open-source software", "licensesDesc"],
+    ["Keyboard shortcuts:", "keyShortcuts"],
+    ["Change, or delete the keyboard shortcuts to useful elements. Click on the dashed surface, and press the key for this action", "keyShortcutsDesc"],
+    ["Zoom in", "zoomIn"],
+    ["Zoom out", "zoomOut"],
+    ["Enable/disable pen", "enablePen"],
+    ["Change pointer", "changePointer"],
+    ["Write text", "writeText"],
+    ["Enable/disable eraser", "enableEraser"],
+    ["Stop every option", "stopEverything"],
+    ["Delete shortcut", "deleteShortcut"]
 ])
 let dictionaries = {
     it: new Map<string, string>([
@@ -206,7 +216,17 @@ let dictionaries = {
         ["failedImageDecoding", "Immagine non valida. Verrà utilizzato un colore basico."],
         ["deleteContent", "Elimina contenuto"],
         ["licenses", "Licenze"],
-        ["licensesDesc", "Vedi le licenze del software open-source"]
+        ["licensesDesc", "Vedi le licenze del software open-source"],
+        ["keyShortcuts", "Scorciatoie da tastiera:"],
+        ["keyShortcutsDesc", "Cambia o elimina le scorciatoie da tastiera per alcuni utili strumenti. Clicca sulla superficie tratteggiata, e premi il tasto per quest'azione"],
+        ["zoomIn", "Zoom avanti"],
+        ["zoomOut", "Zoom indietro"],
+        ["enablePen", "Abilita/disabilita penna"],
+        ["changePointer", "Cambia puntatore"],
+        ["writeText", "Scrivi testo"],
+        ["enableEraser", "Abilita/disabilita puntatore"],
+        ["stopEverything", "Ferma qualsiasi operazione"],
+        ["deleteShortcut", "Elimina scorciatoia"]
     ])
 }
 /**

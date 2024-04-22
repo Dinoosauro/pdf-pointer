@@ -28,3 +28,12 @@ export interface CustomProp {
         value: string
     }[]
 }
+export interface KeyPreference {
+    zoomin?: string,
+    zoomout?: string,
+    pen?: string,
+    pointer?: string,
+    text?: string,
+    erase?: string,
+    stop?: string
+}

@@ -173,6 +173,20 @@ a video (both from local files and from YouTube).
 _An example of the UI with a custom background can be found at the top of this
 README_
 
+### Keyboard shortcuts
+
+You can add keyboard shortcuts for:
+
+- Zoom in
+- Zoom out
+- Enable/disable pen
+- Change pointer
+- Write text
+- Enable/disable eraser
+- Stop every option
+
+![Keyboard shortcuts tab](./readme-images/KeyboardShortcutsTab.jpg)
+
 ### Licenses
 
 Show open source licenses

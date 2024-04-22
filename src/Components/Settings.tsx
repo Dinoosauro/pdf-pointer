@@ -13,6 +13,7 @@ import Alerts from "../SettingTabs/Alerts";
 import Language from "../SettingTabs/Language";
 import BackgroundContent from "../SettingTabs/BackgroundContent";
 import Licenses from "../SettingTabs/Licenses";
+import KeyboardShortcuts from "../SettingTabs/KeyboardShortcuts";
 
 interface Props {
     updateLang: () => void
@@ -43,11 +44,15 @@ export default function Settings({ updateLang }: Props) {
             id: "backgroundcontent"
         },
         {
+            displayedName: Lang("Keyboard shortcuts:").replace(":", ""),
+            id: "keyboardshortcut"
+        },
+        {
             displayedName: Lang("Licenses").replace(":", ""),
             id: "licenses"
         }]} callback={(e) => updateState(e)}></Sections><br></br>
         <div className="dialogList">
-            {state === "customcolor" ? <CustomColor></CustomColor> : state === "customtheme" ? <CustomTheme></CustomTheme> : state === "alert" ? <Alerts></Alerts> : state === "language" ? <Language updateLang={updateLang}></Language> : state === "backgroundcontent" ? <BackgroundContent></BackgroundContent> : <Licenses></Licenses>}
+            {state === "customcolor" ? <CustomColor></CustomColor> : state === "customtheme" ? <CustomTheme></CustomTheme> : state === "alert" ? <Alerts></Alerts> : state === "language" ? <Language updateLang={updateLang}></Language> : state === "backgroundcontent" ? <BackgroundContent></BackgroundContent> : state === "keyboardshortcut" ? <KeyboardShortcuts></KeyboardShortcuts> : <Licenses></Licenses>}
         </div>
     </Dialog>
 }

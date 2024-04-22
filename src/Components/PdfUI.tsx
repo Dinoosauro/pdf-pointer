@@ -2,11 +2,12 @@ import * as PDFJS from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
 import Annotations from "../Scripts/Annotations";
 import Toolbar from "./Toolbar";
-import { DrawingStoredOptions, OptionUpdater } from "../Interfaces/CustomOptions";
+import { DrawingStoredOptions, OptionUpdater, KeyPreference } from "../Interfaces/CustomOptions";
 import Thumbnail from "./GetThumbnail";
 import { createRoot } from "react-dom/client";
 import AlertTextDom from "./AlertTextDom";
 import AlertManager from "../Scripts/AlertManager";
+import RerenderButtons from "../Scripts/RerenderButtons";
 interface Props {
     pdfObj: PDFJS.PDFDocumentProxy
 }
@@ -93,7 +94,7 @@ export default function PDF({ pdfObj }: Props) {
      *  @var thumbnailDiv The div that'll contain the thumbnail
      */
     let canvasRef = useRef<Ref>({ mainCanvas: null, centerDiv: null, hoverCanvas: null, toolbar: null, circleCanvas: null, thumbnailDiv: null });
-    let [pageSettings, updatePage] = useState({ page: 1, scale: 1, showThumbnail: 0, isFullscreenChange: document.fullscreenElement, langUpdate: 0 });
+    let [pageSettings, updatePage] = useState({ page: 1, scale: 1, showThumbnail: 0, isFullscreenChange: document.fullscreenElement, langUpdate: 0, requestedTabPart: "hello" });
     useEffect(() => {
         if (isCanvasWorking || currentPdfShow === `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`) return;
         // Create a spinner for loading info
@@ -249,8 +250,36 @@ export default function PDF({ pdfObj }: Props) {
             })
         }
     }
+    useEffect(() => {
+        window.onkeydown = (e) => { // Add keyboard shortcuts
+            if (document.activeElement?.tagName.toLowerCase() === "textarea" || document.activeElement?.tagName.toLowerCase() === "input" || document.activeElement?.tagName.toLowerCase() === "select" || document.activeElement?.getAttribute("data-nokeyboard") === "a") return; // Avoid processing keyboard shortcuts if the user is writing something
+            const KeyPreference = JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}") as KeyPreference;
+            for (const action in KeyPreference) {
+                if (e.key.toLowerCase() === KeyPreference[action as keyof KeyPreference]?.toLowerCase()) {
+                    if (action === "stop") { // Stop everything is being done. Useful if this """flawless""" logic fails [and I wouldn't be surprised if it does]
+                        customModes.isEraserEnabled = false;
+                        customModes.isPenEnabled = false;
+                        customModes.isTextEnabled = false;
+                        updatePage(prevState => { return { ...prevState, requestedTabPart: `hello,${Date.now()}` } }); // Update the requestedTabPart so that the Toolbar tab will be set to the default one. A date is added to force the refresh.
+                        for (let item of ["text", "pen", "erase"]) RerenderButtons.update(item, customModes[`is${item === "text" ? "Text" : item === "pen" ? "Pen" : "Eraser"}Enabled`]); // Update all the circular buttons that have a shortcut
+                    }
+                    console.warn(action);
+                    updatePage(prevState => { return { ...prevState, scale: action === "zoomin" ? prevState.scale += 0.2 : action === "zoomout" ? prevState.scale -= 0.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart } });
+                    if (action === "text" || action === "pointer" || action === "pen" || action === "erase") {
+                        if ((action === "text" || action === "pointer")) customModes.isPenEnabled = false; // Disable pen mode for pointer and text editing
+                        if (action === "pen" || action === "pointer") customModes.isTextEnabled = false; // Disable text prompt for pointer and pen editing
+                        if (action === "pen") customModes.isPenEnabled = !customModes.isPenEnabled; // Toggle pen editing
+                        if (action === "text") customModes.isTextEnabled = !customModes.isTextEnabled; // Toggle text editing
+                        customModes.isEraserEnabled = action === "erase" ? !customModes.isEraserEnabled : false; // Toggle eraser if that action is selected, otherwise disable it
+                        RerenderButtons.update("erase", customModes.isEraserEnabled); // Update the eraser button, since for sure it has been modified
+                        if (action === "pen" || action === "text") RerenderButtons.update(action, customModes[`is${action === "text" ? "Text" : "Pen"}Enabled`]); // And update also the other button that might have been modified
+                    }
+                }
+            }
+        }
+    }, [])
     return <>
-        <Toolbar pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} canvasAdaptWhenClicked={() => { if (canvasRef.current.hoverCanvas !== null && canvasRef.current.mainCanvas !== null) Annotations.adapt(canvasRef.current.hoverCanvas, canvasRef.current.mainCanvas) }} settingsCallback={(e: OptionUpdater) => {
+        <Toolbar requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} canvasAdaptWhenClicked={() => { if (canvasRef.current.hoverCanvas !== null && canvasRef.current.mainCanvas !== null) Annotations.adapt(canvasRef.current.hoverCanvas, canvasRef.current.mainCanvas) }} settingsCallback={(e: OptionUpdater) => {
             /**
                 The following map includes all the events that will update user values. 
                     @var "isUtils" means that the "customModes" object will updated;
