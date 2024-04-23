@@ -59,14 +59,14 @@ export default function Toolbar({ pageSettings, updatePage, settingsCallback, pd
      * Make sure no buttons are lost due to the div being justified in the center
      */
     function fixToolbarContentJustification() {
-        if (checkFlexDiv.current && checkFlexDiv.current.getAttribute("data-autojustify") === "a") checkFlexDiv.current.style.justifyContent = checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width > -3 && checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width < 3 ? "center" : "left"; // Add a 3px tollerance for WebKit, since one of the two values might be a pixel greater than the other
+        if (checkFlexDiv.current) checkFlexDiv.current.style.justifyContent = checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width > -3 && checkFlexDiv.current.scrollWidth - checkFlexDiv.current.getBoundingClientRect().width < 3 ? "center" : "left"; // Add a 3px tollerance for WebKit, since one of the two values might be a pixel greater than the other
     }
     useEffect(() => fixToolbarContentJustification());
     useEffect(() => window.addEventListener("resize", () => fixToolbarContentJustification()), [])
     let generateColorValues = () => [{ name: "Green", value: "rgb(0,255,0)" }, { name: "Blue", value: "rgb(0,0,255)" }, { name: "Red", value: "rgb(255,0,0)" }, { name: "Accent color", value: getComputedStyle(document.body).getPropertyValue("--accent") }, ...JSON.parse(localStorage.getItem(`PDFPointer-CustomColor`) ?? "[]")]; // Make it a function so that the accent color is refreshed every time.
     return <div style={{ marginTop: "10px", margin: "0px 20px" }}>
         <Card type={1} zIndex={999991}>
-            <div ref={checkFlexDiv} data-autojustify={CardShown.indexOf(",") === -1 || CardShown.substring(0, CardShown.indexOf(",")) === "hello" ? "a" : "b"} className="toolbar" style={{ justifyContent: CardShown === "hello" ? "center" : "left" }}>
+            <div ref={checkFlexDiv} className="toolbar" style={{ justifyContent: CardShown === "hello" ? "center" : "left" }}>
                 {CardShown === "pen" || CardShown === "text" ? <>
                     {usefulBtn[CardShown === "pen" ? "pen" : "text"]}
                     <DropdownItem title={Lang("Erase annotations after:")} custom={<CustomCallback type="number" identifier="CustomSelectTimer" callback={settingsCallback} placeholder={Lang("Custom value (in seconds)")}></CustomCallback>} content={<IntelliSelect select={settingsCallback} pre={[{ name: `5 ${Lang("seconds")}`, value: "5" }, { name: `10 ${Lang("seconds")}`, value: "10" }, { name: `15 ${Lang("seconds")}`, value: "15" }, { name: `30 ${Lang("seconds")}`, value: "30" }, { name: `1 ${Lang("minute")}`, value: "60" }]} identifier="CustomSelectTimer"></IntelliSelect>}>

@@ -526,4 +526,5 @@ a:visited {
 
 .doubleFlex>div {
   flex: 1 0 300px;
+  margin: 0px 10px;
 }
