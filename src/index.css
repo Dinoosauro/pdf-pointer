@@ -159,11 +159,11 @@ h3 {
   overflow: auto;
   height: 90vh;
   top: 5vh;
-  background-color: var(--secondstruct);
   left: 15px;
   border-radius: 16px;
   width: 30vw;
   z-index: 999992;
+  backdrop-filter: blur(16px) brightness(50%);
 }
 
 .normalLeftAnimation {
@@ -302,6 +302,7 @@ a:visited {
   background-color: var(--accent);
   border-radius: 50%;
   animation: spinner 0.75s ease-in-out infinite;
+  position: fixed;
 }
 
 @keyframes spinner {
@@ -511,4 +512,18 @@ a:visited {
 
 .sectionAdapt {
   overflow: auto;
+}
+
+.noEvents {
+  pointer-events: none;
+}
+
+.doubleFlex {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.doubleFlex>div {
+  flex: 1 0 300px;
 }

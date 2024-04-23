@@ -5,6 +5,7 @@ import { DynamicImg } from "./DynamicImg";
 interface Props {
     PDFObj: PDFJS.PDFDocumentProxy, // The PDF Object from PDF.JS library
     pageListener: (e: number) => void, // The event that'll be called for changing PDF page
+    closeEvent: () => void
 }
 interface CanvasContainer {
     dom: HTMLCanvasElement | null,
@@ -17,9 +18,10 @@ let canvasContainer: CanvasContainer[] = [];
  * Render all the PDF pages for the thumbnail
  * @param PDFObj the PDF.JS object
  * @param pageListener the function to call to move to a specific page
+ * @param closeEvent the event to call to close the thumbnail
  * @returns the main thumbnail ReactNode
  */
-export default function Thumbnail({ PDFObj, pageListener }: Props) {
+export default function Thumbnail({ PDFObj, pageListener, closeEvent }: Props) {
     let [pages, updatePages] = useState({
         current: 0, // The next thumbnail to render
         nextSuggested: true // If it's time to render more pages (–> if the user has scrolled a lot of the div)
@@ -77,7 +79,7 @@ export default function Thumbnail({ PDFObj, pageListener }: Props) {
         let percentage = Math.round((container.scrollTop / (container.scrollHeight - container.offsetHeight)) * 100); // Get the percentage of scroll
         if (percentage > 80) updatePages(prevState => { return { ...prevState, nextSuggested: true } })
     }}>
-        <div style={{ position: "sticky", top: "15px", left: "25px", padding: "10px", backgroundColor: "var(--firststruct)", borderRadius: "8px", width: "24px", height: "24px" }} className="simplePointer" onClick={() => (document.querySelector("[data-test=ThumbnailEnabler]") as HTMLDivElement).click()}>
+        <div style={{ position: "sticky", top: "15px", left: "25px", padding: "10px", backgroundColor: "var(--firststruct)", borderRadius: "8px", width: "24px", height: "24px" }} className="simplePointer" onClick={closeEvent}>
             <div style={{ height: "24px", width: "24px" }}><DynamicImg id="minimize" width={24}></DynamicImg></div>
         </div>
         {canvasContainer.filter(e => e.dom !== null).map(e => <ThumbnailContainer key={`PDFPageThumbnail-${e.page}`} pageNumber={e.page + 1} canvas={e.dom}></ThumbnailContainer>)}

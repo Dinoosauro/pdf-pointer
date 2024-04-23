@@ -29,11 +29,26 @@ export interface CustomProp {
     }[]
 }
 export interface KeyPreference {
-    zoomin?: string,
-    zoomout?: string,
-    pen?: string,
-    pointer?: string,
-    text?: string,
-    erase?: string,
-    stop?: string
+    zoomin?: string[],
+    zoomout?: string[],
+    pen?: string[],
+    pointer?: string[],
+    text?: string[],
+    erase?: string[],
+    stop?: string[],
+    thumbnail?: string[],
+    fullscreen?: string[],
+    settings?: string[],
+    nextpage?: string[],
+    prevpage?: string[],
+    export?: string[],
+}
+
+export interface PdfUIState {
+    page: number
+    scale: number
+    showThumbnail: number
+    isFullscreenChange: Element | null,
+    langUpdate: number
+    requestedTabPart: string
 }

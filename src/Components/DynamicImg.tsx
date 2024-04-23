@@ -1,7 +1,7 @@
 interface Props {
     id: string, // The icon ID
     width?: number,
-    staticColor?: string
+    staticColor?: string,
 }
 /**
  * Create a Map that'll store the Image element and the string with its ID, so that each icon can be re-generated when the user changes the accent color
@@ -16,7 +16,7 @@ import ImgRef from "../Scripts/ImgReturn";
  * @param staticColor the specific color to apply
  * @returns the image ReactNode
  */
-export function DynamicImg({ id, width = 24, staticColor }: Props) {
+export function DynamicImg({ id, width = 24, staticColor, }: Props) {
     let ref = useRef<HTMLImageElement>(null);
     useEffect(() => { ref.current && !staticColor && imageStore.set(ref.current, id) }, []) // If the color is the default one, add it to the Map
     return <img ref={ref} src={URL.createObjectURL(new Blob([ImgRef(id, staticColor)], { type: "image/svg+xml" }))} width={width} height={width}></img>

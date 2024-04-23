@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import Card from "./Card";
 import CircularButton from "./CircularButton";
 import DropdownItem from "./DropdownItem";
 import IntelliSelect from "./SelectIntelligentOption";
-import { DrawingStoredOptions, OptionUpdater } from "../Interfaces/CustomOptions";
+import { DrawingStoredOptions, OptionUpdater, PdfUIState } from "../Interfaces/CustomOptions";
 import ImageExport from "../Scripts/Export";
 import * as PDFJS from "pdfjs-dist";
 import CustomCallback from "./CustomCallback";
@@ -11,25 +11,14 @@ import { createRoot } from "react-dom/client";
 import Settings from "./Settings";
 import Lang from "../Scripts/LanguageTranslations";
 import RerenderButtons from "../Scripts/RerenderButtons";
+import CircularButtonsFunctions from "../Scripts/CircularButtonsFunctions";
+import ExportDialog from "./ExportDialog";
 interface Props {
     pageSettings: any,
-    updatePage: ({ }: any) => void,
-    canvasAdaptWhenClicked: () => void,
+    updatePage: React.Dispatch<SetStateAction<PdfUIState>>,
     settingsCallback?: (e: OptionUpdater) => void,
     pdfObj: PDFJS.PDFDocumentProxy,
     requestedTab?: string
-}
-/**
- * The custom values for the PDF exportation as image
- */
-let exportValue = {
-    img: "png",
-    pages: "",
-    annotations: true,
-    scale: 2,
-    zip: false,
-    quality: 0.85,
-    filter: ""
 }
 interface DirectoryPicker {
     id?: string,
@@ -45,14 +34,13 @@ declare global {
  * 
  * @param pageSettings the same values as the "useState" of PdfUI
  * @param updatePage the function to update the "useState" of PdfUI
- * @param canvasAdaptWhenClicked a function used to adapt canvas width/height when clicked
  * @param settingsCallback send a message back to the function, used when the user changes a value from the toolbar,
  * @param pdfObj the PDF document
  * @param requestedTab the ID of the Card that will be showj
  * @returns 
  */
 let stateReflect = "hello"
-export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClicked, settingsCallback, pdfObj, requestedTab }: Props) {
+export default function Toolbar({ pageSettings, updatePage, settingsCallback, pdfObj, requestedTab }: Props) {
     let [CardShown, UpdateState] = useState("hello");
     stateReflect = CardShown;
     useEffect(() => {
@@ -61,12 +49,11 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
         UpdateState(stateReflect === newTab ? "hello" : newTab);
     }, [requestedTab])
     const usefulBtn = { // NOTE: Always add the key attribute. Otherwise React, when exiting from the custom Card mode, will trigger the animation on the first element, causing UI issues.
-        pen: <CircularButton doesChangeSection="pen" key={`KeyPenBtn`} hint={Lang("Show pen settings and enable annotations")} enabledSwitch={true} imgId="pen" click={canvasAdaptWhenClicked} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); requestedTab = undefined; UpdateState(CardShown === "pen" ? "hello" : "pen"); }}></CircularButton>,
-        circle: <CircularButton doesChangeSection="pointer" key={"KeyCircleBtn"} hint={Lang("Show cursor settings")} imgId="circle" enabledSwitch={true} dropdownCallback={() => { requestedTab = undefined; UpdateState(CardShown === "circle" ? "hello" : "circle") }}></CircularButton>,
-        eraser: <CircularButton doesChangeSection="erase" key={"KeyEraseBtn"} imgId="eraser" hint={Lang("Erase annotations from the PDF")} enabledSwitch={true} click={() => { if (settingsCallback) settingsCallback({ interface: "EraserChanged", value: "" }) }}></CircularButton>,
-        text: <CircularButton doesChangeSection="text" key={"KeyTextBtn"} imgId="text" hint={Lang("Add text annotations to the PDF")} enabledSwitch={true} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedTextStatus", value: "" }); UpdateState(CardShown === "text" ? "hello" : "text") }}></CircularButton>
+        pen: <CircularButton btnIdentifier="pen" key={`KeyPenBtn`} hint={Lang("Show pen settings and enable annotations")} enabledSwitch={true} imgId="pen" dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); requestedTab = undefined; UpdateState(CardShown === "pen" ? "hello" : "pen"); }}></CircularButton>,
+        circle: <CircularButton btnIdentifier="pointer" key={"KeyCircleBtn"} hint={Lang("Show cursor settings")} imgId="circle" enabledSwitch={true} dropdownCallback={() => { requestedTab = undefined; UpdateState(CardShown === "circle" ? "hello" : "circle") }}></CircularButton>,
+        eraser: <CircularButton btnIdentifier="erase" key={"KeyEraseBtn"} imgId="eraser" hint={Lang("Erase annotations from the PDF")} enabledSwitch={true} click={() => { if (settingsCallback) settingsCallback({ interface: "EraserChanged", value: "" }) }}></CircularButton>,
+        text: <CircularButton btnIdentifier="text" key={"KeyTextBtn"} imgId="text" hint={Lang("Add text annotations to the PDF")} enabledSwitch={true} dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedTextStatus", value: "" }); UpdateState(CardShown === "text" ? "hello" : "text") }}></CircularButton>
     }
-    let exportButton = useRef<HTMLButtonElement>(null);
     let checkFlexDiv = useRef<HTMLDivElement>(null);
     /**
      * Make sure no buttons are lost due to the div being justified in the center
@@ -120,14 +107,14 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                         <CircularButton hint={Lang("Change cursor size")} imgId="size"></CircularButton>
                     </DropdownItem>
                 </> : <>
-                    <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage({ ...pageSettings, page: pageSettings.page - 1 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale -= 0.2 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" dataTest="ThumbnailEnabler" enabledSwitch={true} click={() => { updatePage({ ...pageSettings, showThumbnail: pageSettings.showThumbnail !== 1 ? 1 : 2 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage(prevState => { return { ...prevState, page: prevState.page - 1 } }) }}></CircularButton>
+                    <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage(prevState => { return { ...prevState, scale: prevState.scale /= 1.2 } }) }}></CircularButton>
+                    <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" btnIdentifier="thumbnail" enabledSwitch={true} click={() => { updatePage(prevState => { return { ...prevState, showThumbnail: prevState.showThumbnail !== 1 ? 1 : 2 } }) }}></CircularButton>
                     {usefulBtn.pen}
                     {usefulBtn.circle}
                     {usefulBtn.eraser}
                     {usefulBtn.text}
-                    <CircularButton hint={`${document.fullscreenElement ? "Exit from" : "Go in"} fullscreen mode`} imgId={document.fullscreenElement ? "fullscreenminimize" : "fullscreenmaximize"} click={() => { document.fullscreenElement ? document.exitFullscreen() : document.querySelector(".card")?.requestFullscreen() }}></CircularButton>
+                    <CircularButton hint={`${document.fullscreenElement ? "Exit from" : "Go in"} fullscreen mode`} imgId={document.fullscreenElement ? "fullscreenminimize" : "fullscreenmaximize"} click={CircularButtonsFunctions.fullscreen}></CircularButton>
                     <DropdownItem title={Lang("PDF Filters:")} content={<>
                         <h4>{Lang("Negative filter:")}</h4>
                         <input data-tempstorage="negativeFilter" type="range" min={0} max={1} defaultValue={0} step={0.01} onChange={(e) => { if (settingsCallback) settingsCallback({ interface: "NegativeFilter", value: (e.target as HTMLInputElement).value }) }}></input>
@@ -140,56 +127,12 @@ export default function Toolbar({ pageSettings, updatePage, canvasAdaptWhenClick
                     </>}>
                         <CircularButton hint={Lang("Add a filter to the PDF")} imgId="photofilter"></CircularButton>
                     </DropdownItem>
-                    <DropdownItem disableAutoDisappear={true} content={<div>
-                        <label>{Lang("Export image in the")} <select defaultValue={exportValue.img} onChange={(e) => exportValue.img = (e.target as HTMLSelectElement).value}>
-                            <option value={"jpeg"}>JPG</option>
-                            <option value={"png"}>PNG</option>
-                            {document.createElement("canvas").toDataURL("image/webp").startsWith("data:image/webp") && <option value={"webp"}>WEBP</option>}
-                        </select> {Lang("format")}</label><br></br><br></br>
-                        <label>{Lang("Write the number of pages to export:")}</label><br></br>
-                        <i style={{ fontSize: "0.75em" }}>{Lang(`Separate pages with a comma, or add multiple pages with a dash: "1-5,7"`)}</i><br></br>
-                        <input style={{ marginTop: "10px" }} type="text" defaultValue={exportValue.pages} onInput={(e) => {
-                            exportValue.pages = (e.target as HTMLInputElement).value;
-                            if (exportButton.current) exportButton.current.disabled = !/^[0-9,-]*$/.test(exportValue.pages);
-                        }}></input><br></br><br></br>
-                        <label>{Lang("Choose the size of the output image:")}</label><br></br>
-                        <input type="range" min={0.5} max={8} step={0.01} defaultValue={exportValue.scale} onChange={(e) => { exportValue.scale = parseFloat((e.target as HTMLInputElement).value) }}></input><br></br><br></br>
-                        <label>{Lang("Choose the quality of the output image:")}</label><br></br>
-                        <input type="range" min={0.01} max={1} step={0.01} defaultValue={exportValue.quality} onChange={(e) => { exportValue.quality = parseFloat((e.target as HTMLInputElement).value) }}></input><br></br><br></br>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <input type="checkbox" defaultChecked={exportValue.annotations} onChange={e => exportValue.annotations = (e.target as HTMLInputElement).checked}></input><label>{Lang("Export also annotations")}</label></div><br></br>
-                        {document.createElement("canvas").getContext("2d")?.filter !== undefined && <><div style={{ display: "flex", alignItems: "center" }}>
-                            <input type="checkbox" defaultChecked={exportValue.filter !== ""} onChange={e => {
-                                let getFilterCanvas = Array.from(document.querySelectorAll("canvas")).filter(e => e.style.filter !== "");
-                                if ((e.target as HTMLInputElement).checked && getFilterCanvas.length !== 0) { exportValue.filter = getFilterCanvas[0].style.filter; } else exportValue.filter = ""
-                            }}></input><label>{Lang("Apply filters to exported image")}</label></div><br></br>
-                        </>}
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <input type="checkbox" defaultChecked={exportValue.zip} onChange={e => exportValue.zip = (e.target as HTMLInputElement).checked}></input><label>{Lang("Save output as a .zip file")}</label></div><br></br><br></br>
-                        <button ref={exportButton} onClick={async () => {
-                            let handle;
-                            try { // If the user doesn't want to save the file as ZIP, and the File System API is supported, use the "showDirectoryPicker" method
-                                handle = window.showDirectoryPicker !== undefined && !exportValue.zip ? await window.showDirectoryPicker({ mode: "readwrite", id: "PDFPointer-PDFExportFolder" }) : undefined;
-                            } catch (ex) {
-                                console.warn({
-                                    type: "RejectedPicker",
-                                    desc: "The user rejected the selection of a folder. Fallback to link downloads.",
-                                    gravity: 0,
-                                    ex: ex
-                                })
-                            }
-                            ImageExport({ imgType: exportValue.img, pages: exportValue.pages, getAnnotations: exportValue.annotations, pdfObj: pdfObj, scale: exportValue.scale, useZip: exportValue.zip, quality: exportValue.quality, handle: handle, filter: exportValue.filter })
-                        }}>{Lang("Export images")}</button>
-                    </div>} title={Lang("Export as Image")}>
+                    <DropdownItem disableAutoDisappear={true} content={<ExportDialog pdfObj={pdfObj}></ExportDialog>} title={Lang("Export as Image")}>
                         <CircularButton hint={Lang("Save PDF as an image")} imgId="saveimg"></CircularButton>
                     </DropdownItem>
-                    <CircularButton hint={Lang("Show settings")} imgId="settings" click={() => { // Show the settings by creating a new root
-                        let div = document.createElement("div");
-                        createRoot(div).render(<Settings updateLang={() => updatePage({ ...pageSettings, langUpdate: pageSettings.langUpdate + 1 })}></Settings>); // With the "updatePage" parameter, all of the PdfUI is re-rendered, and thererfore the language change is applied.
-                        document.body.append(div);
-                    }}></CircularButton>
-                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage({ ...pageSettings, scale: pageSettings.scale += 0.2 }) }}></CircularButton>
-                    <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage({ ...pageSettings, page: pageSettings.page + 1 }) }}></CircularButton>
+                    <CircularButton hint={Lang("Show settings")} imgId="settings" click={() => CircularButtonsFunctions.settings(updatePage)}></CircularButton>
+                    <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage(prevState => { return { ...prevState, scale: prevState.scale *= 1.2 } }) }}></CircularButton>
+                    <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage(prevState => { return { ...prevState, page: prevState.page + 1 } }) }}></CircularButton>
                 </>
                 }
             </div>

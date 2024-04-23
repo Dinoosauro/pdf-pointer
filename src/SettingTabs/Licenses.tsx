@@ -7,11 +7,15 @@ import Sections from "../Components/Sections";
  * The settings tab where the user can see the open source licenses
  * @returns the Licenses tab
  */
+declare global {
+    var appVersion: string
+}
 export default function Licenses() {
     let [state, updateState] = useState("React");
     const licenses = [{ name: "React", author: "Meta Platforms, Inc. and affiliates.", type: "mit" }, { name: "PDF.JS", type: "apache" }, { name: "jszip", type: "mit", author: "2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso" }, { name: "PDFPointer", author: "Dinoosauro", type: "mit" }];
     return <>
         <h3>{Lang("Licenses")}</h3>
+        <h4><a href="https://github.com/Dinoosauro/pdf-pointer" target="_blank">PDFPointer — {appVersion}</a></h4>
         <i>{Lang("See the licenses of the open-source software")}</i><br></br>
         <Sections invertColors={true} list={licenses.map(e => { return { displayedName: e.name, id: e.name } })} callback={(e) => updateState(e)}></Sections><br></br>
         <div className="moveCard" style={{ backgroundColor: "var(--firststruct)" }}>

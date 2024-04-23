@@ -113,7 +113,15 @@ let references = new Map<string, string>([
     ["Write text", "writeText"],
     ["Enable/disable eraser", "enableEraser"],
     ["Stop every option", "stopEverything"],
-    ["Delete shortcut", "deleteShortcut"]
+    ["Delete shortcut", "deleteShortcut"],
+    ["Enable/disable thumbnail view", "enableThumbnailView"],
+    ["Enable/disable fullscreen", "enableFullscreen"],
+    ["Show settings", "showSettings"],
+    ["Go to next page", "goNextPage"],
+    ["Go to previous page", "goPrevPage"],
+    ["Export as an image", "exportImg"],
+    ["Install as a web app", "webAppInstall"],
+    ["Install PDFPointer as an app for offline use and better integration with the OS.", "webAppInstallDesc"]
 ])
 let dictionaries = {
     it: new Map<string, string>([
@@ -226,7 +234,15 @@ let dictionaries = {
         ["writeText", "Scrivi testo"],
         ["enableEraser", "Abilita/disabilita puntatore"],
         ["stopEverything", "Ferma qualsiasi operazione"],
-        ["deleteShortcut", "Elimina scorciatoia"]
+        ["deleteShortcut", "Elimina scorciatoia"],
+        ["enableThumbnailView", "Abilita/disabilita visualizzazione miniature"],
+        ["enableFullscreen", "Abilita/disabilita schermo intero"],
+        ["showSettings", "Visualizza impostazioni"],
+        ["goNextPage", "Vai alla pagina successiva"],
+        ["goPrevPage", "Vai alla pagina precedente"],
+        ["exportImg", "Esporta come immagine"],
+        ["webAppInstall", "Installa come applicazione web"],
+        ["webAppInstallDesc", "Installa PDFPointer come applicazione per l'utilizzo offline ed una integrazione migliore col sistema operativo."]
     ])
 }
 /**
