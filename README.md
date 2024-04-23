@@ -184,6 +184,12 @@ You can add keyboard shortcuts for:
 - Write text
 - Enable/disable eraser
 - Stop every option
+- Enable/disable thumbnail view
+- Enable/disable fullscreen
+- Show settings
+- Go to next page
+- Go to previous page
+- Export as an image
 
 ![Keyboard shortcuts tab](./readme-images/KeyboardShortcutsTab.jpg)
 

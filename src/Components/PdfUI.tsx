@@ -2,12 +2,16 @@ import * as PDFJS from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
 import Annotations from "../Scripts/Annotations";
 import Toolbar from "./Toolbar";
-import { DrawingStoredOptions, OptionUpdater, KeyPreference } from "../Interfaces/CustomOptions";
+import { DrawingStoredOptions, OptionUpdater, KeyPreference, PdfUIState } from "../Interfaces/CustomOptions";
 import Thumbnail from "./GetThumbnail";
 import { createRoot } from "react-dom/client";
 import AlertTextDom from "./AlertTextDom";
 import AlertManager from "../Scripts/AlertManager";
 import RerenderButtons from "../Scripts/RerenderButtons";
+import CircularButtonsFunctions from "../Scripts/CircularButtonsFunctions";
+import Dialog from "./Dialog";
+import Lang from "../Scripts/LanguageTranslations";
+import ExportDialog from "./ExportDialog";
 interface Props {
     pdfObj: PDFJS.PDFDocumentProxy
 }
@@ -58,6 +62,10 @@ let tempUserDrawingOptions = {
     sepiaFilter: 0,
     grayscaleFilter: 0
 }
+/**
+ * The keyboard items that the user has pressed, but not released
+ */
+let userBtnPressed: string[] = [];
 try { // Update the persistent drawing options
     let parse = JSON.parse(localStorage.getItem("PDFPointer-UserAnnotationSettings") ?? "");
     // @ts-ignore
@@ -94,16 +102,16 @@ export default function PDF({ pdfObj }: Props) {
      *  @var thumbnailDiv The div that'll contain the thumbnail
      */
     let canvasRef = useRef<Ref>({ mainCanvas: null, centerDiv: null, hoverCanvas: null, toolbar: null, circleCanvas: null, thumbnailDiv: null });
-    let [pageSettings, updatePage] = useState({ page: 1, scale: 1, showThumbnail: 0, isFullscreenChange: document.fullscreenElement, langUpdate: 0, requestedTabPart: "hello" });
+    let [pageSettings, updatePage] = useState<PdfUIState>({ page: 1, scale: 1, showThumbnail: 0, isFullscreenChange: document.fullscreenElement, langUpdate: 0, requestedTabPart: "hello" });
     useEffect(() => {
         if (isCanvasWorking || currentPdfShow === `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`) return;
         // Create a spinner for loading info
         const div = document.createElement("div");
         createRoot(div).render(<div className="spinner" style={{ width: window.innerWidth > window.innerHeight ? "30vh" : "30vw", height: window.innerWidth > window.innerHeight ? "30vh" : "30vw" }}></div>)
-        div.classList.add("simpleFixed", "simpleCenter");
+        div.classList.add("simpleFixed", "simpleCenter", "noEvents");
         document.body.append(div);
-        new Promise<void>(async (resolve) => {
-            if (canvasRef.current !== undefined && canvasRef.current.centerDiv !== null) {
+        (async () => {
+            if (canvasRef.current && canvasRef.current.centerDiv) {
                 isCanvasWorking = true; // Avoid multiple PDF operations
                 const canvas = canvasRef.current.mainCanvas as unknown as HTMLCanvasElement;
                 // Render the PDF
@@ -120,7 +128,7 @@ export default function PDF({ pdfObj }: Props) {
                     let newCanvas = dom as SVGSVGElement;
                     newCanvas.style.transformOrigin = "top-left";
                     if (dom.getAttribute("data-noresize") === null) newCanvas.style.transform = `scale(${Math.floor(viewport.width) / parseInt(newCanvas.getAttribute("width") ?? "1")})`;
-                    if (canvasRef.current.mainCanvas !== null) newCanvas.style.left = canvasRef.current.centerDiv.style.justifyContent === "center" ? `${(canvasRef.current.centerDiv.getBoundingClientRect().width - canvas.getBoundingClientRect().width) / 2}px` : "0px";
+                    if (canvasRef.current.mainCanvas) newCanvas.style.left = canvasRef.current.centerDiv.style.justifyContent === "center" ? `${(canvasRef.current.centerDiv.getBoundingClientRect().width - canvas.getBoundingClientRect().width) / 2}px` : "0px";
                 }
                 const context = canvas.getContext("2d");
                 if (context !== null) {
@@ -135,8 +143,7 @@ export default function PDF({ pdfObj }: Props) {
                 }
             }
             div.remove();
-            resolve();
-        })
+        })()
         let fixCircleCanvas = setInterval(() => { // It actually should be immediately cleared. However, adapt the other canvases by setting them to the same width and height as the model
             let canvas = document.querySelector("canvas:not(.hoverCanvas)");
             if (canvas && canvasRef.current.hoverCanvas) {
@@ -251,35 +258,67 @@ export default function PDF({ pdfObj }: Props) {
         }
     }
     useEffect(() => {
+        window.onkeyup = (e) => {
+            console.log(userBtnPressed);
+            userBtnPressed.indexOf(e.key.toLowerCase()) !== -1 && userBtnPressed.splice(userBtnPressed.indexOf(e.key.toLowerCase()), 1);
+            console.log(userBtnPressed);
+        }
         window.onkeydown = (e) => { // Add keyboard shortcuts
             if (document.activeElement?.tagName.toLowerCase() === "textarea" || document.activeElement?.tagName.toLowerCase() === "input" || document.activeElement?.tagName.toLowerCase() === "select" || document.activeElement?.getAttribute("data-nokeyboard") === "a") return; // Avoid processing keyboard shortcuts if the user is writing something
             const KeyPreference = JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}") as KeyPreference;
-            for (const action in KeyPreference) {
-                if (e.key.toLowerCase() === KeyPreference[action as keyof KeyPreference]?.toLowerCase()) {
-                    if (action === "stop") { // Stop everything is being done. Useful if this """flawless""" logic fails [and I wouldn't be surprised if it does]
+            userBtnPressed.push(e.key.toLowerCase());
+            lookFunction: for (const tempAction in KeyPreference) {
+                const action = tempAction as keyof KeyPreference;
+                for (let item of (KeyPreference[action] ?? [])) if (userBtnPressed.indexOf(item) === -1) continue lookFunction;
+                switch (action) {
+                    case "fullscreen": {
+                        CircularButtonsFunctions.fullscreen();
+                        return;
+                    }
+                    case "settings": {
+                        CircularButtonsFunctions.settings(updatePage);
+                        return;
+                    }
+                    case "stop": { // Stop everything is being done. Useful if this """flawless""" logic fails [and I wouldn't be surprised if it does]
                         customModes.isEraserEnabled = false;
                         customModes.isPenEnabled = false;
                         customModes.isTextEnabled = false;
                         updatePage(prevState => { return { ...prevState, requestedTabPart: `hello,${Date.now()}` } }); // Update the requestedTabPart so that the Toolbar tab will be set to the default one. A date is added to force the refresh.
                         for (let item of ["text", "pen", "erase"]) RerenderButtons.update(item, customModes[`is${item === "text" ? "Text" : item === "pen" ? "Pen" : "Eraser"}Enabled`]); // Update all the circular buttons that have a shortcut
+                        return;
                     }
-                    console.warn(action);
-                    updatePage(prevState => { return { ...prevState, scale: action === "zoomin" ? prevState.scale += 0.2 : action === "zoomout" ? prevState.scale -= 0.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart } });
-                    if (action === "text" || action === "pointer" || action === "pen" || action === "erase") {
-                        if ((action === "text" || action === "pointer")) customModes.isPenEnabled = false; // Disable pen mode for pointer and text editing
-                        if (action === "pen" || action === "pointer") customModes.isTextEnabled = false; // Disable text prompt for pointer and pen editing
-                        if (action === "pen") customModes.isPenEnabled = !customModes.isPenEnabled; // Toggle pen editing
-                        if (action === "text") customModes.isTextEnabled = !customModes.isTextEnabled; // Toggle text editing
-                        customModes.isEraserEnabled = action === "erase" ? !customModes.isEraserEnabled : false; // Toggle eraser if that action is selected, otherwise disable it
-                        RerenderButtons.update("erase", customModes.isEraserEnabled); // Update the eraser button, since for sure it has been modified
-                        if (action === "pen" || action === "text") RerenderButtons.update(action, customModes[`is${action === "text" ? "Text" : "Pen"}Enabled`]); // And update also the other button that might have been modified
+                    case "export": {
+                        let div = document.createElement("div");
+                        createRoot(div).render(<Dialog>
+                            <h2>{Lang("Save PDF as an image:")}</h2>
+                            <ExportDialog pdfObj={pdfObj}></ExportDialog>
+                        </Dialog>);
+                        document.body.append(div);
+                        return;
                     }
                 }
+                console.warn(action);
+                updatePage(prevState => {
+                    let currentThumbnail = 0;
+                    currentThumbnail = action === "thumbnail" ? (prevState.showThumbnail === 1 ? 2 : 1) : prevState.showThumbnail;
+                    setTimeout(() => action === "thumbnail" && RerenderButtons.update("thumbnail", currentThumbnail === 1), 150); // Avoid errors for rendering two states at the same time
+                    return { ...prevState, page: action === "prevpage" && prevState.page !== 1 ? prevState.page -= 1 : action === "nextpage" && pdfObj.numPages > prevState.page ? prevState.page += 1 : prevState.page, scale: action === "zoomin" ? prevState.scale *= 1.2 : action === "zoomout" ? prevState.scale /= 1.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart, showThumbnail: currentThumbnail }
+                });
+                if (action === "text" || action === "pointer" || action === "pen" || action === "erase") {
+                    if ((action === "text" || action === "pointer")) customModes.isPenEnabled = false; // Disable pen mode for pointer and text editing
+                    if (action === "pen" || action === "pointer") customModes.isTextEnabled = false; // Disable text prompt for pointer and pen editing
+                    if (action === "pen") customModes.isPenEnabled = !customModes.isPenEnabled; // Toggle pen editing
+                    if (action === "text") customModes.isTextEnabled = !customModes.isTextEnabled; // Toggle text editing
+                    customModes.isEraserEnabled = action === "erase" ? !customModes.isEraserEnabled : false; // Toggle eraser if that action is selected, otherwise disable it
+                    RerenderButtons.update("erase", customModes.isEraserEnabled); // Update the eraser button, since for sure it has been modified
+                    (action === "pen" || action === "text") && RerenderButtons.update(action, customModes[`is${action === "text" ? "Text" : "Pen"}Enabled`]); // And update also the other button that might have been modified
+                }
+                break;
             }
         }
     }, [])
     return <>
-        <Toolbar requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} canvasAdaptWhenClicked={() => { if (canvasRef.current.hoverCanvas !== null && canvasRef.current.mainCanvas !== null) Annotations.adapt(canvasRef.current.hoverCanvas, canvasRef.current.mainCanvas) }} settingsCallback={(e: OptionUpdater) => {
+        <Toolbar requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} settingsCallback={(e: OptionUpdater) => {
             /**
                 The following map includes all the events that will update user values. 
                     @var "isUtils" means that the "customModes" object will updated;
@@ -383,7 +422,7 @@ export default function PDF({ pdfObj }: Props) {
             </div>
         </div >
         <div ref={el => (canvasRef.current.thumbnailDiv = el)}>
-            {pageSettings.showThumbnail !== 0 && <Thumbnail PDFObj={pdfObj} pageListener={(e) => { updatePage(prevState => { return { ...prevState, page: e + 1 } }) }}></Thumbnail>}
+            {pageSettings.showThumbnail !== 0 && <Thumbnail closeEvent={() => { RerenderButtons.update("thumbnail", false); updatePage(prevState => { return { ...prevState, showThumbnail: 2 } }) }} PDFObj={pdfObj} pageListener={(e) => { updatePage(prevState => { return { ...prevState, page: e + 1 } }) }}></Thumbnail>}
         </div>
     </>
 }
