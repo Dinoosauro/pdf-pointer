@@ -119,7 +119,9 @@ let references = new Map<string, string>([
     ["Show settings", "showSettings"],
     ["Go to next page", "goNextPage"],
     ["Go to previous page", "goPrevPage"],
-    ["Export as an image", "exportImg"]
+    ["Export as an image", "exportImg"],
+    ["Install as a web app", "webAppInstall"],
+    ["Install PDFPointer as an app for offline use and better integration with the OS.", "webAppInstallDesc"]
 ])
 let dictionaries = {
     it: new Map<string, string>([
@@ -239,6 +241,8 @@ let dictionaries = {
         ["goNextPage", "Vai alla pagina successiva"],
         ["goPrevPage", "Vai alla pagina precedente"],
         ["exportImg", "Esporta come immagine"],
+        ["webAppInstall", "Installa come applicazione web"],
+        ["webAppInstallDesc", "Installa PDFPointer come applicazione per l'utilizzo offline ed una integrazione migliore col sistema operativo."]
     ])
 }
 /**

@@ -517,3 +517,13 @@ a:visited {
 .noEvents {
   pointer-events: none;
 }
+
+.doubleFlex {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.doubleFlex>div {
+  flex: 1 0 300px;
+}

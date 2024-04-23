@@ -13,9 +13,11 @@ import Lang from "./Scripts/LanguageTranslations";
 import BackgroundManager from "./Scripts/BackgroundManager";
 PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 interface State {
-  PDFObj: PDFDocumentProxy | null
+  PDFObj: PDFDocumentProxy | null,
+  hideTab?: boolean
 }
-function app() {
+let installationPrompt: any;
+export default function App() {
   let [CurrentState, UpdateState] = useState<State>({ PDFObj: null });
   useEffect(() => {
     let theme = JSON.parse(localStorage.getItem("PDFPointer-CurrentTheme") ?? "[]") as CustomProp["lists"];
@@ -28,6 +30,10 @@ function app() {
         getNewState(await launchParams.files[0].getFile());
       });
     }
+    window.addEventListener('beforeinstallprompt', (event) => { // Capture the request to install the PWA so that it can be displayed when the button is clicked
+      event.preventDefault();
+      installationPrompt = event;
+    });
   }, [])
   async function getNewState(file: File) {
     let doc = PDFJS.getDocument(await file.arrayBuffer());
@@ -38,21 +44,36 @@ function app() {
   return <>
     <Header></Header><br></br>
     {CurrentState.PDFObj === null ? <>
-      <Card>
-        <h2>{Lang("Choose file")}</h2>
-        <div className="center" style={{ width: "100%" }}>
-          <DynamicImg id="laptop" width={200}></DynamicImg><br></br>
-        </div>
-        <i>{Lang("Don't worry. Everything will stay on your device.")}</i><br></br><br></br>
-        <button onClick={() => { // Get the PDF file
-          let input = document.createElement("input");
-          input.type = "file";
-          input.onchange = async () => {
-            input.files !== null && getNewState(input.files[0]);
-          }
-          input.click();
-        }}>{Lang("Choose file")}</button>
-      </Card>
+      <div className={!CurrentState.hideTab && !window.matchMedia('(display-mode: standalone)').matches ? "doubleFlex" : undefined}>
+        <Card>
+          <h2>{Lang("Choose file")}</h2>
+          <div className="center" style={{ width: "100%" }}>
+            <DynamicImg id="laptop" width={200}></DynamicImg><br></br>
+          </div>
+          <i>{Lang("Don't worry. Everything will stay on your device.")}</i><br></br><br></br>
+          <button onClick={() => { // Get the PDF file
+            let input = document.createElement("input");
+            input.type = "file";
+            input.onchange = () => {
+              input.files !== null && getNewState(input.files[0]);
+            }
+            input.click();
+          }}>{Lang("Choose file")}</button>
+        </Card>
+        {!CurrentState.hideTab && !window.matchMedia('(display-mode: standalone)').matches && <Card>
+          <h2>{Lang("Install as a web app")}</h2>
+          <div className="center" style={{ width: "100%" }}>
+            <DynamicImg id="app" width={200}></DynamicImg><br></br>
+          </div>
+          <i>{Lang("Install PDFPointer as an app for offline use and better integration with the OS.")}</i><br></br><br></br>
+          <button onClick={() => {
+            installationPrompt.prompt();
+            installationPrompt.userChoice.then((choice: { outcome: string }) => {
+              if (choice.outcome === "accepted") UpdateState(prevState => { return { ...prevState, hideTab: true } })
+            });
+          }}>{Lang("Install app")}</button>
+        </Card>}
+      </div>
     </> : <>
       <Card>
         <PdfObj pdfObj={CurrentState.PDFObj}></PdfObj>
@@ -61,4 +82,3 @@ function app() {
     }
   </>
 }
-export default app;

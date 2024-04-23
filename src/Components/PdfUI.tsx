@@ -297,7 +297,6 @@ export default function PDF({ pdfObj }: Props) {
                         return;
                     }
                 }
-                console.warn(action);
                 updatePage(prevState => {
                     let currentThumbnail = 0;
                     currentThumbnail = action === "thumbnail" ? (prevState.showThumbnail === 1 ? 2 : 1) : prevState.showThumbnail;
