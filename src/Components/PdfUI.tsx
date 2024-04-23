@@ -169,8 +169,10 @@ export default function PDF({ pdfObj }: Props) {
     }, [])
     let mouseDown: boolean | [number, number] = false; // It'll contain the x and y position of the mouse
     let currentCanvas: HTMLOrSVGImageElement | undefined;
-    let item = document.querySelector(".backgroundContent");
-    item && item.parentElement?.className !== "card" && document.querySelector(".card")?.append(item); // Move the background content to the "card" div if it's not already there, so that the background will be visible also in fullscreen mode (that is triggered only on the card div)
+    useEffect(() => {
+        let item = document.querySelector(".backgroundContent");
+        item && item.parentElement?.className !== "card" && document.querySelector(".card")?.append(item); // Move the background content to the "card" div if it's not already there, so that the background will be visible also in fullscreen mode (that is triggered only on the card div)
+    })
     function stopCanvasEditing() { // Stop mouse annotations, and start the erase timer
         mouseDown = false;
         if (currentCanvas !== undefined && !customModes.isEraserEnabled && !customModes.isTextEnabled) Annotations.end({ canvas: currentCanvas, disappear: userDrawingOptionsManager.timer })
