@@ -259,9 +259,7 @@ export default function PDF({ pdfObj }: Props) {
     }
     useEffect(() => {
         window.onkeyup = (e) => {
-            console.log(userBtnPressed);
             userBtnPressed.indexOf(e.key.toLowerCase()) !== -1 && userBtnPressed.splice(userBtnPressed.indexOf(e.key.toLowerCase()), 1);
-            console.log(userBtnPressed);
         }
         window.onkeydown = (e) => { // Add keyboard shortcuts
             if (document.activeElement?.tagName.toLowerCase() === "textarea" || document.activeElement?.tagName.toLowerCase() === "input" || document.activeElement?.tagName.toLowerCase() === "select" || document.activeElement?.getAttribute("data-nokeyboard") === "a") return; // Avoid processing keyboard shortcuts if the user is writing something

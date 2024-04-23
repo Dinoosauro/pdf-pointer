@@ -15,7 +15,6 @@ export default {
      */
     update: (id: string, force?: boolean) => {
         const item = map.get(id);
-        console.log(id, item);
         item && item(prevState => force ?? !prevState);
     }
 }
