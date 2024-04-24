@@ -8,6 +8,7 @@ const filestoCache = [
     './assets/index.css',
     './assets/index.js',
     './assets/path2d-polyfill.min.js',
+    'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js'
 ];
 let language = navigator.language || navigator.userLanguage;
 if (language.indexOf("it") !== -1) filestoCache.push('./translationItems/it.json')

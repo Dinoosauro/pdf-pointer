@@ -57,7 +57,7 @@ export default function CircularButton({ imgId, click, marginLeft, marginRight, 
         }}>
             <DynamicImg id={`${imgId}${enabled && isSelectable ? "_fill" : ""}`} width={32}></DynamicImg>
         </div>
-        {hint && <div className="dropdownOpen opacity opacityHover" style={{ position: "fixed", left: 0 }} ref={hintDiv}>
+        {hint && <div className="dropdownOpen opacity opacityHover noEvents" style={{ position: "fixed", left: 0 }} ref={hintDiv}>
             <label>{hint}</label>
         </div>}
     </div>

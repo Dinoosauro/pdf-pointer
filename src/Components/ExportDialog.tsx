@@ -17,14 +17,16 @@ let exportValue = {
 }
 
 interface Props {
-    pdfObj: PDFJS.PDFDocumentProxy
+    pdfObj?: PDFJS.PDFDocumentProxy,
+    imgObj?: HTMLImageElement
 }
 /**
  * Export the PDF as a group of images. This ReactNode contains the options for that exportation process.
  * @param pdfObj the PDF object that'll be used for exporting things
+ * @param imgObj the image where the annotations (or filters) will be drawn
  * @returns the Export dialog ReactNode
  */
-export default function ExportDialog({ pdfObj }: Props) {
+export default function ExportDialog({ pdfObj, imgObj }: Props) {
     let exportButton = useRef<HTMLButtonElement>(null);
 
     return <div>
@@ -33,12 +35,13 @@ export default function ExportDialog({ pdfObj }: Props) {
             <option value={"png"}>PNG</option>
             {document.createElement("canvas").toDataURL("image/webp").startsWith("data:image/webp") && <option value={"webp"}>WEBP</option>}
         </select> {Lang("format")}</label><br></br><br></br>
-        <label>{Lang("Write the number of pages to export:")}</label><br></br>
-        <i style={{ fontSize: "0.75em" }}>{Lang(`Separate pages with a comma, or add multiple pages with a dash: "1-5,7"`)}</i><br></br>
-        <input style={{ marginTop: "10px" }} type="text" defaultValue={exportValue.pages} onInput={(e) => {
-            exportValue.pages = (e.target as HTMLInputElement).value;
-            if (exportButton.current) exportButton.current.disabled = !/^[0-9,-]*$/.test(exportValue.pages);
-        }}></input><br></br><br></br>
+        {pdfObj && <>
+            <label>{Lang("Write the number of pages to export:")}</label><br></br>
+            <i style={{ fontSize: "0.75em" }}>{Lang(`Separate pages with a comma, or add multiple pages with a dash: "1-5,7"`)}</i><br></br>
+            <input style={{ marginTop: "10px" }} type="text" defaultValue={exportValue.pages} onInput={(e) => {
+                exportValue.pages = (e.target as HTMLInputElement).value;
+                if (exportButton.current) exportButton.current.disabled = !/^[0-9,-]*$/.test(exportValue.pages);
+            }}></input><br></br><br></br></>}
         <label>{Lang("Choose the size of the output image:")}</label><br></br>
         <input type="range" min={0.5} max={8} step={0.01} defaultValue={exportValue.scale} onChange={(e) => { exportValue.scale = parseFloat((e.target as HTMLInputElement).value) }}></input><br></br><br></br>
         <label>{Lang("Choose the quality of the output image:")}</label><br></br>
@@ -56,7 +59,7 @@ export default function ExportDialog({ pdfObj }: Props) {
         <button ref={exportButton} onClick={async () => {
             let handle;
             try { // If the user doesn't want to save the file as ZIP, and the File System API is supported, use the "showDirectoryPicker" method
-                handle = window.showDirectoryPicker !== undefined && !exportValue.zip ? await window.showDirectoryPicker({ mode: "readwrite", id: "PDFPointer-PDFExportFolder" }) : undefined;
+                handle = (exportValue.pages.indexOf("-") !== -1 || exportValue.pages.indexOf(",") !== -1) ? window.showDirectoryPicker !== undefined && !exportValue.zip ? await window.showDirectoryPicker({ mode: "readwrite", id: "PDFPointer-PDFExportFolder" }) : undefined : window.showSaveFilePicker !== undefined && !exportValue.zip ? await window.showSaveFilePicker({ id: "PDFPointer-PDFExportFolder", types: [{ "description": "The selected image", accept: { [`image/${exportValue.img}`]: [`.${exportValue.img === "jpeg" ? "jpg" : exportValue.img}`] } }] }) : undefined; // If there are no "," or "-" the item to download is only an image, therefore try to use the File System API for a single file. Otherwise, try to use the File System API for folders
             } catch (ex) {
                 console.warn({
                     type: "RejectedPicker",
@@ -65,7 +68,7 @@ export default function ExportDialog({ pdfObj }: Props) {
                     ex: ex
                 })
             }
-            ImageExport({ imgType: exportValue.img, pages: exportValue.pages, getAnnotations: exportValue.annotations, pdfObj: pdfObj, scale: exportValue.scale, useZip: exportValue.zip, quality: exportValue.quality, handle: handle, filter: exportValue.filter })
-        }}>{Lang("Export images")}</button>
+            ImageExport({ imgType: exportValue.img, pages: exportValue.pages, getAnnotations: exportValue.annotations, pdfObj: pdfObj, scale: exportValue.scale, useZip: exportValue.zip, quality: exportValue.quality, handle: handle, filter: exportValue.filter, imgObj: imgObj })
+        }}>{Lang("Export image(s)")}</button>
     </div>
 }

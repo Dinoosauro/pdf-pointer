@@ -1,7 +1,7 @@
 # pdf-pointer
 
-Display PDFs with a pointer, make quick annotations (that automatically
-disappear), zoom them, and export everything as an image Try it:
+Display PDFs (or images) with a pointer, make quick annotations (that
+automatically disappear), zoom them, and export everything as an image Try it:
 https://dinoosauro.github.io/pdf-pointer/
 
 ![An example of PDFPointer](./readme-images/example.jpg)
@@ -207,4 +207,5 @@ be able to use the website completely offline.
 
 Your PDFs stays always on your device. The only external connections made by
 PDFPointer are to Google Fonts' servers (and YouTube if you enable a YouTube
-video for background content), but no data is shared with them.
+video for background content) and to JSDelivr to download a library (heic2any)
+if HEIC decoding is necessary, but no data is shared with them.

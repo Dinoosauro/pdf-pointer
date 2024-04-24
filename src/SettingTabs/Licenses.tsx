@@ -12,7 +12,7 @@ declare global {
 }
 export default function Licenses() {
     let [state, updateState] = useState("React");
-    const licenses = [{ name: "React", author: "Meta Platforms, Inc. and affiliates.", type: "mit" }, { name: "PDF.JS", type: "apache" }, { name: "jszip", type: "mit", author: "2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso" }, { name: "PDFPointer", author: "Dinoosauro", type: "mit" }];
+    const licenses = [{ name: "React", author: "Meta Platforms, Inc. and affiliates.", type: "mit" }, { name: "PDF.JS", type: "apache" }, { name: "jszip", type: "mit", author: "2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso" }, { name: "heic2any", author: "2020 Alex Corvi", type: "mit" }, { name: "PDFPointer", author: "Dinoosauro", type: "mit" }];
     return <>
         <h3>{Lang("Licenses")}</h3>
         <h4><a href="https://github.com/Dinoosauro/pdf-pointer" target="_blank">PDFPointer — {appVersion}</a></h4>

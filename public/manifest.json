@@ -17,7 +17,28 @@
     {
       "action": "./",
       "accept": {
-        "application/pdf": [".pdf"]
+        "application/pdf": [".pdf"],
+        "image/jpeg": [
+          ".jpg",
+          ".jpeg",
+          ".jfif",
+          ".pjpeg",
+          ".pjp",
+          ".heic",
+          ".heif",
+          ".heifs",
+          ".heics"
+        ],
+        "image/png": [".png"],
+        "image/gif": [".gif"],
+        "image/webp": [".webp"],
+        "image/avif": [".avif"],
+        "image/apng": [".apng"],
+        "image/bmp": [".bmp"],
+        "image/x-icon": [".ico", ".cur"],
+        "image/tiff": [".tiff", ".tif"],
+        "image/heic": [".heif", ".heifs", ".heic", ".heics"],
+        "image/heif": [".heif", ".heifs", ".heic", ".heics"]
       }
     }
   ]
