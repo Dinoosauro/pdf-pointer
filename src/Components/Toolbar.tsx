@@ -17,7 +17,8 @@ interface Props {
     pageSettings: any,
     updatePage: React.Dispatch<SetStateAction<PdfUIState>>,
     settingsCallback?: (e: OptionUpdater) => void,
-    pdfObj: PDFJS.PDFDocumentProxy,
+    pdfObj?: PDFJS.PDFDocumentProxy,
+    imgObj?: HTMLImageElement
     requestedTab?: string
 }
 interface DirectoryPicker {
@@ -36,11 +37,12 @@ declare global {
  * @param updatePage the function to update the "useState" of PdfUI
  * @param settingsCallback send a message back to the function, used when the user changes a value from the toolbar,
  * @param pdfObj the PDF document
+ * @param imgObj the image that replaces the PDF document
  * @param requestedTab the ID of the Card that will be showj
  * @returns 
  */
 let stateReflect = "hello"
-export default function Toolbar({ pageSettings, updatePage, settingsCallback, pdfObj, requestedTab }: Props) {
+export default function Toolbar({ pageSettings, updatePage, settingsCallback, pdfObj, requestedTab, imgObj }: Props) {
     let [CardShown, UpdateState] = useState("hello");
     stateReflect = CardShown;
     useEffect(() => {
@@ -107,14 +109,14 @@ export default function Toolbar({ pageSettings, updatePage, settingsCallback, pd
                         <CircularButton hint={Lang("Change cursor size")} imgId="size"></CircularButton>
                     </DropdownItem>
                 </> : <>
-                    <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage(prevState => { return { ...prevState, page: prevState.page - 1 } }) }}></CircularButton>
+                    {pdfObj && <CircularButton hint={Lang("Previous page")} imgId="prev" click={() => { if (pageSettings.page !== 1) updatePage(prevState => { return { ...prevState, page: prevState.page - 1 } }) }}></CircularButton>}
                     <CircularButton hint={Lang("Reduce zoom")} marginRight={30} imgId="zoomout" click={() => { updatePage(prevState => { return { ...prevState, scale: prevState.scale /= 1.2 } }) }}></CircularButton>
-                    <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" btnIdentifier="thumbnail" enabledSwitch={true} click={() => { updatePage(prevState => { return { ...prevState, showThumbnail: prevState.showThumbnail !== 1 ? 1 : 2 } }) }}></CircularButton>
+                    {pdfObj && <CircularButton hint={Lang("Show page(s) preview")} imgId="numbersquare" btnIdentifier="thumbnail" enabledSwitch={true} click={() => { updatePage(prevState => { return { ...prevState, showThumbnail: prevState.showThumbnail !== 1 ? 1 : 2 } }) }}></CircularButton>}
                     {usefulBtn.pen}
                     {usefulBtn.circle}
                     {usefulBtn.eraser}
                     {usefulBtn.text}
-                    <CircularButton hint={`${document.fullscreenElement ? "Exit from" : "Go in"} fullscreen mode`} imgId={document.fullscreenElement ? "fullscreenminimize" : "fullscreenmaximize"} click={CircularButtonsFunctions.fullscreen}></CircularButton>
+                    <CircularButton hint={Lang(`${document.fullscreenElement ? "Exit from" : "Go in"} fullscreen mode`)} imgId={document.fullscreenElement ? "fullscreenminimize" : "fullscreenmaximize"} click={CircularButtonsFunctions.fullscreen}></CircularButton>
                     <DropdownItem title={Lang("PDF Filters:")} content={<>
                         <h4>{Lang("Negative filter:")}</h4>
                         <input data-tempstorage="negativeFilter" type="range" min={0} max={1} defaultValue={0} step={0.01} onChange={(e) => { if (settingsCallback) settingsCallback({ interface: "NegativeFilter", value: (e.target as HTMLInputElement).value }) }}></input>
@@ -127,12 +129,12 @@ export default function Toolbar({ pageSettings, updatePage, settingsCallback, pd
                     </>}>
                         <CircularButton hint={Lang("Add a filter to the PDF")} imgId="photofilter"></CircularButton>
                     </DropdownItem>
-                    <DropdownItem disableAutoDisappear={true} content={<ExportDialog pdfObj={pdfObj}></ExportDialog>} title={Lang("Export as Image")}>
+                    <DropdownItem disableAutoDisappear={true} content={<ExportDialog pdfObj={pdfObj} imgObj={imgObj}></ExportDialog>} title={Lang("Export as Image")}>
                         <CircularButton hint={Lang("Save PDF as an image")} imgId="saveimg"></CircularButton>
                     </DropdownItem>
                     <CircularButton hint={Lang("Show settings")} imgId="settings" click={() => CircularButtonsFunctions.settings(updatePage)}></CircularButton>
                     <CircularButton hint={Lang("Increase zoom")} marginLeft={30} imgId="zoomin" click={() => { updatePage(prevState => { return { ...prevState, scale: prevState.scale *= 1.2 } }) }}></CircularButton>
-                    <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage(prevState => { return { ...prevState, page: prevState.page + 1 } }) }}></CircularButton>
+                    {pdfObj && <CircularButton hint={Lang("Next page")} imgId="next" click={() => { if (pdfObj.numPages > pageSettings.page) updatePage(prevState => { return { ...prevState, page: prevState.page + 1 } }) }}></CircularButton>}
                 </>
                 }
             </div>

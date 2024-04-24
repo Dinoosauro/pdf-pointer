@@ -438,7 +438,7 @@ a:visited {
 
 .opacityHover {
   opacity: 0;
-  margin-top: 25px
+  margin-top: 25px;
 }
 
 
@@ -527,4 +527,10 @@ a:visited {
 .doubleFlex>div {
   flex: 1 0 300px;
   margin: 0px 10px;
+}
+
+.drag {
+  border: 2px dashed var(--text);
+  border-radius: 8px;
+  transition: border 0.25s;
 }

@@ -13,7 +13,8 @@ import Dialog from "./Dialog";
 import Lang from "../Scripts/LanguageTranslations";
 import ExportDialog from "./ExportDialog";
 interface Props {
-    pdfObj: PDFJS.PDFDocumentProxy
+    pdfObj?: PDFJS.PDFDocumentProxy,
+    imgObj?: HTMLImageElement
 }
 interface Ref {
     mainCanvas: HTMLCanvasElement | null, // The canvas where the PDF will be drawn
@@ -92,7 +93,7 @@ function getTextAttributes() { // A function that will return the styles of the 
  * @param pdfObj the PDF.JS Object
  * @returns the PDF Main UI ReactNode
  */
-export default function PDF({ pdfObj }: Props) {
+export default function PDF({ pdfObj, imgObj }: Props) {
     /**
      *  @var mainCanvas The canvas where the PDF will be drawn
      *  @var centerDiv The div that'll center the canvas on the card
@@ -111,26 +112,58 @@ export default function PDF({ pdfObj }: Props) {
         div.classList.add("simpleFixed", "simpleCenter", "noEvents");
         document.body.append(div);
         (async () => {
-            if (canvasRef.current && canvasRef.current.centerDiv) {
-                isCanvasWorking = true; // Avoid multiple PDF operations
-                const canvas = canvasRef.current.mainCanvas as unknown as HTMLCanvasElement;
-                // Render the PDF
-                const pdfPage = await pdfObj.getPage(pageSettings.page);
-                const outputScale = window.devicePixelRatio || 1;
-                const viewport = pdfPage.getViewport({ scale: pageSettings.isFullscreenChange ? window.innerHeight / pdfPage.getViewport({ scale: 1 }).height * pageSettings.scale : pageSettings.scale }); // If it's in fullscreen mode, the 100% zoom must fill the window height
-                canvas.width = Math.floor(viewport.width * outputScale);
-                canvas.height = Math.floor(viewport.height * outputScale);
-                canvasRef.current.centerDiv.style.justifyContent = viewport.width > canvasRef.current.centerDiv.getBoundingClientRect().width ? "left" : "center"; // Make "justifyContent" left so that content isn't trimmed
-                canvas.style.width = Math.floor(viewport.width) + "px";
-                canvas.style.height = Math.floor(viewport.height) + "px";
+            /**
+             * Scale all the drawing canvases so that they have the same width/height of the PDF/Image canvas
+             * @param width the new width of the canvas
+             */
+            function adaptDrawCanvas(width: number) {
+                if (!canvasRef.current.centerDiv) return;
                 for (let annotation of Annotations.get({ page: 1, returnEverything: true })) annotation[0].style.display = annotation[1] === pageSettings.page ? "block" : "none"; // Show only the annotations of the page. Note that the "page" key will be ignored, and any value would be okay.
                 for (let dom of document.querySelectorAll(".hoverCanvas")) { // Fix multiple canvas on top of another
                     let newCanvas = dom as SVGSVGElement;
                     newCanvas.style.transformOrigin = "top-left";
-                    if (dom.getAttribute("data-noresize") === null) newCanvas.style.transform = `scale(${Math.floor(viewport.width) / parseInt(newCanvas.getAttribute("width") ?? "1")})`;
-                    if (canvasRef.current.mainCanvas) newCanvas.style.left = canvasRef.current.centerDiv.style.justifyContent === "center" ? `${(canvasRef.current.centerDiv.getBoundingClientRect().width - canvas.getBoundingClientRect().width) / 2}px` : "0px";
+                    if (dom.getAttribute("data-noresize") === null) newCanvas.style.transform = `scale(${Math.floor(width) / parseInt(newCanvas.getAttribute("width") ?? "1")})`;
+                    if (canvasRef.current.mainCanvas) newCanvas.style.left = canvasRef.current.centerDiv.style.justifyContent === "center" ? `${(canvasRef.current.centerDiv.getBoundingClientRect().width - canvasRef.current.mainCanvas.getBoundingClientRect().width) / 2}px` : "0px";
                 }
-                const context = canvas.getContext("2d");
+            }
+            if (canvasRef.current && canvasRef.current.centerDiv && canvasRef.current.mainCanvas) {
+                /**
+                 * Change the canvas width/height, by keeping in mind high-density displays. If possible, content is also centered
+                 * @param width the desired width
+                 * @param height the desired height
+                 */
+                function adaptCanvasSize(width: number, height: number) {
+                    if (!canvasRef.current.mainCanvas || !canvasRef.current.centerDiv) return;
+                    canvasRef.current.mainCanvas.width = Math.floor(width * outputScale);
+                    canvasRef.current.mainCanvas.height = Math.floor(height * outputScale);
+                    canvasRef.current.centerDiv.style.justifyContent = width > canvasRef.current.centerDiv.getBoundingClientRect().width ? "left" : "center"; // Make "justifyContent" left so that content isn't trimmed
+                    canvasRef.current.mainCanvas.style.width = Math.floor(width) + "px";
+                    canvasRef.current.mainCanvas.style.height = Math.floor(height) + "px";
+                }
+                const outputScale = window.devicePixelRatio || 1;
+                /**
+                 * Get the scale of the new item
+                 * @param height the standard height of the resource
+                 * @returns a number with the scale to apply
+                 */
+                const getScale = (height: number) => pageSettings.isFullscreenChange ? window.innerHeight / height * pageSettings.scale : pageSettings.scale;
+                if (!pdfObj) { // The provided content should be an image
+                    if (imgObj) { // Add a dobule check, so that, even if this wasn't the case for some strange reason, the script will return nothing.
+                        adaptCanvasSize(imgObj.width * getScale(imgObj.height), imgObj.height * getScale(imgObj.height));
+                        adaptDrawCanvas(imgObj.width * getScale(imgObj.height));
+                        const context = canvasRef.current.mainCanvas.getContext("2d");
+                        context && context.drawImage(imgObj, 0, 0, context.canvas.width, context.canvas.height);
+                    }
+                    div.remove();
+                    return;
+                }
+                isCanvasWorking = true; // Avoid multiple PDF operations
+                // Render the PDF
+                const pdfPage = await pdfObj.getPage(pageSettings.page);
+                const viewport = pdfPage.getViewport({ scale: getScale(pdfPage.getViewport({ scale: 1 }).height) }); // If it's in fullscreen mode, the 100% zoom must fill the window height
+                adaptCanvasSize(viewport.width, viewport.height);
+                adaptDrawCanvas(viewport.width);
+                const context = canvasRef.current.mainCanvas.getContext("2d");
                 if (context !== null) {
                     let render = pdfPage.render({
                         canvasContext: context,
@@ -291,7 +324,7 @@ export default function PDF({ pdfObj }: Props) {
                         let div = document.createElement("div");
                         createRoot(div).render(<Dialog>
                             <h2>{Lang("Save PDF as an image:")}</h2>
-                            <ExportDialog pdfObj={pdfObj}></ExportDialog>
+                            <ExportDialog imgObj={imgObj} pdfObj={pdfObj}></ExportDialog>
                         </Dialog>);
                         document.body.append(div);
                         return;
@@ -301,7 +334,7 @@ export default function PDF({ pdfObj }: Props) {
                     let currentThumbnail = 0;
                     currentThumbnail = action === "thumbnail" ? (prevState.showThumbnail === 1 ? 2 : 1) : prevState.showThumbnail;
                     setTimeout(() => action === "thumbnail" && RerenderButtons.update("thumbnail", currentThumbnail === 1), 150); // Avoid errors for rendering two states at the same time
-                    return { ...prevState, page: action === "prevpage" && prevState.page !== 1 ? prevState.page -= 1 : action === "nextpage" && pdfObj.numPages > prevState.page ? prevState.page += 1 : prevState.page, scale: action === "zoomin" ? prevState.scale *= 1.2 : action === "zoomout" ? prevState.scale /= 1.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart, showThumbnail: currentThumbnail }
+                    return { ...prevState, page: action === "prevpage" && prevState.page !== 1 ? prevState.page -= 1 : action === "nextpage" && (pdfObj?.numPages ?? -1) > prevState.page ? prevState.page += 1 : prevState.page, scale: action === "zoomin" ? prevState.scale *= 1.2 : action === "zoomout" ? prevState.scale /= 1.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart, showThumbnail: currentThumbnail }
                 });
                 if (action === "text" || action === "pointer" || action === "pen" || action === "erase") {
                     if ((action === "text" || action === "pointer")) customModes.isPenEnabled = false; // Disable pen mode for pointer and text editing
@@ -317,7 +350,7 @@ export default function PDF({ pdfObj }: Props) {
         }
     }, [])
     return <>
-        <Toolbar requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} settingsCallback={(e: OptionUpdater) => {
+        <Toolbar imgObj={imgObj} requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} settingsCallback={(e: OptionUpdater) => {
             /**
                 The following map includes all the events that will update user values. 
                     @var "isUtils" means that the "customModes" object will updated;
@@ -421,7 +454,7 @@ export default function PDF({ pdfObj }: Props) {
             </div>
         </div >
         <div ref={el => (canvasRef.current.thumbnailDiv = el)}>
-            {pageSettings.showThumbnail !== 0 && <Thumbnail closeEvent={() => { RerenderButtons.update("thumbnail", false); updatePage(prevState => { return { ...prevState, showThumbnail: 2 } }) }} PDFObj={pdfObj} pageListener={(e) => { updatePage(prevState => { return { ...prevState, page: e + 1 } }) }}></Thumbnail>}
+            {pageSettings.showThumbnail !== 0 && pdfObj && <Thumbnail closeEvent={() => { RerenderButtons.update("thumbnail", false); updatePage(prevState => { return { ...prevState, showThumbnail: 2 } }) }} PDFObj={pdfObj} pageListener={(e) => { updatePage(prevState => { return { ...prevState, page: e + 1 } }) }}></Thumbnail>}
         </div>
     </>
 }

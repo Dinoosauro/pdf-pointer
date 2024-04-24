@@ -75,7 +75,7 @@ let references = new Map<string, string>([
     ["Erase annotation timer", "eraseAnnotationTimer"],
     ["Change pen size", "changePenSize"],
     ["Change pen opacity", "changePenOpacity"],
-    ["Change pen color", "chnagePenColor"],
+    ["Change pen color", "changePenColor"],
     ["Make text bold", "boldHint"],
     ["Make text italic", "italicHint"],
     ["Make text underlined", "underlineHint"],
@@ -121,7 +121,9 @@ let references = new Map<string, string>([
     ["Go to previous page", "goPrevPage"],
     ["Export as an image", "exportImg"],
     ["Install as a web app", "webAppInstall"],
-    ["Install PDFPointer as an app for offline use and better integration with the OS.", "webAppInstallDesc"]
+    ["Install PDFPointer as an app for offline use and better integration with the OS.", "webAppInstallDesc"],
+    ["You can also drop files here.", "dropFilesHere"],
+    ["Moreover, you can also open the files from the native file picker (Open With -> PDFPointer)", "openNativePicker"]
 ])
 let dictionaries = {
     it: new Map<string, string>([
@@ -242,7 +244,9 @@ let dictionaries = {
         ["goPrevPage", "Vai alla pagina precedente"],
         ["exportImg", "Esporta come immagine"],
         ["webAppInstall", "Installa come applicazione web"],
-        ["webAppInstallDesc", "Installa PDFPointer come applicazione per l'utilizzo offline ed una integrazione migliore col sistema operativo."]
+        ["webAppInstallDesc", "Installa PDFPointer come applicazione per l'utilizzo offline ed una integrazione migliore col sistema operativo."],
+        ["dropFilesHere", "Puoi anche rilasciare i file qui."],
+        ["openNativePicker", "Inoltre, puoi anche aprire i file dal file picker nativo (Apri con -> PDFPointer)"]
     ])
 }
 /**
