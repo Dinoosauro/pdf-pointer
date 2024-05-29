@@ -11,7 +11,6 @@ interface Props {
     backdropColor?: boolean,
     defaultValueRef?: keyof DrawingStoredOptions
 }
-let clientX = 0;
 /**
  * 
  * @param children the content that'll be always shown,
@@ -28,6 +27,7 @@ export default function DropdownItem({ children, content, title, disableAutoDisa
     /**
      * Hide the dropdown content with an opacity transition
      */
+    let clientX = useRef<number>(0);
     async function disappear() {
         if (ref) {
             if (ref.current) ref.current.style.opacity = "0";
@@ -49,10 +49,10 @@ export default function DropdownItem({ children, content, title, disableAutoDisa
     return <>
         <span>
             <span onClick={(e) => { // Show (or hide) the dropdown item (the button is clicked)
-                clientX = e.clientX;
+                clientX.current = e.clientX;
                 UpdateDropdown(!ShowDropdown)
             }}>{children}</span>
-            {ShowDropdown && <div style={{ backgroundColor: backdropColor ? "var(--firststruct)" : "", position: "fixed", left: clientX + (window.innerWidth * 45 / 100) < window.innerWidth ? `${clientX}px` : undefined, right: clientX + (window.innerWidth * 45 / 100) > window.innerWidth ? `${window.innerWidth - clientX - 10}px` : undefined }} className="dropdownOpen opacity" ref={ref}><h3>{title}</h3><div onClick={async () => {
+            {ShowDropdown && <div style={{ backgroundColor: backdropColor ? "var(--firststruct)" : "", position: "fixed", left: clientX.current + (window.innerWidth * 45 / 100) < window.innerWidth ? `${clientX.current}px` : undefined, right: clientX.current + (window.innerWidth * 45 / 100) > window.innerWidth ? `${window.innerWidth - clientX.current - 10}px` : undefined }} className="dropdownOpen opacity" ref={ref}><h3>{title}</h3><div onClick={async () => {
                 if (!disableAutoDisappear) await disappear();
             }}>
                 <div style={{ position: "absolute", top: 15, right: 15 }} className="simplePointer" onClick={disappear}><DynamicImg id="minimize"></DynamicImg></div>

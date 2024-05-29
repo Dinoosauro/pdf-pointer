@@ -163,6 +163,7 @@ h3 {
   border-radius: 16px;
   width: 30vw;
   z-index: 999992;
+  -webkit-backdrop-filter: blur(16px) brightness(50%);
   backdrop-filter: blur(16px) brightness(50%);
 }
 

@@ -41,14 +41,13 @@ declare global {
  * @param requestedTab the ID of the Card that will be showj
  * @returns 
  */
-let stateReflect = "hello"
 export default function Toolbar({ pageSettings, updatePage, settingsCallback, pdfObj, requestedTab, imgObj }: Props) {
     let [CardShown, UpdateState] = useState("hello");
-    stateReflect = CardShown;
+    let stateReflect = useRef<string>(CardShown);
     useEffect(() => {
         if (!requestedTab) return;
         const newTab = requestedTab.substring(0, requestedTab.indexOf(","));
-        UpdateState(stateReflect === newTab ? "hello" : newTab);
+        UpdateState(stateReflect.current === newTab ? "hello" : newTab);
     }, [requestedTab])
     const usefulBtn = { // NOTE: Always add the key attribute. Otherwise React, when exiting from the custom Card mode, will trigger the animation on the first element, causing UI issues.
         pen: <CircularButton btnIdentifier="pen" key={`KeyPenBtn`} hint={Lang("Show pen settings and enable annotations")} enabledSwitch={true} imgId="pen" dropdownCallback={() => { if (settingsCallback) settingsCallback({ interface: "ChangedPenStatus", value: "" }); requestedTab = undefined; UpdateState(CardShown === "pen" ? "hello" : "pen"); }}></CircularButton>,

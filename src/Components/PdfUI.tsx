@@ -30,65 +30,6 @@ interface MouseMove {
     clientY: number
 }
 /**
- * If true, a PDF operation is in progress, and therefore further requests must be dropped
- */
-let isCanvasWorking = false;
-/**
- * The initial zIndex for the canvas
- */
-let zIndex = 2;
-/**
- * A string that'll contain details about the PDF page and zoom. This will be compared so that the app will know if it's time to re-render the canvas or not.
- */
-let currentPdfShow = "";
-let userDrawingOptionsManager: DrawingStoredOptions = {
-    timer: 15000,
-    size: 5,
-    cursorColor: getComputedStyle(document.body).getPropertyValue("--accent"),
-    cursorSize: 40,
-    penColor: getComputedStyle(document.body).getPropertyValue("--accent"),
-    textSize: 25,
-    textFont: "Work Sans",
-    textLineSpace: 1.2,
-    textStrikeLineWidth: 4,
-    penOpacity: 1
-}
-let tempUserDrawingOptions = {
-    isBold: false,
-    isItalic: false,
-    isUnderlined: false,
-    isStriked: false,
-    negativeFilter: 0,
-    hueInversionFilter: 0,
-    sepiaFilter: 0,
-    grayscaleFilter: 0
-}
-/**
- * The keyboard items that the user has pressed, but not released
- */
-let userBtnPressed: string[] = [];
-try { // Update the persistent drawing options
-    let parse = JSON.parse(localStorage.getItem("PDFPointer-UserAnnotationSettings") ?? "");
-    // @ts-ignore
-    for (let key in parse) if (userDrawingOptionsManager[key] !== undefined && typeof userDrawingOptionsManager[key] === typeof parse[key]) userDrawingOptionsManager[key] = parse[key]; // Keep only the key that are of the same type
-} catch (ex) {
-    console.warn({
-        type: "FirstUser",
-        desc: "No previous drawing options found",
-        gravity: -1,
-        ex: ex
-    })
-}
-let customModes = {
-    isEraserEnabled: false,
-    isPenEnabled: false,
-    isTextEnabled: false,
-    isTextInCreation: false
-}
-function getTextAttributes() { // A function that will return the styles of the text tool, so that they must not be added each time.
-    return { color: userDrawingOptionsManager.penColor, size: userDrawingOptionsManager.textSize, font: userDrawingOptionsManager.textFont, style: { lineSpacing: userDrawingOptionsManager.textLineSpace, ...tempUserDrawingOptions, lineHeight: userDrawingOptionsManager.textStrikeLineWidth } }
-}
-/**
  * The PDF main UI
  * @param pdfObj the PDF.JS Object
  * @returns the PDF Main UI ReactNode
@@ -104,8 +45,74 @@ export default function PDF({ pdfObj, imgObj }: Props) {
      */
     let canvasRef = useRef<Ref>({ mainCanvas: null, centerDiv: null, hoverCanvas: null, toolbar: null, circleCanvas: null, thumbnailDiv: null });
     let [pageSettings, updatePage] = useState<PdfUIState>({ page: 1, scale: 1, showThumbnail: 0, isFullscreenChange: document.fullscreenElement, langUpdate: 0, requestedTabPart: "hello" });
+    let customModes = useRef({
+        isEraserEnabled: false,
+        isPenEnabled: false,
+        isTextEnabled: false,
+        isTextInCreation: false
+    });
+    /**
+    * If true, a PDF operation is in progress, and therefore further requests must be dropped
+    */
+    let isCanvasWorking = useRef<boolean>(false);
+    /**
+    * The initial zIndex for the canvas
+    */
+    let zIndex = useRef<number>(2);
+    /**
+    * A string that'll contain details about the PDF page and zoom. This will be compared so that the app will know if it's time to re-render the canvas or not.
+     */
+    let currentPdfShow = useRef<string>("");
+    let userDrawingOptionsManager = useRef<DrawingStoredOptions>((() => {
+        let obj: DrawingStoredOptions = {
+            timer: 15000,
+            size: 5,
+            cursorColor: getComputedStyle(document.body).getPropertyValue("--accent"),
+            cursorSize: 40,
+            penColor: getComputedStyle(document.body).getPropertyValue("--accent"),
+            textSize: 25,
+            textFont: "Work Sans",
+            textLineSpace: 1.2,
+            textStrikeLineWidth: 4,
+            penOpacity: 1
+
+        }
+        try {
+            let parse = JSON.parse(localStorage.getItem("PDFPointer-UserAnnotationSettings") ?? ""); // Update the persistent drawing options 
+            // @ts-ignore
+            for (let key in parse) if (obj[key] !== undefined && typeof obj[key] === typeof parse[key]) obj[key] = parse[key]; // Keep only the key that are of the same type
+        } catch (ex) {
+            console.warn({
+                type: "FirstUser",
+                desc: "No previous drawing options found",
+                gravity: -1,
+                ex: ex
+            })
+        }
+
+        return obj;
+    })())
+    let tempUserDrawingOptions = useRef({
+        isBold: false,
+        isItalic: false,
+        isUnderlined: false,
+        isStriked: false,
+        negativeFilter: 0,
+        hueInversionFilter: 0,
+        sepiaFilter: 0,
+        grayscaleFilter: 0
+
+    })
+    /**
+     * The keyboard items that the user has pressed, but not released
+     */
+    let userBtnPressed = useRef<string[]>([]);
+    function getTextAttributes() { // A function that will return the styles of the text tool, so that they must not be added each time.
+        return { color: userDrawingOptionsManager.current.penColor, size: userDrawingOptionsManager.current.textSize, font: userDrawingOptionsManager.current.textFont, style: { lineSpacing: userDrawingOptionsManager.current.textLineSpace, ...tempUserDrawingOptions.current, lineHeight: userDrawingOptionsManager.current.textStrikeLineWidth } }
+    }
+
     useEffect(() => {
-        if (isCanvasWorking || currentPdfShow === `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`) return;
+        if (isCanvasWorking.current || currentPdfShow.current === `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`) return;
         // Create a spinner for loading info
         const div = document.createElement("div");
         createRoot(div).render(<div className="spinner" style={{ width: window.innerWidth > window.innerHeight ? "30vh" : "30vw", height: window.innerWidth > window.innerHeight ? "30vh" : "30vw" }}></div>)
@@ -157,7 +164,7 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                     div.remove();
                     return;
                 }
-                isCanvasWorking = true; // Avoid multiple PDF operations
+                isCanvasWorking.current = true; // Avoid multiple PDF operations
                 // Render the PDF
                 const pdfPage = await pdfObj.getPage(pageSettings.page);
                 const viewport = pdfPage.getViewport({ scale: getScale(pdfPage.getViewport({ scale: 1 }).height) }); // If it's in fullscreen mode, the 100% zoom must fill the window height
@@ -171,8 +178,8 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                         transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined
                     });
                     await render.promise;
-                    currentPdfShow = `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`;
-                    isCanvasWorking = false;
+                    currentPdfShow.current = `${pageSettings.page}-${pageSettings.scale}-${pageSettings.isFullscreenChange}`;
+                    isCanvasWorking.current = false;
                 }
             }
             div.remove();
@@ -208,7 +215,7 @@ export default function PDF({ pdfObj, imgObj }: Props) {
     })
     function stopCanvasEditing() { // Stop mouse annotations, and start the erase timer
         mouseDown = false;
-        if (currentCanvas !== undefined && !customModes.isEraserEnabled && !customModes.isTextEnabled) Annotations.end({ canvas: currentCanvas, disappear: userDrawingOptionsManager.timer })
+        if (currentCanvas !== undefined && !customModes.current.isEraserEnabled && !customModes.current.isTextEnabled) Annotations.end({ canvas: currentCanvas, disappear: userDrawingOptionsManager.current.timer })
     }
     useEffect((() => {
         let getContainer = document.querySelector(".thumbnailContainer");
@@ -221,20 +228,16 @@ export default function PDF({ pdfObj, imgObj }: Props) {
      * Create a new SVG element (that was previously a canvas. I know, lots of things here needs to be renamed.)
      */
     function createCanvas() {
-        if (isCanvasWorking || customModes.isEraserEnabled) return;
-        if (canvasRef.current.mainCanvas !== null) currentCanvas = Annotations.adapt(Annotations.create({ zIndex: zIndex, page: pageSettings.page }), canvasRef.current.mainCanvas) as HTMLOrSVGImageElement; // Create a new SVG element, and make it the same width/height as of the current canvas
-        zIndex++;
+        if (isCanvasWorking.current || customModes.current.isEraserEnabled) return;
+        if (canvasRef.current.mainCanvas !== null) currentCanvas = Annotations.adapt(Annotations.create({ zIndex: zIndex.current, page: pageSettings.page }), canvasRef.current.mainCanvas) as HTMLOrSVGImageElement; // Create a new SVG element, and make it the same width/height as of the current canvas
+        zIndex.current++;
         if (canvasRef.current.centerDiv !== null && currentCanvas !== undefined) canvasRef.current.centerDiv.append(currentCanvas);
     }
     /**
      * Send to the Annotation script a request to change the style of the text (that'll be automatically fetched)
      */
     function triggerTextChange() {
-        if (customModes.isTextInCreation && currentCanvas) Annotations.write({ canvas: currentCanvas, ...getTextAttributes() });
-    }
-    if (pageSettings.showThumbnail !== 0 && !document.fullscreenElement) { // Fixes for WebKit: append the container to the body, and then, when it must be deleted, append it to its previous place (the thumbnailDiv)
-        let container = document.querySelector(".thumbnailContainer");
-        if (container && canvasRef.current.thumbnailDiv) pageSettings.showThumbnail !== 2 ? document.body.append(container) : canvasRef.current.thumbnailDiv.append(container);
+        if (customModes.current.isTextInCreation && currentCanvas) Annotations.write({ canvas: currentCanvas, ...getTextAttributes() });
     }
     /**
      * The event triggered when the mouse is moved, so that it can be called also for touch events
@@ -245,10 +248,10 @@ export default function PDF({ pdfObj, imgObj }: Props) {
         mouseDown = [(e.clientX - (currentCanvas ?? target).getBoundingClientRect().left) * (window.devicePixelRatio || 1), (e.clientY - (currentCanvas ?? target).getBoundingClientRect().top) * (window.devicePixelRatio || 1)]; // Calculate the relative X and Y positions 
         let targetDown = [(e.clientX - target.getBoundingClientRect().left) * (window.devicePixelRatio || 1), (e.clientY - target.getBoundingClientRect().top) * (window.devicePixelRatio || 1)]; // Used for the eraser
         if (canvasRef.current.circleCanvas) { // Move the circle div
-            canvasRef.current.circleCanvas.style.top = `${e.clientY - (userDrawingOptionsManager.cursorSize / 2)}px`;
-            canvasRef.current.circleCanvas.style.left = `${e.clientX - (userDrawingOptionsManager.cursorSize / 2)}px`;
+            canvasRef.current.circleCanvas.style.top = `${e.clientY - (userDrawingOptionsManager.current.cursorSize / 2)}px`;
+            canvasRef.current.circleCanvas.style.left = `${e.clientX - (userDrawingOptionsManager.current.cursorSize / 2)}px`;
         }
-        if (customModes.isEraserEnabled && mouseDown) { // Look for items to delete
+        if (customModes.current.isEraserEnabled && mouseDown) { // Look for items to delete
             for (let svg of document.querySelectorAll(".hoverCanvas:not([data-noresize])")) {
                 // Basically, the data-x and data-y attributes are calculated by [real canvas width or height / 10]. In this way, it does not require real precision
                 if (svg.querySelector(`[data-x='${Math.floor(targetDown[0] / (window.devicePixelRatio || 1) / 10 * (parseInt(svg.getAttribute("width") ?? "1") / parseInt(canvasRef.current.mainCanvas?.style.width.replace("px", "") ?? "1")))}']`) !== null && svg.querySelector(`[data-y='${Math.floor(targetDown[1] / (window.devicePixelRatio || 1) / 10 * (parseInt(svg.getAttribute("width") ?? "1") / parseInt(canvasRef.current.mainCanvas?.style.width.replace("px", "") ?? "1")))}']`) !== null) {
@@ -261,14 +264,14 @@ export default function PDF({ pdfObj, imgObj }: Props) {
             }
             return;
         }
-        if (!mouseDown || currentCanvas === undefined || !customModes.isPenEnabled || customModes.isTextEnabled) return; // No appropriate operations are being done
-        Annotations.move({ canvas: currentCanvas, move: mouseDown, size: userDrawingOptionsManager.size, color: userDrawingOptionsManager.penColor, opacity: userDrawingOptionsManager.penOpacity });
+        if (!mouseDown || currentCanvas === undefined || !customModes.current.isPenEnabled || customModes.current.isTextEnabled) return; // No appropriate operations are being done
+        Annotations.move({ canvas: currentCanvas, move: mouseDown, size: userDrawingOptionsManager.current.size, color: userDrawingOptionsManager.current.penColor, opacity: userDrawingOptionsManager.current.penOpacity });
 
     }
     function onMouseDown() {
         mouseDown = true;
-        if (!customModes.isTextEnabled) createCanvas(); else if (!customModes.isTextInCreation) { // If another text is not being created, create a new one
-            customModes.isTextInCreation = true;
+        if (!customModes.current.isTextEnabled) createCanvas(); else if (!customModes.current.isTextInCreation) { // If another text is not being created, create a new one
+            customModes.current.isTextInCreation = true;
             AlertManager.simpleDelete().then(() => { // Delete other alerts
                 createCanvas();
                 // Render the AlertTextDom
@@ -277,14 +280,14 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                 createRoot(createText).render(<AlertTextDom stop={() => {
                     if (currentCanvas) {
                         Annotations.write({ canvas: currentCanvas, final: true, ...getTextAttributes() });
-                        if (currentCanvas) Annotations.end({ canvas: currentCanvas, disappear: userDrawingOptionsManager.timer });
-                        customModes.isTextInCreation = false;
+                        if (currentCanvas) Annotations.end({ canvas: currentCanvas, disappear: userDrawingOptionsManager.current.timer });
+                        customModes.current.isTextInCreation = false;
                     }
                     AlertManager.simpleDelete();
                 }} remove={() => {
                     if (currentCanvas) Annotations.end({ canvas: currentCanvas, disappear: 1 });
                     AlertManager.simpleDelete();
-                    customModes.isTextInCreation = false;
+                    customModes.current.isTextInCreation = false;
 
                 }} update={(e) => { if (currentCanvas) Annotations.write({ canvas: currentCanvas, text: e, ...getTextAttributes() }) }}></AlertTextDom>);
                 setTimeout(() => createText.style.opacity = "1", 25);
@@ -294,15 +297,16 @@ export default function PDF({ pdfObj, imgObj }: Props) {
     }
     useEffect(() => {
         window.onkeyup = (e) => {
-            userBtnPressed.indexOf(e.key.toLowerCase()) !== -1 && userBtnPressed.splice(userBtnPressed.indexOf(e.key.toLowerCase()), 1);
+            while (userBtnPressed.current.indexOf(e.key.toLowerCase()) !== -1) userBtnPressed.current.splice(userBtnPressed.current.indexOf(e.key.toLowerCase()), 1); // If the user keeps pressed a key for too long, multiple "onkeydown" events will be triggered. In this way, when the user releases the key, every instance of that key is deleted.
         }
         window.onkeydown = (e) => { // Add keyboard shortcuts
+            e.preventDefault();
             if (document.activeElement?.tagName.toLowerCase() === "textarea" || document.activeElement?.tagName.toLowerCase() === "input" || document.activeElement?.tagName.toLowerCase() === "select" || document.activeElement?.getAttribute("data-nokeyboard") === "a") return; // Avoid processing keyboard shortcuts if the user is writing something
             const KeyPreference = JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}") as KeyPreference;
-            userBtnPressed.push(e.key.toLowerCase());
+            userBtnPressed.current.push(e.key.toLowerCase());
             lookFunction: for (const tempAction in KeyPreference) {
                 const action = tempAction as keyof KeyPreference;
-                for (let item of (KeyPreference[action] ?? [])) if (userBtnPressed.indexOf(item) === -1) continue lookFunction;
+                for (let item of (KeyPreference[action] ?? [])) if (userBtnPressed.current.indexOf(item) === -1) continue lookFunction;
                 switch (action) {
                     case "fullscreen": {
                         CircularButtonsFunctions.fullscreen();
@@ -313,11 +317,11 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                         return;
                     }
                     case "stop": { // Stop everything is being done. Useful if this """flawless""" logic fails [and I wouldn't be surprised if it does]
-                        customModes.isEraserEnabled = false;
-                        customModes.isPenEnabled = false;
-                        customModes.isTextEnabled = false;
+                        customModes.current.isEraserEnabled = false;
+                        customModes.current.isPenEnabled = false;
+                        customModes.current.isTextEnabled = false;
                         updatePage(prevState => { return { ...prevState, requestedTabPart: `hello,${Date.now()}` } }); // Update the requestedTabPart so that the Toolbar tab will be set to the default one. A date is added to force the refresh.
-                        for (let item of ["text", "pen", "erase"]) RerenderButtons.update(item, customModes[`is${item === "text" ? "Text" : item === "pen" ? "Pen" : "Eraser"}Enabled`]); // Update all the circular buttons that have a shortcut
+                        for (let item of ["text", "pen", "erase"]) RerenderButtons.update(item, customModes.current[`is${item === "text" ? "Text" : item === "pen" ? "Pen" : "Eraser"}Enabled`]); // Update all the circular buttons that have a shortcut
                         return;
                     }
                     case "export": {
@@ -334,16 +338,16 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                     let currentThumbnail = 0;
                     currentThumbnail = action === "thumbnail" ? (prevState.showThumbnail === 1 ? 2 : 1) : prevState.showThumbnail;
                     setTimeout(() => action === "thumbnail" && RerenderButtons.update("thumbnail", currentThumbnail === 1), 150); // Avoid errors for rendering two states at the same time
-                    return { ...prevState, page: action === "prevpage" && prevState.page !== 1 ? prevState.page -= 1 : action === "nextpage" && (pdfObj?.numPages ?? -1) > prevState.page ? prevState.page += 1 : prevState.page, scale: action === "zoomin" ? prevState.scale *= 1.2 : action === "zoomout" ? prevState.scale /= 1.2 : prevState.scale, requestedTabPart: action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart, showThumbnail: currentThumbnail }
+                    return { ...prevState, page: action === "prevpage" && prevState.page !== 1 ? prevState.page -= 1 : action === "nextpage" && (pdfObj?.numPages ?? -1) > prevState.page ? prevState.page += 1 : prevState.page, scale: action === "zoomin" ? prevState.scale *= 1.2 : action === "zoomout" ? prevState.scale /= 1.2 : prevState.scale, requestedTabPart: prevState.requestedTabPart === "hello" ? action === "pointer" ? `circle,${Date.now()}` : action === "pen" || action === "text" ? `${action},${Date.now()}` : prevState.requestedTabPart : "hello", showThumbnail: currentThumbnail }
                 });
                 if (action === "text" || action === "pointer" || action === "pen" || action === "erase") {
-                    if ((action === "text" || action === "pointer")) customModes.isPenEnabled = false; // Disable pen mode for pointer and text editing
-                    if (action === "pen" || action === "pointer") customModes.isTextEnabled = false; // Disable text prompt for pointer and pen editing
-                    if (action === "pen") customModes.isPenEnabled = !customModes.isPenEnabled; // Toggle pen editing
-                    if (action === "text") customModes.isTextEnabled = !customModes.isTextEnabled; // Toggle text editing
-                    customModes.isEraserEnabled = action === "erase" ? !customModes.isEraserEnabled : false; // Toggle eraser if that action is selected, otherwise disable it
-                    RerenderButtons.update("erase", customModes.isEraserEnabled); // Update the eraser button, since for sure it has been modified
-                    (action === "pen" || action === "text") && RerenderButtons.update(action, customModes[`is${action === "text" ? "Text" : "Pen"}Enabled`]); // And update also the other button that might have been modified
+                    if ((action === "text" || action === "pointer")) customModes.current.isPenEnabled = false; // Disable pen mode for pointer and text editing
+                    if (action === "pen" || action === "pointer") customModes.current.isTextEnabled = false; // Disable text prompt for pointer and pen editing
+                    if (action === "pen") customModes.current.isPenEnabled = !customModes.current.isPenEnabled; // Toggle pen editing
+                    if (action === "text") customModes.current.isTextEnabled = !customModes.current.isTextEnabled; // Toggle text editing
+                    customModes.current.isEraserEnabled = action === "erase" ? !customModes.current.isEraserEnabled : false; // Toggle eraser if that action is selected, otherwise disable it
+                    RerenderButtons.update("erase", customModes.current.isEraserEnabled); // Update the eraser button, since for sure it has been modified
+                    (action === "pen" || action === "text") && RerenderButtons.update(action, customModes.current[`is${action === "text" ? "Text" : "Pen"}Enabled`]); // And update also the other button that might have been modified
                 }
                 break;
             }
@@ -353,7 +357,7 @@ export default function PDF({ pdfObj, imgObj }: Props) {
         <Toolbar imgObj={imgObj} requestedTab={pageSettings.requestedTabPart} pdfObj={pdfObj} pageSettings={pageSettings} updatePage={updatePage} settingsCallback={(e: OptionUpdater) => {
             /**
                 The following map includes all the events that will update user values. 
-                    @var "isUtils" means that the "customModes" object will updated;
+                    @var "isUtils" means that the "customModes.current" object will updated;
                     @var "isTemp" means that the "tempUserDrawingOptions" will be updated. "trigger"
                     @var "ref" is the property to update
                     @var "triggerText" asks for the re-render of the current text
@@ -382,12 +386,12 @@ export default function PDF({ pdfObj, imgObj }: Props) {
             ])
             switch (e.interface) {
                 case "CustomSelectTimer": // Update the timer length, by converting it in seconds
-                    userDrawingOptionsManager.timer = (isNaN(+e.value) ? 150 : +e.value) * 1000;
+                    userDrawingOptionsManager.current.timer = (isNaN(+e.value) ? 150 : +e.value) * 1000;
                     break;
                 case "ChangedTextStatus": // The user has entered or exited in the text mode. Update the values of some properties to their default ones to avoid UI issues
-                    customModes.isTextEnabled = !customModes.isTextEnabled;
+                    customModes.current.isTextEnabled = !customModes.current.isTextEnabled;
                     // @ts-ignore
-                    for (let item of ["isBold", "isItalic", "isUnderlined", "isStriked"]) tempUserDrawingOptions[item] = false;
+                    for (let item of ["isBold", "isItalic", "isUnderlined", "isStriked"]) tempUserDrawingOptions.current[item] = false;
                     triggerTextChange();
                     break;
                 default:
@@ -405,15 +409,15 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                     }
                     if (updateItem) {
                         // @ts-ignore | Update each object with the correct value, and save them in their appropriate storage
-                        updateItem.isUtils ? customModes[updateItem.ref] = getValue({ source: customModes[updateItem.ref], value: e.value }) : updateItem.isTemp ? tempUserDrawingOptions[updateItem.ref] = getValue({ source: tempUserDrawingOptions[updateItem.ref], value: e.value }) : userDrawingOptionsManager[updateItem.ref] = getValue({ source: userDrawingOptionsManager[updateItem.ref], value: e.value });
+                        updateItem.isUtils ? customModes.current[updateItem.ref] = getValue({ source: customModes.current[updateItem.ref], value: e.value }) : updateItem.isTemp ? tempUserDrawingOptions.current[updateItem.ref] = getValue({ source: tempUserDrawingOptions.current[updateItem.ref], value: e.value }) : userDrawingOptionsManager.current[updateItem.ref] = getValue({ source: userDrawingOptionsManager.current[updateItem.ref], value: e.value });
                         updateItem.triggerText && triggerTextChange();
-                        localStorage.setItem("PDFPointer-UserAnnotationSettings", JSON.stringify(userDrawingOptionsManager));
-                        sessionStorage.setItem("PDFPointer-UserTempSettings", JSON.stringify(tempUserDrawingOptions)) // Note that this is only used to recover the PDF filters value. Temp values are never restored.
-                        if (updateItem.filter && canvasRef.current.mainCanvas) canvasRef.current.mainCanvas.style.filter = `invert(${tempUserDrawingOptions.negativeFilter}) hue-rotate(${tempUserDrawingOptions.hueInversionFilter}deg) sepia(${tempUserDrawingOptions.sepiaFilter}) grayscale(${tempUserDrawingOptions.grayscaleFilter})`; // Update the canvas filters
+                        localStorage.setItem("PDFPointer-UserAnnotationSettings", JSON.stringify(userDrawingOptionsManager.current));
+                        sessionStorage.setItem("PDFPointer-UserTempSettings", JSON.stringify(tempUserDrawingOptions.current)) // Note that this is only used to recover the PDF filters value. Temp values are never restored.
+                        if (updateItem.filter && canvasRef.current.mainCanvas) canvasRef.current.mainCanvas.style.filter = `invert(${tempUserDrawingOptions.current.negativeFilter}) hue-rotate(${tempUserDrawingOptions.current.hueInversionFilter}deg) sepia(${tempUserDrawingOptions.current.sepiaFilter}) grayscale(${tempUserDrawingOptions.current.grayscaleFilter})`; // Update the canvas filters
                     }
                     break;
             }
-            localStorage.setItem("PDFPointer-UserAnnotationSettings", JSON.stringify(userDrawingOptionsManager));
+            localStorage.setItem("PDFPointer-UserAnnotationSettings", JSON.stringify(userDrawingOptionsManager.current));
         }}></Toolbar>
         <br></br>
         <div style={{ overflow: "auto" }}>
@@ -422,8 +426,8 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                 <div className="cursor" data-noresize key={"PDFCanvasCircle"} ref={el => (canvasRef.current.circleCanvas = el)}></div>
                 <canvas style={{ zIndex: 999990, cursor: "none" }} key="PDFCanvasEvents" className="hoverCanvas" ref={el => (canvasRef.current.hoverCanvas = el)} data-noresize onMouseDown={(e) => onMouseDown()} onTouchStart={() => {
                     // Disable (or enable) standard touch actions so that, when the user is using a pen/eraser, the canvas won't move
-                    if (canvasRef.current.centerDiv?.parentElement) canvasRef.current.centerDiv.parentElement.style.touchAction = customModes.isPenEnabled || customModes.isEraserEnabled ? "none" : "";
-                    if (canvasRef.current.centerDiv) canvasRef.current.centerDiv.style.touchAction = customModes.isPenEnabled || customModes.isEraserEnabled ? "none" : "";
+                    if (canvasRef.current.centerDiv?.parentElement) canvasRef.current.centerDiv.parentElement.style.touchAction = customModes.current.isPenEnabled || customModes.current.isEraserEnabled ? "none" : "";
+                    if (canvasRef.current.centerDiv) canvasRef.current.centerDiv.style.touchAction = customModes.current.isPenEnabled || customModes.current.isEraserEnabled ? "none" : "";
                     onMouseDown()
                 }
                 } onMouseMove={(e) => mouseMove({
@@ -439,7 +443,7 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                 }}
                     onClick={(e) => {
                         let target = e.target as HTMLCanvasElement;
-                        if (customModes.isTextEnabled && currentCanvas) { // Update the position of the text
+                        if (customModes.current.isTextEnabled && currentCanvas) { // Update the position of the text
                             mouseDown = [(e.clientX - (currentCanvas ?? target).getBoundingClientRect().left) * (window.devicePixelRatio || 1), (e.clientY - (currentCanvas ?? target).getBoundingClientRect().top) * (window.devicePixelRatio || 1)];
                             Annotations.write({ canvas: currentCanvas, position: mouseDown, ...getTextAttributes() });
                         }
@@ -447,14 +451,14 @@ export default function PDF({ pdfObj, imgObj }: Props) {
                     onMouseUp={stopCanvasEditing} onTouchEnd={stopCanvasEditing} onMouseLeave={() => { stopCanvasEditing(); if (canvasRef.current.circleCanvas) canvasRef.current.circleCanvas.style.display = "none" }} onMouseEnter={() => {
                         if (canvasRef.current.circleCanvas) { // Update properties of the pointer circlee
                             canvasRef.current.circleCanvas.style.display = "block";
-                            canvasRef.current.circleCanvas.style.backgroundColor = userDrawingOptionsManager.cursorColor;
-                            for (let item of ["width", "height"]) canvasRef.current.circleCanvas.style[item as "width" | "height"] = `${userDrawingOptionsManager.cursorSize}px`;
+                            canvasRef.current.circleCanvas.style.backgroundColor = userDrawingOptionsManager.current.cursorColor;
+                            for (let item of ["width", "height"]) canvasRef.current.circleCanvas.style[item as "width" | "height"] = `${userDrawingOptionsManager.current.cursorSize}px`;
                         }
                     }}></canvas>
             </div>
         </div >
         <div ref={el => (canvasRef.current.thumbnailDiv = el)}>
-            {pageSettings.showThumbnail !== 0 && pdfObj && <Thumbnail closeEvent={() => { RerenderButtons.update("thumbnail", false); updatePage(prevState => { return { ...prevState, showThumbnail: 2 } }) }} PDFObj={pdfObj} pageListener={(e) => { updatePage(prevState => { return { ...prevState, page: e + 1 } }) }}></Thumbnail>}
+            {pageSettings.showThumbnail !== 0 && pdfObj && <Thumbnail key={`PDFPointer-ThumbnailViewer`} PDFObj={pdfObj} PDFState={updatePage}></Thumbnail>}
         </div>
     </>
 }

@@ -7,8 +7,6 @@ import AlertManager from "../Scripts/AlertManager";
 interface Props {
     category: "Color" | "Theme"  // "color" for the custom color; "theme" for the custom theme
 }
-let typedName = ""; // Custom color name
-let typedColor = ""; // Custom color value
 interface SaveFilePicker {
     id?: string,
     suggestedName?: string,
@@ -28,6 +26,14 @@ declare global {
  * @returns the CustomDisplay ReactNode
  */
 export default function CustomDisplay({ category }: Props) {
+    /**
+     * Custom color name
+     */
+    let typedName = useRef<string>("");
+    /**
+     * Custom color value
+     */
+    let typedColor = useRef<string>("");
     // Get the current theme values so that the color list can be updated
     const themeValue = [{ ref: "background", desc: Lang("Background color"), value: getComputedStyle(document.body).getPropertyValue("--background") },
     { ref: "text", desc: Lang("Text color"), value: getComputedStyle(document.body).getPropertyValue("--text") },
@@ -85,11 +91,11 @@ export default function CustomDisplay({ category }: Props) {
     return <>
         <div style={{ display: "flex", justifyContent: category === "Color" ? "center" : "", overflow: "auto" }}>
             {category === "Color" ? <>
-                <input type="color" style={{ height: "42px" }} onInput={(e) => typedColor = e.currentTarget.value}></input>
-                <input style={{ marginLeft: "10px", width: "fit-content", height: "38px" }} onInput={(e) => typedName = e.currentTarget.value} type="text" placeholder={Lang("Write the color name")}></input>
+                <input type="color" style={{ height: "42px" }} onInput={(e) => typedColor.current = e.currentTarget.value}></input>
+                <input style={{ marginLeft: "10px", width: "fit-content", height: "38px" }} onInput={(e) => typedName.current = e.currentTarget.value} type="text" placeholder={Lang("Write the color name")}></input>
                 <button style={{ marginLeft: "10px", width: "fit-content" }} onClick={() => { // The button that'll add the new color to the list
                     let getContent = JSON.parse(localStorage.getItem(`PDFPointer-Custom${category}`) ?? "[]") as CustomProp[];
-                    getContent.push({ name: typedName, value: typedColor, id: getId() })
+                    getContent.push({ name: typedName.current, value: typedColor.current, id: getId() })
                     localStorage.setItem(`PDFPointer-Custom${category}`, JSON.stringify(getContent));
                     forceRefresh(nothing + 1);
                 }}>{Lang("Add")}</button>
