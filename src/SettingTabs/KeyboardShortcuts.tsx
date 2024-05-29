@@ -1,9 +1,8 @@
 import Lang from "../Scripts/LanguageTranslations";
 import { KeyPreference } from "../Interfaces/CustomOptions";
 import Card from "../Components/Card";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-let keyPressed: string[] = [];
 /**
  * Change keyboard shortcuts inside PDFPointer
  * @returns the KeyboardShortcuts ReactNode tab
@@ -11,6 +10,11 @@ let keyPressed: string[] = [];
 export default function KeyboardShortcuts() {
     const KeyPreference = JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}") as KeyPreference;
     const [state, updateState] = useState<keyof KeyPreference>("zoomin");
+    let keyPressed: string[] = [];
+    let keyList = useRef<HTMLDivElement>(null);
+    function updateValues() {
+        if (keyList.current) keyList.current.textContent = keyPressed.join("  —  ");
+    };
     return <>
         <h3>{Lang("Keyboard shortcuts:")}</h3>
         <i>{Lang("Change, or delete the keyboard shortcuts to useful elements. Click on the dashed surface, and press the key for this action")}</i><br></br><br></br>
@@ -31,14 +35,15 @@ export default function KeyboardShortcuts() {
                 <option value="export">{Lang("Export as an image")}</option>
             </select><br></br><br></br>
             <div style={{ display: "flex", alignItems: "center" }}>
-                <div tabIndex={0} data-nokeyboard="a" className="card intelligentFill simplePointer" style={{ backgroundColor: "var(--secondstruct)", border: "2px dashed var(--text)" }} key={`PDFPointer-KeyboardShortcutInput-${state}`} onKeyDown={(e) => {
+                <div ref={keyList} tabIndex={0} data-nokeyboard="a" className="card intelligentFill simplePointer" style={{ backgroundColor: "var(--secondstruct)", border: "2px dashed var(--text)" }} key={`PDFPointer-KeyboardShortcutInput-${state}`} onKeyDown={(e) => {
+                    e.preventDefault();
                     keyPressed.push(e.key.toLowerCase());
-                    (e.target as HTMLInputElement).textContent = keyPressed.join("  —  ");
+                    updateValues();
                     localStorage.setItem("PDFPointer-KeyboardPreferences", JSON.stringify({ ...JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}"), [state]: keyPressed }));
-                }} onInput={(e) => e.preventDefault()} onKeyUp={(e) => {
-                    keyPressed.indexOf(e.key.toLowerCase()) !== -1 && keyPressed.splice(keyPressed.indexOf(e.key.toLowerCase()), 1);
-                }}>{KeyPreference[state]}</div><button style={{ marginLeft: "10px", width: "max-content", whiteSpace: "nowrap" }} onClick={() => {
+                }} onInput={(e) => e.preventDefault()}>{KeyPreference[state]?.join("  —  ")}</div><button style={{ marginLeft: "10px", width: "max-content", whiteSpace: "nowrap" }} onClick={() => {
                     localStorage.setItem("PDFPointer-KeyboardPreferences", JSON.stringify({ ...JSON.parse(localStorage.getItem("PDFPointer-KeyboardPreferences") ?? "{}"), [state]: undefined }));
+                    keyPressed = [];
+                    updateValues();
                 }}>{Lang("Delete shortcut")}</button>
             </div>
         </div>

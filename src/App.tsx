@@ -23,8 +23,8 @@ declare global {
     heic2any: (e: any) => Promise<Blob>
   }
 }
-let installationPrompt: any;
 export default function App() {
+  let installationPrompt = useRef<any>();
   let [CurrentState, UpdateState] = useState<State>({});
   let cardContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function App() {
     }
     window.addEventListener('beforeinstallprompt', (event) => { // Capture the request to install the PWA so that it can be displayed when the button is clicked
       event.preventDefault();
-      installationPrompt = event;
+      installationPrompt.current = event;
     });
   }, [])
   async function getNewState(file: File) {
@@ -106,8 +106,8 @@ export default function App() {
           </div>
           <i>{Lang("Install PDFPointer as an app for offline use and better integration with the OS.")}</i><br></br><br></br>
           <button onClick={() => {
-            installationPrompt.prompt();
-            installationPrompt.userChoice.then((choice: { outcome: string }) => {
+            installationPrompt.current.prompt();
+            installationPrompt.current.userChoice.then((choice: { outcome: string }) => {
               if (choice.outcome === "accepted") UpdateState(prevState => { return { ...prevState, hideTab: true } })
             });
           }}>{Lang("Install app")}</button>
